@@ -4,10 +4,10 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { type BreadcrumbItem } from '@/types';
 
-export default function AppSidebarLayout({ children, breadcrumbs = [] }: { children: React.ReactNode; breadcrumbs?: BreadcrumbItem[] }) {
+export default function AppSidebarLayout({ children, breadcrumbs = [], hideSidebar = false }: { children: React.ReactNode; breadcrumbs?: BreadcrumbItem[]; hideSidebar?: boolean }) {
     return (
         <AppShell variant="sidebar">
-            <AppSidebar />
+            {!hideSidebar && <AppSidebar />}
             <AppContent variant="sidebar">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}

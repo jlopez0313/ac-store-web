@@ -4,6 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 interface AppLayoutProps {
     children: React.ReactNode;
     breadcrumbs?: BreadcrumbItem[];
+    hideSidebar?: boolean;
 }
 
 export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => (
