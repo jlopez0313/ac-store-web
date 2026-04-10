@@ -75,4 +75,12 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Cuenta::class);
     }
+
+    /**
+     * Get the warehouse accesses for the user.
+     */
+    public function bodegaAccesos()
+    {
+        return $this->hasMany(BodegaAcceso::class, 'user_id');
+    }
 }

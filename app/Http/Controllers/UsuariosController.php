@@ -35,9 +35,9 @@ class UsuariosController extends Controller
         }
 
         return Inertia::render('usuarios/Index', [
-            'filters' => $request->only(['search', 'role', 'cuenta_id']),
+            'filters' => $request->only(['search', 'role', 'cuenta_id', 'per_page']),
             'lista'   => UserResource::collection(
-                $query->paginate($request->input('per_page', 10))->appends($request->all())
+                $query->paginate($request->input('per_page', 25))->appends($request->all())
             ),
             'roles'   => Role::orderBy('name')->get()->map(fn($role) => ['id' => $role->name, 'name' => $role->name]),
             'cuentas' => Cuenta::where('estado', 1)->orderBy('nombre')->get(['id', 'nombre as name']),

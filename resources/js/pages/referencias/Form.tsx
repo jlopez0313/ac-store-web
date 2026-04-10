@@ -1,13 +1,13 @@
+import { Button } from '@/components/ui/button';
 import { FormButtons } from '@/components/ui/form/FormButtons';
 import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
-import { useForm } from '@inertiajs/react';
-import { FormEventHandler, useEffect, useState, useRef } from 'react';
-import { showAlert } from '@/plugins/sweetalert';
-import { useAuth } from '@/hooks/use-auth';
-import { Image as ImageIcon, Upload, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/hooks/use-auth';
+import { showAlert } from '@/plugins/sweetalert';
+import { useForm } from '@inertiajs/react';
+import { Image as ImageIcon, Upload, X } from 'lucide-react';
+import { FormEventHandler, useEffect, useRef, useState } from 'react';
 
 type ThisForm = {
 	codigo: string;
@@ -21,7 +21,7 @@ type ThisForm = {
 
 export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, onGetItem, onReload }: any) => {
 	const { isSuperAdmin } = useAuth();
-	
+
 	// Previews the currently selected file or the absolute URL from the backend
 	const [imagePreview, setImagePreview] = useState<string | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +37,7 @@ export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, on
 
 	const submit: FormEventHandler = async (e) => {
 		e.preventDefault();
-		
+
 		// When using file uploads in Laravel API via PUT, the payload must actually
 		// be sent as a POST with `_method=PUT` inside FormData, otherwise it drops files.
 		const payload = { ...data };
@@ -53,13 +53,13 @@ export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, on
 				// However, if the hook uses axios.post for the update internally if it detects a File object or FormData, 
 				// it will work. Our useCrudPage hook needs to handle this natively. 
 				// Let's ensure we use a POST request with the _method spoof since it's an upload
-				() => ({ 
+				() => ({
 					url: route('referencias.update', { referencia: id }),
 					method: 'post' // Force POST for Laravel FormData
 				}),
 				payload,
 				// Indicates multi-part to useCrudPage hook -> it should wrap in FormData automatically
-				true, 
+				true,
 				(err: any) => {
 					if (err.response?.data?.errors) {
 						const backendErrors = err.response.data.errors;
@@ -166,7 +166,7 @@ export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, on
 							/>
 						)}
 
-						<div className="col-span-1 md:col-span-2">
+						<div className="col-span-1">
 							<InputField
 								name="descripcion"
 								title="Descripción (Opcional)"
@@ -185,8 +185,8 @@ export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, on
 									{imagePreview ? (
 										<>
 											<img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-											<button 
-												type="button" 
+											<button
+												type="button"
 												onClick={clearImage}
 												className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
 											>
@@ -201,9 +201,9 @@ export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, on
 								{/* Upload Content */}
 								<div className="flex-1 w-full space-y-2">
 									<div className="flex items-center gap-3">
-										<Button 
-											type="button" 
-											variant="outline" 
+										<Button
+											type="button"
+											variant="outline"
 											onClick={() => fileInputRef.current?.click()}
 										>
 											<Upload className="w-4 h-4 mr-2" />
@@ -211,8 +211,8 @@ export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, on
 										</Button>
 										<span className="text-xs text-slate-500">PNG, JPG hasta 2MB</span>
 									</div>
-									<input 
-										type="file" 
+									<input
+										type="file"
 										ref={fileInputRef}
 										onChange={handleImageChange}
 										accept="image/*"

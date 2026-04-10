@@ -26,6 +26,9 @@ class CompraDetalle extends Model
 
     protected $casts = [
         'tallas' => 'array',
+        'precio_unitario' => 'integer',
+        'precio_venta' => 'integer',
+        'subtotal' => 'integer',
     ];
 
     public function compra()

@@ -1,15 +1,15 @@
 import { PageHeader } from '@/components/page-header';
 import { Search } from '@/components/Search/Search';
 import { Button } from '@/components/ui/button';
+import { DataGrid } from '@/components/ui/DataTable';
 import { Modal } from '@/components/ui/Modal';
+import { useAuth } from '@/hooks/use-auth';
 import { useCrudPage } from '@/hooks/useCrudPage';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Edit, Image as ImageIcon, Plus, Trash } from 'lucide-react';
 import { Form } from './Form';
-import { DataGrid } from '@/components/ui/DataTable';
-import { useAuth } from '@/hooks/use-auth';
 
 const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Panel principal', href: route('dashboard') },
@@ -18,7 +18,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Index({ filters, lista, cuentas, categorias }: any) {
 	const { isSuperAdmin } = useAuth();
-	
+
 	const {
 		data,
 		meta: { total, current_page, per_page },
@@ -115,7 +115,7 @@ export default function Index({ filters, lista, cuentas, categorias }: any) {
 						columns={columns}
 						total={total}
 						currentPage={current_page}
-						paginationPerPage={per_page}
+						paginationPerPage={per_page || 25}
 						actions={actions}
 						processing={processing}
 						serverSide={true}

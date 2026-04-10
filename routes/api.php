@@ -10,7 +10,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::apiResource('cuentas', ApiCuentasController::class)->except(['index']);
+    Route::apiResource('cuentas', ApiCuentasController::class)->names('api.cuentas')->except(['index']);
     Route::apiResource('usuarios', ApiUsuariosController::class)->except(['index']);
     Route::apiResource('bodegas', App\Http\Controllers\Api\BodegasController::class)->except(['index']);
     Route::apiResource('categorias', App\Http\Controllers\Api\CategoriasController::class)->except(['index']);
@@ -19,4 +19,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('compras', App\Http\Controllers\Api\ComprasController::class)->except(['index']);
     Route::post('compras/{compra}/detalles', [App\Http\Controllers\Api\CompraDetallesController::class, 'store'])->name('api.compra_detalles.store');
     Route::delete('compras/{compra}/detalles/{detalle}', [App\Http\Controllers\Api\CompraDetallesController::class, 'destroy'])->name('api.compra_detalles.destroy');
+
+    Route::get('muestras/references', [App\Http\Controllers\MuestrasController::class, 'getReferencesByAccount'])->name('api.muestras.references');
+    Route::get('muestras/stock', [App\Http\Controllers\MuestrasController::class, 'getStock'])->name('api.muestras.stock');
+    Route::get('muestras/{muestra}', [App\Http\Controllers\MuestrasController::class, 'show'])->name('api.muestras.show');
+    Route::post('muestras', [App\Http\Controllers\MuestrasController::class, 'store'])->name('api.muestras.store');
+    Route::put('muestras/{muestra}', [App\Http\Controllers\MuestrasController::class, 'update'])->name('api.muestras.update');
+    Route::delete('muestras/{muestra}', [App\Http\Controllers\MuestrasController::class, 'destroy'])->name('api.muestras.destroy');
+
+    Route::get('cambios/invoices', [App\Http\Controllers\CambiosController::class, 'getClosedInvoices'])->name('api.cambios.invoices');
+    Route::get('cambios/invoice-details', [App\Http\Controllers\CambiosController::class, 'getInvoiceDetails'])->name('api.cambios.invoice_details');
+    Route::post('cambios', [App\Http\Controllers\CambiosController::class, 'store'])->name('api.cambios.store');
 });

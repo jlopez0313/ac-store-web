@@ -8,8 +8,17 @@ trait HasRole
 {
     use HasRoles;
 
-    public function hasRole(string|object $role): bool
+    public function hasRole(string|object|array $role): bool
     {
+        if (is_array($role)) {
+            foreach ($role as $r) {
+                if ($this->hasRole($r)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         $userRoleValue = $this->rol?->name ?? $this->getRoleNames()->first();
 
         if (empty($userRoleValue)) {
@@ -20,7 +29,7 @@ trait HasRole
             return $userRoleValue === $role;
         }
 
-        return $userRoleValue === $role->value;
+        return $userRoleValue === ($role->name ?? $role->value ?? null);
     }
 
     /**

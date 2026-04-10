@@ -255,6 +255,44 @@
     h4 {
         @apply font-semibold tracking-tight;
     }
+
+    /* Custom sleek scrollbar */
+    ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: hsl(var(--muted-foreground) / 0.3);
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: hsl(var(--muted-foreground) / 0.5);
+    }
+
+    /* Firefox support */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent !important;
+    }
+
+    /* Sidebar specific overrides (for the dark background) */
+    [data-sidebar="content"] {
+        scrollbar-color: hsl(220 20% 60% / 0.2) transparent !important;
+    }
+
+    [data-sidebar="content"]::-webkit-scrollbar-thumb {
+        background: hsl(220 20% 60% / 0.2);
+    }
+
+    [data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
+        background: hsl(220 20% 60% / 0.4);
+    }
 }
 
 @layer components {

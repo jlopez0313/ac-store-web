@@ -16,7 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Categorías', href: route('categorias.index') },
 ];
 
-export default function Index({ filters, lista, tipos_control }: any) {
+export default function Index({ filters, lista, tipos_control, tipos_muestras }: any) {
 	const {
 		data,
 		meta: { total, current_page, per_page },
@@ -130,6 +130,7 @@ export default function Index({ filters, lista, tipos_control }: any) {
 				<Form
 					id={id}
 					tipos_control={tipos_control}
+					tipos_muestras={tipos_muestras}
 					processing={processing}
 					onClose={() => onToggleModal(false)}
 					onStore={onStore}

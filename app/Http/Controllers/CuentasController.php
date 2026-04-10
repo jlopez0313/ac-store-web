@@ -19,10 +19,10 @@ class CuentasController extends Controller
         }
 
         return Inertia::render('cuentas/Index', [
-            'filters'  => Peticion::only(['search', 'trashed']),
+            'filters'  => Peticion::only(['search', 'trashed', 'per_page']),
             'estados'  => config('constants.estados'),
             'lista'    => CuentasResource::collection(
-                $query->paginate($request->input('per_page', 10))->appends($request->all())
+                $query->paginate($request->input('per_page', 25))->appends($request->all())
             ),
         ]);
     }

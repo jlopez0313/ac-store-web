@@ -17,8 +17,8 @@ export const NAV_ITEMS: NavItem[] = [
     { title: 'Facturas', url: '/facturas', icon: FileText, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
     { title: 'Traslados', url: '/traslados', icon: ArrowLeftRight, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
     { title: 'Cajas', url: '/cajas', icon: Box, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
-    { title: 'Muestras', url: '/muestras', icon: Archive, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
-    { title: 'Cambios', url: '/cambios', icon: RefreshCcw, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
+    { title: 'Muestras', url: '/muestras', icon: Archive, roles: ['superadmin', 'admin', 'bodega', 'local'], group: 'operaciones' },
+    { title: 'Cambios', url: '/cambios', icon: RefreshCcw, roles: ['superadmin', 'admin', 'bodega', 'local'], group: 'operaciones' },
     { title: 'Devoluciones', url: '/devoluciones', icon: Undo2, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
     { title: 'Cardex', url: '/cardex', icon: TrendingUp, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },
     { title: 'Ventas Generales', url: '/ventas-generales', icon: BarChart2, roles: ['superadmin', 'admin'], group: 'reportes' },
@@ -30,9 +30,24 @@ export const NAV_ITEMS: NavItem[] = [
     { title: 'Opciones', url: '/opciones', icon: Settings, roles: ['superadmin', 'admin'], group: 'admin' },
 ];
 
+export const GROUP_META = {
+    principal: { label: 'Principal', color: 'text-primary', bg: 'bg-primary/10' },
+    operaciones: { label: 'Operaciones', color: 'text-chart-2', bg: 'bg-chart-2/10' },
+    reportes: { label: 'Reportes', color: 'text-chart-4', bg: 'bg-chart-4/10' },
+    admin: { label: 'Administración', color: 'text-muted-foreground', bg: 'bg-muted' },
+} as const;
+
 export function AppSidebar() {
     const { auth } = usePage<SharedData>().props;
     const visibleItems = NAV_ITEMS.filter(item => auth.user && item.roles.includes(auth.user.role));
+
+    // Grouping logic
+    const groups = ['principal', 'operaciones', 'reportes', 'admin'] as const;
+    const groupedItems = groups.map(group => ({
+        group,
+        label: GROUP_META[group].label,
+        items: visibleItems.filter(item => item.group === group)
+    })).filter(g => g.items.length > 0);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -49,7 +64,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={visibleItems} />
+                <NavMain groupedItems={groupedItems} />
             </SidebarContent>
         </Sidebar>
     );

@@ -27,11 +27,11 @@ class BodegasController extends Controller
         }
 
         return Inertia::render('bodegas/Index', [
-            'filters'  => Peticion::only(['search']),
+            'filters'  => Peticion::only(['search', 'per_page']),
             'estados'  => config('constantes.estados'),
             'cuentas'  => $user->hasRole('superadmin') ? Cuenta::where('estado', 1)->orderBy('nombre')->get(['id', 'nombre as name']) : [],
             'lista'    => BodegaResource::collection(
-                $query->paginate($request->input('per_page', 10))->appends($request->all())
+                $query->paginate($request->input('per_page', 25))->appends($request->all())
             ),
         ]);
     }

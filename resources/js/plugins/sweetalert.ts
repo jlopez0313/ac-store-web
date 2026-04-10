@@ -12,7 +12,7 @@ const Toast = Swal.mixin({
     },
 });
 
-type errorType = 'error' |'success' | 'warning'
+type errorType = 'error' | 'success' | 'warning' | 'info'
 export const showAlert = (type: errorType, message: string) => {
     Toast.fire({
         icon: type,

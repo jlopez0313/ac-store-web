@@ -28,8 +28,9 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 	const [sizedPrice, setSizedPrice] = useState('');
 	const [sizedSellingPrice, setSizedSellingPrice] = useState('');
 	const [sizedWarehouse, setSizedWarehouse] = useState('');
+	const [sizedShelf, setSizedShelf] = useState('');
 
-	const [sizedRows, setSizedRows] = useState<{ size: string, qty: string, estanteria_id: string }[]>([]);
+	const [sizedRows, setSizedRows] = useState<{ size: string, qty: string }[]>([]);
 
 	const updateSizedRow = (index: number, field: string, value: string) => {
 		const newRows = [...sizedRows];
@@ -46,8 +47,10 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 			setSimpleSellingPrice('');
 			setSizedPrice('');
 			setSizedSellingPrice('');
+			setSizedWarehouse('');
+			setSizedShelf('');
 
-			let initialRows: { size: string, qty: string, estanteria_id: string }[] = [];
+			let initialRows: { size: string, qty: string }[] = [];
 			const jsonStr = referencia.categoria?.variaciones_json;
 			if (jsonStr) {
 				try {
@@ -58,7 +61,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 							if (typeof item === 'object' && item !== null) {
 								sizeLabel = String(item.text || item.nombre || item.talla || item.valor || Object.values(item)[0] || JSON.stringify(item));
 							}
-							return { size: sizeLabel, qty: '', estanteria_id: '' };
+							return { size: sizeLabel, qty: '' };
 						});
 					}
 				} catch (e) {
@@ -67,7 +70,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 			}
 
 			if (initialRows.length === 0) {
-				initialRows = Array.from({ length: 15 }, (_, i) => ({ size: String(34 + i), qty: '', estanteria_id: '' }));
+				initialRows = Array.from({ length: 15 }, (_, i) => ({ size: String(34 + i), qty: '' }));
 			}
 
 			setSizedRows(initialRows);
@@ -95,7 +98,9 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 					referencia_id: referencia.id,
 					bodega_id: sizedWarehouse,
 					modo: 'tallado',
-					tallas: sizedRows.filter(r => (parseInt(r.qty) || 0) > 0),
+					tallas: sizedRows
+						.filter(r => (parseInt(r.qty) || 0) > 0)
+						.map(r => ({ ...r, estanteria_id: sizedShelf })),
 					cantidad: sizedTotal,
 					precio_unitario: sizedPrice,
 					precio_venta: sizedSellingPrice
@@ -200,10 +205,10 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 							<p className="text-xs text-muted-foreground flex-shrink-0">
 								Ingresa la cantidad por talla. Los pares quedarán asignados directamente al estante de la bodega seleccionada.
 							</p>
-							<div className="grid grid-cols-3 gap-3 flex-shrink-0">
+							<div className="grid grid-cols-2 gap-3 flex-shrink-0">
 								<InputField
 									name="sizedPrice"
-									title="Precio unit. (Costo)"
+									title="Precio (Costo)"
 									type="number"
 									min="0"
 									value={sizedPrice}
@@ -211,57 +216,47 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 								/>
 								<InputField
 									name="sizedSellingPrice"
-									title="Precio de venta"
+									title="Precio Venta"
 									type="number"
 									min="0"
 									value={sizedSellingPrice}
 									onChange={(v: string) => setSizedSellingPrice(v)}
 								/>
-								<div>
-									<SelectField
-										item={{ idx: 'id', value: 'nombre' }}
-										name="sizedWarehouse"
-										title="Bodega destino"
-										lista={bodegas}
-										value={sizedWarehouse}
-										onChange={(v) => setSizedWarehouse(v as string)}
-										error={""}
-									/>
-								</div>
+								<SelectField
+									item={{ idx: 'id', value: 'nombre' }}
+									name="sizedWarehouse"
+									title="Bodega"
+									lista={bodegas}
+									value={sizedWarehouse}
+									onChange={(v) => {
+										setSizedWarehouse(v as string);
+										setSizedShelf('');
+									}}
+									error={""}
+								/>
+								<SelectField
+									item={{ idx: 'id', value: 'nombre' }}
+									name="sizedShelf"
+									title="Estantería"
+									lista={bodegas.find((b: any) => String(b.id) === String(sizedWarehouse))?.estanterias || []}
+									value={sizedShelf}
+									onChange={(v) => setSizedShelf(v as string)}
+									error={""}
+									disabled={!sizedWarehouse}
+								/>
 							</div>
 
 							{/* Grid de tallas compacto */}
-							<div className="flex-1 border rounded-lg overflow-hidden flex flex-col min-h-[200px]">
-								<div className="bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground border-b grid grid-cols-[4rem_1fr_6rem] gap-2 flex-shrink-0">
-									<span>Talla</span>
-									<span>Estantería</span>
-									<span>Cant.</span>
+							<div className="flex-1 border rounded-lg overflow-hidden flex flex-col min-h-[200px] max-w-sm mx-auto w-full">
+								<div className="bg-muted/50 px-4 py-2 text-xs font-bold tracking-wider text-muted-foreground border-b grid grid-cols-[1fr_80px] gap-4 flex-shrink-0">
+									<span>Variación</span>
+									<span className="text-center">Cant.</span>
 								</div>
-								<div className="flex-1 overflow-y-auto">
-									<div className="grid grid-cols-1 gap-y-1.5 p-2">
+								<div className="flex-1 overflow-y-auto bg-white">
+									<div className="grid grid-cols-1 divide-y divide-slate-100 px-2">
 										{sizedRows.map((row, i) => (
-											<div key={row.size} className="grid grid-cols-[4rem_1fr_6rem] gap-2 items-center">
-												<span className="font-mono font-semibold text-sm truncate">{row.size}</span>
-
-												<div className="-mt-1">
-													{(() => {
-														const currentBodega = bodegas.find((b: any) => String(b.id) === String(sizedWarehouse));
-														const shelves = currentBodega?.estanterias || [];
-														// console.log('DEBUG SHELVES:', { sizedWarehouse, foundBodega: !!currentBodega, shelvesCount: shelves.length });
-														return (
-															<SelectField
-																item={{ idx: 'id', value: 'nombre' }}
-																name={`estanteria_${i}`}
-																title=""
-																lista={shelves}
-																value={row.estanteria_id}
-																onChange={(v) => updateSizedRow(i, 'estanteria_id', v as string)}
-																error={""}
-																placeholder="Estant..."
-															/>
-														);
-													})()}
-												</div>
+											<div key={row.size} className="grid grid-cols-[1fr_80px] gap-4 items-center py-2 px-2 hover:bg-slate-50 transition-colors">
+												<span className="font-bold text-sm text-slate-600 ml-2">{row.size}</span>
 
 												<div className="-mt-1">
 													<InputField
@@ -282,7 +277,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 							</div>
 
 							<div className="rounded-lg bg-muted px-4 py-2 text-sm font-medium text-center">
-								Total pares tallados: <span className="font-bold text-primary">{sizedTotal}</span>
+								Total Unidades talladas: <span className="font-bold text-primary">{sizedTotal}</span>
 							</div>
 						</TabsContent>
 					</Tabs>

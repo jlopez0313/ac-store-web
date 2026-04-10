@@ -4,13 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/Modal';
 import { useCrudPage } from '@/hooks/useCrudPage';
 import AppLayout from '@/layouts/app-layout';
-import { SharedData, type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/react';
-import { Plus, Edit, Trash } from 'lucide-react';
+import { BreadcrumbItem } from '@/types';
+import { Head, router } from '@inertiajs/react';
+import { Plus, Edit, Trash, ShieldCheck, LayoutGrid } from 'lucide-react';
 import { Form } from './Form';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
+import { useState } from 'react';
+import { ManagementModal } from '../estanterias/ManagementModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Panel principal', href: route('dashboard') },
@@ -18,7 +20,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ filters, lista, estados, cuentas }: any) {
-	const { isSuperAdmin } = useAuth();
+	const { isSuperAdmin, role } = useAuth();
+	const [showShelvesModal, setShowShelvesModal] = useState(false);
+	const [selectedBodegaForShelves, setSelectedBodegaForShelves] = useState<any>(null);
 
 	const {
 		data,
@@ -69,6 +73,21 @@ export default function Index({ filters, lista, estados, cuentas }: any) {
 	];
 
 	const actions = [
+		{
+			title: 'Gestionar Estanterías',
+			icon: LayoutGrid,
+			action: (id: number) => {
+				const bodega = data.find((b: any) => b.id === id);
+				setSelectedBodegaForShelves(bodega);
+				setShowShelvesModal(true);
+			},
+		},
+		{
+			title: 'Locales con acceso',
+			icon: ShieldCheck,
+			hide: !isSuperAdmin && role !== 'admin',
+			action: (id: number) => router.visit(route('bodegas.accesos', { bodega: id })),
+		},
 		{
 			title: 'Editar',
 			icon: Edit,
@@ -136,6 +155,17 @@ export default function Index({ filters, lista, estados, cuentas }: any) {
 					onReload={onReload}
 				/>
 			</Modal>
+
+			{selectedBodegaForShelves && (
+				<ManagementModal
+					isOpen={showShelvesModal}
+					onClose={() => {
+						setShowShelvesModal(false);
+						setSelectedBodegaForShelves(null);
+					}}
+					bodega={selectedBodegaForShelves}
+				/>
+			)}
 		</AppLayout>
 	);
 }

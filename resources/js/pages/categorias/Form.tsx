@@ -11,12 +11,12 @@ type ThisForm = {
 	nombre: string;
 	prefijo_sku: string;
 	tipo_control: string;
-	variaciones_json: string; // We'll handle as string in form then parse
+	variaciones_json: string;
 	maneja_subdivision: boolean;
-	etiquetas_subdivision: string;
+	tipo_muestra: string;
 };
 
-export const Form = ({ id, tipos_control, onClose, processing, onStore, onGetItem, onReload }: any) => {
+export const Form = ({ id, tipos_control, tipos_muestras, onClose, processing, onStore, onGetItem, onReload }: any) => {
 	const [manejaSub, setManejaSub] = useState(false);
 
 	const { data, setData, errors, reset, setError } = useForm<ThisForm>({
@@ -25,16 +25,23 @@ export const Form = ({ id, tipos_control, onClose, processing, onStore, onGetIte
 		tipo_control: 'unidades',
 		variaciones_json: '',
 		maneja_subdivision: false,
-		etiquetas_subdivision: '',
+		tipo_muestra: '',
 	});
 
 	const submit: FormEventHandler = async (e) => {
 		e.preventDefault();
 
+		// Map tipo_muestra back to subdivision_stock array from prop constants
+		let subdivision_stock = null;
+		if (data.maneja_subdivision && data.tipo_muestra) {
+			const selectedType = tipos_muestras.find((t: any) => t.id === data.tipo_muestra);
+			subdivision_stock = selectedType ? selectedType.labels : null;
+		}
+
 		// Prepare data for backend
 		const payload = {
 			...data,
-			subdivision_stock: data.maneja_subdivision ? data.etiquetas_subdivision.split(',').map(s => s.trim()) : null,
+			subdivision_stock,
 			variaciones_json: data.variaciones_json ? data.variaciones_json.split(',').map(s => s.trim()) : [],
 		};
 
@@ -75,13 +82,25 @@ export const Form = ({ id, tipos_control, onClose, processing, onStore, onGetIte
 			if (item) {
 				const hasSub = !!item.subdivision_stock;
 				setManejaSub(hasSub);
+
+				// Infer tipo_muestra from initial data using config types
+				let tipo_muestra = '';
+				if (hasSub && Array.isArray(item.subdivision_stock)) {
+					const subArray = item.subdivision_stock;
+					const found = tipos_muestras.find((t: any) =>
+						t.labels.length === subArray.length &&
+						t.labels.every((label: string) => subArray.includes(label))
+					);
+					if (found) tipo_muestra = found.id;
+				}
+
 				setData({
 					nombre: item.nombre,
 					prefijo_sku: item.prefijo_sku,
 					tipo_control: item.tipo_control,
 					variaciones_json: Array.isArray(item.variaciones_json) ? item.variaciones_json.join(', ') : '',
 					maneja_subdivision: hasSub,
-					etiquetas_subdivision: Array.isArray(item.subdivision_stock) ? item.subdivision_stock.join(', ') : '',
+					tipo_muestra: tipo_muestra,
 				});
 			}
 		};
@@ -139,22 +158,24 @@ export const Form = ({ id, tipos_control, onClose, processing, onStore, onGetIte
 								onCheckedChange={(checked) => {
 									setManejaSub(checked);
 									setData('maneja_subdivision', checked);
+									if (!checked) setData('tipo_muestra', '');
 								}}
 							/>
 							<Label htmlFor="maneja_subdivision" className="cursor-pointer">
-								¿Maneja Subdivisión de Stock?
+								¿Maneja muestras?
 							</Label>
 						</div>
 
 						{manejaSub && (
-							<InputField
-								name="etiquetas_subdivision"
-								title="Subdivisiones del producto (separadas por coma)"
-								placeholder="Par, Izquierdo, Derecho, Único, Unidad, Metro, etc..."
+							<SelectField
+								name="tipo_muestra"
+								title="Tipo de muestra"
 								required
-								value={data.etiquetas_subdivision}
-								onChange={(val) => setData('etiquetas_subdivision', val as any)}
-								error={errors.etiquetas_subdivision}
+								value={data.tipo_muestra}
+								onChange={(val) => setData('tipo_muestra', val as string)}
+								lista={tipos_muestras}
+								item={{ idx: 'id', value: 'name' }}
+								error={errors.tipo_muestra as any}
 							/>
 						)}
 					</div>

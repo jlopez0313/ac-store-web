@@ -7,10 +7,10 @@ export const useAuth = () => {
 
     return {
         user,
-        isSuperAdmin: user?.is_superadmin || false,
-        isAdmin: user?.is_admin || false,
-        isBodega: user?.is_bodega || false,
-        isLocal: user?.is_local || false,
+        isSuperAdmin: user?.role === 'superadmin',
+        isAdmin: user?.role === 'admin',
+        isBodega: user?.role === 'bodega',
+        isLocal: user?.role === 'local',
         role: user?.role || 'sin-rol',
     };
 };

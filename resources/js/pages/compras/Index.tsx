@@ -8,8 +8,10 @@ import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCrudPage } from '@/hooks/useCrudPage';
 import AppLayout from '@/layouts/app-layout';
+import { confirmDialog, showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
+import axios from 'axios';
 import { Edit, Layers, Package, Plus, Search, ShoppingCart, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { AddDetailModal } from './AddDetailModal';
@@ -34,6 +36,29 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 	const openAdd = (ref: any) => {
 		setSelectedRef(ref);
 		setDetailModalOpen(true);
+	};
+
+	// Filtra las referencias por la cuenta de la factura, y luego por el string de búsqueda
+	const handleDeleteDetail = async (detalleId: number) => {
+		const result = await confirmDialog({
+			title: '¿Estás seguro?',
+			text: '¿Estás seguro de eliminar este producto del ingreso? El stock se ajustará.',
+			icon: 'warning'
+		});
+
+		if (!result.isConfirmed) return;
+
+		try {
+			await axios.delete(route('api.compra_detalles.destroy', { compra: selectedFactura.id, detalle: detalleId }));
+			
+			// Update local state
+			const updatedDetalles = selectedFactura.detalles.filter((d: any) => d.id !== detalleId);
+			setSelectedFactura({ ...selectedFactura, detalles: updatedDetalles });
+			
+			showAlert('success', 'Producto eliminado correctamente.');
+		} catch (error: any) {
+			showAlert('error', error.response?.data?.error || 'Error al eliminar el detalle.');
+		}
 	};
 
 	// Filtra las referencias por la cuenta de la factura, y luego por el string de búsqueda
@@ -77,22 +102,25 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 
 						<CardContent className="p-2">
 							<div className="space-y-1">
-								<input
-									type="text"
-									defaultValue={filters.search}
-									placeholder="Buscar factura, proveedor..."
-									className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
-									onBlur={(e) => {
-										if (e.target.value !== filters.search) {
-											router.visit(route('compras.index', { search: e.target.value }), { preserveScroll: true });
-										}
-									}}
-									onKeyDown={(e) => {
-										if (e.key === 'Enter') {
-											router.visit(route('compras.index', { search: e.currentTarget.value }), { preserveScroll: true });
-										}
-									}}
-								/>
+								<div className="relative mb-2">
+									<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+									<input
+										type="text"
+										defaultValue={filters.search}
+										placeholder="Buscar factura, proveedor..."
+										className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+										onBlur={(e) => {
+											if (e.target.value !== filters.search) {
+												router.visit(route('compras.index', { search: e.target.value }), { preserveScroll: true });
+											}
+										}}
+										onKeyDown={(e) => {
+											if (e.key === 'Enter') {
+												router.visit(route('compras.index', { search: e.currentTarget.value }), { preserveScroll: true });
+											}
+										}}
+									/>
+								</div>
 								{facturas.length === 0 && (
 									<div className="text-center py-6 text-slate-500 text-sm">
 										No hay facturas registradas.
@@ -240,7 +268,12 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 														<TableCell className="text-right text-sm text-green-600">${Number(detalle.precio_venta).toLocaleString()}</TableCell>
 														<TableCell className="text-right text-sm font-medium">${Number(detalle.subtotal).toLocaleString()}</TableCell>
 														<TableCell className="text-right">
-															<Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => {/* handle delete */ }}>
+															<Button 
+																variant="ghost" 
+																size="icon" 
+																className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50" 
+																onClick={() => handleDeleteDetail(detalle.id)}
+															>
 																<Trash className="w-4 h-4" />
 															</Button>
 														</TableCell>

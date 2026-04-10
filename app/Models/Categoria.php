@@ -19,6 +19,17 @@ class Categoria extends Model
         'prefijo_sku',
     ];
 
+    public static function getTiposMuestrasSelect()
+    {
+        return collect(config('constants.tipos_muestras'))->map(function ($item, $key) {
+            return [
+                'id' => $key,
+                'name' => $item['name'],
+                'labels' => $item['labels']
+            ];
+        })->values()->toArray();
+    }
+
     protected $casts = [
         'subdivision_stock' => 'array',
         'variaciones_json'  => 'array',

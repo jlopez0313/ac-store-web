@@ -16,19 +16,19 @@ class ReferenciaResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'           => $this->id,
-            'codigo'       => $this->codigo,
-            'marca'        => $this->marca,
-            'descripcion'  => $this->descripcion,
+            'id' => $this->id,
+            'codigo' => $this->codigo,
+            'marca' => $this->marca,
+            'descripcion' => $this->descripcion,
             'categoria_id' => $this->categoria_id,
-            'cuenta_id'    => $this->cuenta_id,
+            'cuenta_id' => $this->cuenta_id,
             // Prefix the photo path with the storage URL if it exists
-            'foto'         => $this->foto ? Storage::url($this->foto) : null,
+            'foto' => $this->foto ? Storage::url($this->foto) : null,
             // Include relationships if loaded
-            'categoria'    => new CategoriaResource($this->whenLoaded('categoria')),
-            'cuenta'       => $this->whenLoaded('cuenta'), // Quick load, could make a Resource if needed
-            'created_at'   => $this->created_at->format('Y-m-d H:i:s'),
-            'updated_at'   => $this->updated_at->format('Y-m-d H:i:s'),
+            'categoria' => new CategoriaResource($this->whenLoaded('categoria')),
+            'cuenta' => $this->whenLoaded('cuenta'), // Quick load, could make a Resource if needed
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
     }
 }

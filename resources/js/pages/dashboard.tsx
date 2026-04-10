@@ -1,4 +1,4 @@
-import { NAV_ITEMS } from '@/components/app-sidebar';
+import { GROUP_META, NAV_ITEMS } from '@/components/app-sidebar';
 import { PageHeader } from '@/components/page-header';
 import AppLayout from '@/layouts/app-layout';
 import { type Auth, type BreadcrumbItem } from '@/types';
@@ -11,12 +11,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 	},
 ];
 
-const GROUP_META = {
-	principal: { label: 'Principal', color: 'text-primary', bg: 'bg-primary/10' },
-	operaciones: { label: 'Operaciones', color: 'text-chart-2', bg: 'bg-chart-2/10' },
-	reportes: { label: 'Reportes', color: 'text-chart-4', bg: 'bg-chart-4/10' },
-	admin: { label: 'Administración', color: 'text-muted-foreground', bg: 'bg-muted' },
-} as const;
 
 export default function Dashboard({ auth }: { auth: Auth }) {
 

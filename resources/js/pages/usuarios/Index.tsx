@@ -120,7 +120,7 @@ export default function Index({ filters, lista, roles, cuentas, estados }: any) 
 						columns={columns}
 						total={total}
 						currentPage={current_page}
-						paginationPerPage={per_page}
+						paginationPerPage={per_page || 25}
 						actions={actions}
 						processing={processing}
 						serverSide={true}

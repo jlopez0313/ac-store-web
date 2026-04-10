@@ -22,14 +22,15 @@ class CategoriasController extends Controller
         }
 
         return Inertia::render('categorias/Index', [
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'per_page']),
             'lista'   => CategoriaResource::collection(
-                $query->paginate($request->input('per_page', 10))->appends($request->all())
+                $query->paginate($request->input('per_page', 25))->appends($request->all())
             ),
             'tipos_control' => [
                 ['id' => 'unidades', 'name' => 'Unidades'],
                 ['id' => 'tallas', 'name' => 'Tallas'],
             ],
+            'tipos_muestras' => Categoria::getTiposMuestrasSelect(),
         ]);
     }
 }
