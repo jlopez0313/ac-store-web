@@ -34,6 +34,10 @@ Route::middleware(['auth'])->group(function () {
     Route::put('bodegas/{bodega}/estanterias/{estanteria}', [App\Http\Controllers\EstanteriasController::class, 'update'])->name('bodegas.estanterias.update');
     Route::delete('bodegas/{bodega}/estanterias/{estanteria}', [App\Http\Controllers\EstanteriasController::class, 'destroy'])->name('bodegas.estanterias.destroy');
     Route::get('categorias', [App\Http\Controllers\CategoriasController::class, 'index'])->name('categorias.index');
+    Route::resource('marcas', App\Http\Controllers\MarcasController::class)->only(['index']);
+    Route::group(['prefix' => 'api', 'as' => 'api.'], function () {
+        Route::resource('marcas', App\Http\Controllers\Api\MarcasController::class)->only(['show', 'store', 'update', 'destroy']);
+    });
     Route::resource('proveedores', ProveedoresController::class)->only(['index']);
     Route::get('traslados', [App\Http\Controllers\TrasladosController::class, 'index'])->name('traslados.index');
     Route::post('traslados', [App\Http\Controllers\TrasladosController::class, 'store'])->name('traslados.store');
@@ -44,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('compras', [ComprasController::class, 'index'])->name('compras.index');
     Route::get('inventario', [App\Http\Controllers\InventariosController::class, 'index'])->name('inventario.index');
+    Route::get('api/inventario/{referencia}/detail', [App\Http\Controllers\InventariosController::class, 'detail'])->name('api.inventario.detail');
     Route::get('cajas', [App\Http\Controllers\CajasController::class, 'index'])->name('cajas.index');
     Route::post('cajas/{caja}/tallar', [App\Http\Controllers\CajasController::class, 'tallar'])->name('cajas.tallar');
 
@@ -54,7 +59,19 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('api/ventas/{venta}/detalles/{detalle}', [App\Http\Controllers\VentasController::class, 'deleteDetail'])->name('api.ventas.detalles.delete');
     Route::get('/devoluciones', [DevolucionesController::class, 'index'])->name('devoluciones.index');
     Route::get('/muestras', [MuestrasController::class, 'index'])->name('muestras.index');
+    
+    // Rutas de Geografía (para Selects)
+    Route::get('/api/geography/countries', [App\Http\Controllers\UsuariosController::class, 'getCountries'])->name('api.geography.countries');
+    Route::get('/api/geography/states', [App\Http\Controllers\UsuariosController::class, 'getStates'])->name('api.geography.states');
+    Route::get('/api/geography/cities', [App\Http\Controllers\UsuariosController::class, 'getCities'])->name('api.geography.cities');
+
+    // Rutas de Facturas
     Route::get('/facturas', [App\Http\Controllers\FacturasController::class, 'index'])->name('facturas.index');
+    Route::get('/reporte-facturas', [App\Http\Controllers\FacturasController::class, 'index'])->name('facturas.reporte');
+    Route::get('/cartera', [App\Http\Controllers\CarteraController::class, 'index'])->name('cartera.index');
+    Route::get('/cardex', [App\Http\Controllers\CardexController::class, 'index'])->name('cardex.index');
+    Route::delete('/facturas/{factura}', [App\Http\Controllers\FacturasController::class, 'destroy'])->name('facturas.destroy');
+    Route::post('api/ventas/{venta}/bulk-discounts', [App\Http\Controllers\VentasController::class, 'updateBulkDiscounts'])->name('api.ventas.bulk_discounts');
     Route::post('api/ventas/{venta}/cerrar', [App\Http\Controllers\VentasController::class, 'closeVenta'])->name('api.ventas.cerrar');
     Route::get('api/inventario/stock', [App\Http\Controllers\VentasController::class, 'getStock'])->name('api.inventario.stock');
     Route::post('api/ventas/{venta}/detalles', [App\Http\Controllers\VentasController::class, 'addDetail'])->name('api.ventas.detalles');

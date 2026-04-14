@@ -179,6 +179,10 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 												<div className="text-sm font-medium">{selectedFactura.proveedor?.nombre}</div>
 											</div>
 											<div>
+												<Label className="text-xs">Valor del Flete</Label>
+												<div className="text-sm font-bold text-indigo-600">${Number(selectedFactura.flete || 0).toLocaleString()}</div>
+											</div>
+											<div className="col-span-2">
 												<Label className="text-xs">Observaciones</Label>
 												<div className="text-sm font-medium text-muted-foreground border border-slate-200 rounded-md p-2">{selectedFactura.observaciones ?? 'Sin observaciones'}</div>
 											</div>

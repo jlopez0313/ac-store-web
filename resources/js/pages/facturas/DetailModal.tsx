@@ -1,16 +1,18 @@
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, Clock, House, MapPin, Tag, User } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Calendar, Clock, ExternalLink, House, MapPin, RefreshCcw, Tag, User } from 'lucide-react';
 import React from 'react';
 
 interface DetailModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	factura: any;
+	onViewInvoice?: (id: number) => void;
 }
 
-export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factura }) => {
+export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factura, onViewInvoice }) => {
 	if (!factura) return null;
 
 	const days = Math.floor(Math.abs(new Date().getTime() - new Date(factura.created_at).getTime()) / (1000 * 60 * 60 * 24));
@@ -109,12 +111,13 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 										<TableHead className="text-center font-bold text-slate-700 h-12 bg-slate-50">Talla</TableHead>
 										<TableHead className="text-right font-bold text-slate-700 h-12 bg-slate-50">Cant.</TableHead>
 										<TableHead className="text-right font-bold text-slate-700 h-12 bg-slate-50">Precio Unit.</TableHead>
-										<TableHead className="text-right font-bold text-slate-700 h-12 pr-6 bg-slate-50">Subtotal</TableHead>
+										<TableHead className="text-right font-bold text-slate-700 h-12 bg-slate-50">Subtotal</TableHead>
+										<TableHead className="w-10 bg-slate-50 h-12 pr-6"></TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{factura.detalles?.map((detalle: any) => (
-										<TableRow key={detalle.id} className="hover:bg-slate-50/50 transition-colors border-slate-100">
+										<TableRow key={detalle.id} className="hover:bg-slate-50/50 transition-colors border-slate-100 group">
 											<TableCell>
 												<div className="flex flex-col py-1">
 													<span className="font-mono font-bold text-indigo-600 text-sm">{detalle.producto.codigo}</span>
@@ -128,8 +131,59 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 											</TableCell>
 											<TableCell className="text-right font-bold text-slate-600">{detalle.cantidad}</TableCell>
 											<TableCell className="text-right text-slate-600">${Number(detalle.precio_unitario).toLocaleString()}</TableCell>
-											<TableCell className="text-right font-bold text-slate-900 pr-6">
+											<TableCell className="text-right font-bold text-slate-900">
 												${Number(detalle.subtotal).toLocaleString()}
+											</TableCell>
+											<TableCell className="p-0 pr-6">
+												<div className="flex items-center justify-end">
+													{detalle.cambio && (
+														<DropdownMenu>
+															<DropdownMenuTrigger asChild>
+																<button
+																	className="p-2 rounded-lg transition-all text-amber-500 hover:bg-amber-50 data-[state=open]:bg-amber-100"
+																	title="Ver detalles del cambio"
+																>
+																	<RefreshCcw className="w-4 h-4" />
+																</button>
+															</DropdownMenuTrigger>
+															<DropdownMenuContent 
+																align="end" 
+																side="top" 
+																sideOffset={12}
+																className="w-72 p-4 bg-slate-900 text-white rounded-2xl shadow-2xl border-slate-800 z-[1001]"
+															>
+																<div className="flex items-center justify-between mb-3">
+																	<div className="flex flex-col">
+																		<span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1">Detalles del Cambio</span>
+																		<span className="text-[10px] text-slate-400 font-bold uppercase">{detalle.cambio.usuario}</span>
+																	</div>
+																</div>
+																
+																<div className="bg-white/5 rounded-xl p-3 border border-white/5 mb-4">
+																	<p className="text-[12px] leading-relaxed text-slate-200 font-medium italic">
+																		"{detalle.cambio.observacion || 'Sin observaciones'}"
+																	</p>
+																</div>
+																
+																{detalle.cambio.nueva_venta_id && (
+																	<button 
+																		onClick={(e) => {
+																			e.preventDefault();
+																			onViewInvoice?.(detalle.cambio.nueva_venta_id);
+																		}}
+																		className="w-full flex items-center justify-between gap-3 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all border border-indigo-400/30 group/btn shadow-xl shadow-indigo-900/40"
+																	>
+																		<div className="flex items-center gap-2">
+																			<ExternalLink className="w-3.5 h-3.5 text-indigo-200 group-hover/btn:scale-110 transition-transform" />
+																			<span className="text-[11px] font-black uppercase tracking-tight">Ver Factura Nueva</span>
+																		</div>
+																		<span className="text-[10px] font-mono font-bold text-indigo-100 bg-white/10 px-2 py-0.5 rounded-lg border border-white/10"># {detalle.cambio.nueva_venta_id}</span>
+																	</button>
+																)}
+															</DropdownMenuContent>
+														</DropdownMenu>
+													)}
+												</div>
 											</TableCell>
 										</TableRow>
 									))}

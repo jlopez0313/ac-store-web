@@ -2,8 +2,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { showAlert } from '@/plugins/sweetalert';
+import { router } from '@inertiajs/react';
 import { Plus, ShoppingCart, Warehouse } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
+import { BulkDiscountModal } from './BulkDiscountModal';
 
 interface InvoiceDetailHeaderProps {
     factura: any;
@@ -22,8 +25,21 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
     onAddProduct,
     onCloseFactura
 }) => {
+    const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+    const [applying, setApplying] = useState(false);
+
+    const sameRefItemsCount = React.useMemo(() => {
+        if (!selectedDetailIds.length || !factura.detalles) return 0;
+        const selectedRefs = new Set(
+            factura.detalles
+                .filter((d: any) => selectedDetailIds.includes(d.id))
+                .map((d: any) => d.producto_id)
+        );
+        return factura.detalles.filter((d: any) => selectedRefs.has(d.producto_id)).length;
+    }, [selectedDetailIds, factura.detalles]);
+
     return (
-        <Card className="border-slate-200 shadow-sm overflow-hidden">
+        <Card className="border-slate-200 shadow-sm overflow-hidden bg-white/80 backdrop-blur-xl">
             <CardContent className="p-6 space-y-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">
@@ -55,19 +71,31 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                         {factura.estado === 'abierta' && (
                             <>
                                 {isAdmin && selectedDetailIds.length > 0 && (
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={onBulkDelete}
-                                        className="bg-red-600 hover:bg-red-700 text-white font-bold h-10 px-4 rounded-xl shadow-lg shadow-red-100"
-                                    >
-                                        Eliminar ({selectedDetailIds.length})
-                                    </Button>
+                                    <div className="flex items-center gap-2 mr-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsBulkModalOpen(true)}
+                                            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold border border-slate-200 flex flex-col justify-center gap-0.5 transition-colors group"
+                                        >
+                                            <span className="text-[9px] text-slate-400 uppercase tracking-tight">
+                                                {sameRefItemsCount} con misma referencia
+                                            </span>
+                                            <span className="group-hover:text-indigo-600 transition-colors">Descontar x mayor</span>
+                                        </button>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={onBulkDelete}
+                                            className="bg-red-600 hover:bg-red-700 text-white font-bold h-10 px-4 rounded-xl shadow-lg shadow-red-100 transition-all active:scale-95"
+                                        >
+                                            Eliminar
+                                        </Button>
+                                    </div>
                                 )}
                                 <Button
                                     size="sm"
                                     onClick={onAddProduct}
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-10 px-4 rounded-xl shadow-lg shadow-indigo-100"
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-10 px-4 rounded-xl shadow-lg shadow-indigo-100 transition-all active:scale-95"
                                 >
                                     <Plus className="w-4 h-4 mr-2" />
                                     Agregar Producto
@@ -77,7 +105,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                         variant="outline"
                                         size="sm"
                                         onClick={onCloseFactura}
-                                        className="border-slate-200 hover:bg-slate-50 text-slate-700 font-bold h-10 px-4 rounded-xl"
+                                        className="border-slate-200 hover:bg-slate-50 text-slate-700 font-bold h-10 px-4 rounded-xl transition-all active:scale-95"
                                     >
                                         <ShoppingCart className="w-4 h-4 mr-2" />
                                         Cerrar Factura
@@ -94,6 +122,29 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                     </div>
                 </div>
             </CardContent>
+
+            <BulkDiscountModal
+                isOpen={isBulkModalOpen}
+                onClose={() => setIsBulkModalOpen(false)}
+                selectedItems={factura.detalles?.filter((d: any) => selectedDetailIds.includes(d.id)) || []}
+                allInvoiceItems={factura.detalles || []}
+                processing={applying}
+                onApply={(discounts) => {
+                    router.post(route('api.ventas.bulk_discounts', factura.id), {
+                        discounts
+                    }, {
+                        onStart: () => setApplying(true),
+                        onFinish: () => setApplying(false),
+                        onSuccess: () => {
+                            showAlert('success', 'Descuentos aplicados correctamente');
+                            setIsBulkModalOpen(false);
+                        },
+                        onError: () => {
+                            showAlert('error', 'Ocurrió un error al aplicar los descuentos');
+                        }
+                    });
+                }}
+            />
         </Card>
     );
 };

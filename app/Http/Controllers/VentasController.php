@@ -56,7 +56,7 @@ class VentasController extends Controller
             'next_id' => (\App\Models\Venta::max('id') ?? 0) + 1,
             'cuentas' => $isSuper ? \App\Models\Cuenta::all(['id', 'nombre']) : [],
             'locals' => $locals,
-            'referencias' => \App\Models\Referencia::with(['categoria'])
+            'referencias' => \App\Models\Referencia::with(['categoria', 'marca'])
                 ->where($isSuper ? [] : ['cuenta_id' => $user->cuenta_id])
                 ->get()
                 ->map(function ($r) {
@@ -69,7 +69,7 @@ class VentasController extends Controller
                     return [
                         'id' => $r->id,
                         'codigo' => $r->codigo,
-                        'marca' => $r->marca,
+                        'marca' => $r->marca?->nombre,
                         'descripcion' => $r->descripcion,
                         'foto' => $r->foto,
                         'categoria' => $r->categoria?->nombre,
@@ -110,27 +110,30 @@ class VentasController extends Controller
                 ];
             });
 
-        // Get active samples for this reference
-        $muestras = \App\Models\Muestra::where('referencia_id', $request->referencia_id)
-            ->where('estado', 'activo')
-            ->with(['local', 'inventario'])
-            ->get()
-            ->map(function ($m) {
-                return [
-                    'id' => $m->inventario_id, // Link to inventario if needed
-                    'muestra_id' => $m->id,
-                    'type' => 'muestra',
-                    'bodega_id' => null,
-                    'bodega_nombre' => "En Local: " . ($m->local->name ?? 'N/A'),
-                    'estanteria_id' => null,
-                    'estanteria_nombre' => 'Muestra Física',
-                    'talla' => $m->variante,
-                    'stock' => 1,
-                    'precio_venta' => $m->inventario->precio_venta ?? 0,
-                    'is_muestra' => true,
-                    'etiquetas' => $m->etiquetas
-                ];
-            });
+        // Get active samples for this reference (only for authorized roles)
+        $muestras = collect();
+        if (auth()->user()->hasAnyRole(['admin', 'bodega', 'superadmin'])) {
+            $muestras = \App\Models\Muestra::where('referencia_id', $request->referencia_id)
+                ->where('estado', 'activo')
+                ->with(['local', 'inventario'])
+                ->get()
+                ->map(function ($m) {
+                    return [
+                        'id' => $m->inventario_id, // Link to inventario if needed
+                        'muestra_id' => $m->id,
+                        'type' => 'muestra',
+                        'bodega_id' => null,
+                        'bodega_nombre' => "En Local: " . ($m->local->name ?? 'N/A'),
+                        'estanteria_id' => null,
+                        'estanteria_nombre' => 'Muestra Física',
+                        'talla' => $m->variante,
+                        'stock' => 1,
+                        'precio_venta' => $m->inventario->precio_venta ?? 0,
+                        'is_muestra' => true,
+                        'etiquetas' => $m->etiquetas
+                    ];
+                });
+        }
 
         return response()->json(['data' => $stock->concat($muestras)]);
     }
@@ -310,19 +313,6 @@ class VentasController extends Controller
 
     private function processDetailDeletion(\App\Models\Venta $venta, \App\Models\VentaDetalle $detalle)
     {
-        // Log Devolucion
-        \App\Models\Devolucion::create([
-            'venta_id' => $venta->id,
-            'inventario_id' => $detalle->inventario_id,
-            'producto_id' => $detalle->producto_id,
-            'bodega_id' => $detalle->bodega_id,
-            'estanteria_id' => $detalle->estanteria_id,
-            'talla' => $detalle->talla,
-            'cantidad' => $detalle->cantidad,
-            'precio_unitario' => $detalle->precio_unitario,
-            'subtotal' => $detalle->subtotal,
-        ]);
-
         if ($detalle->muestra_id) {
             $muestra = \App\Models\Muestra::find($detalle->muestra_id);
             if ($muestra) {
@@ -409,5 +399,38 @@ class VentasController extends Controller
 
         $msg = count($userIds) === 1 ? 'Factura de venta creada correctamente.' : count($userIds) . ' Facturas de venta creadas correctamente.';
         return redirect()->back()->with('success', $msg);
+    }
+    public function updateBulkDiscounts(Request $request, \App\Models\Venta $venta)
+    {
+        $request->validate([
+            'discounts' => 'required|array',
+            'discounts.*' => 'required|numeric|min:0',
+        ]);
+
+        $discounts = $request->discounts;
+
+        foreach ($discounts as $producto_id => $discount_value) {
+            $detalles = \App\Models\VentaDetalle::with('inventario')
+                ->where('venta_id', $venta->id)
+                ->where('producto_id', $producto_id)
+                ->get();
+
+            foreach ($detalles as $detalle) {
+                // precio_sugerido is mapped from inventario->precio_venta in VentaResource
+                $base_price = $detalle->inventario->precio_venta ?? 0;
+                $new_precio_unitario = max(0, $base_price - $discount_value);
+                
+                $detalle->update([
+                    'precio_unitario' => $new_precio_unitario,
+                    'subtotal' => $new_precio_unitario * $detalle->cantidad,
+                ]);
+            }
+        }
+
+        // Recalculate invoice total
+        $total = \App\Models\VentaDetalle::where('venta_id', $venta->id)->sum('subtotal');
+        $venta->update(['total' => $total]);
+
+        return redirect()->back()->with('success', 'Descuentos aplicados correctamente');
     }
 }

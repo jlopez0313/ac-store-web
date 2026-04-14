@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
+use Nnjeim\World\World;
+
 class UsuariosController extends Controller
 {
     /**
@@ -16,7 +18,7 @@ class UsuariosController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with(['roles', 'cuenta'])->orderBy('name');
+        $query = User::with(['roles', 'cuenta', 'ciudad.state.country'])->orderBy('name');
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
@@ -43,5 +45,27 @@ class UsuariosController extends Controller
             'cuentas' => Cuenta::where('estado', 1)->orderBy('nombre')->get(['id', 'nombre as name']),
             'estados' => config('constantes.estados'),
         ]);
+    }
+    public function getCountries()
+    {
+        return World::countries()->data;
+    }
+
+    public function getStates(Request $request)
+    {
+        return World::states([
+            'filters' => [
+                'country_id' => $request->country_id,
+            ],
+        ])->data;
+    }
+
+    public function getCities(Request $request)
+    {
+        return World::cities([
+            'filters' => [
+                'state_id' => $request->state_id,
+            ],
+        ])->data;
     }
 }

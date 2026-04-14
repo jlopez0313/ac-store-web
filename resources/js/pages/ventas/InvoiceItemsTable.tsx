@@ -1,7 +1,9 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Edit2, Package, Tag, Trash, Warehouse } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Edit2, ExternalLink, Package, RefreshCcw, Tag, Trash, Warehouse, X } from 'lucide-react';
+import { showAlert } from '@/plugins/sweetalert';
 import React from 'react';
 
 interface InvoiceItemsTableProps {
@@ -13,6 +15,7 @@ interface InvoiceItemsTableProps {
     onToggleSelectDetail: (id: number) => void;
     onUpdatePrice: (detalle: any) => void;
     onDeleteDetail: (id: number) => void;
+    onViewInvoice?: (id: number) => void;
 }
 
 export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
@@ -23,7 +26,8 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
     onToggleSelectAll,
     onToggleSelectDetail,
     onUpdatePrice,
-    onDeleteDetail
+    onDeleteDetail,
+    onViewInvoice
 }) => {
     const getPriceHighlight = (detalle: any) => {
         const sugerido = Number(detalle.precio_sugerido || 0);
@@ -39,9 +43,9 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
 
     return (
         <Card className="border-slate-200 shadow-sm overflow-hidden flex flex-col min-w-0">
-            <CardContent className="p-0 overflow-x-auto w-full max-w-full flex-1 min-w-0">
+            <CardContent className="p-0 overflow-x-auto overflow-y-auto w-full max-w-full flex-1 min-w-0 max-h-[calc(100vh-25rem)] custom-scrollbar">
                 <Table>
-                    <TableHeader className="bg-slate-50/50">
+                    <TableHeader className="bg-slate-50/50 sticky top-0 z-10 backdrop-blur-sm">
                         <TableRow>
                             <TableHead className="w-12 px-4 py-3">
                                 {isAdmin && factura.estado === 'abierta' && (
@@ -54,9 +58,9 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                             <TableHead className="w-32 font-bold text-slate-700">Ref</TableHead>
                             <TableHead className="font-bold text-slate-700">Producto</TableHead>
                             <TableHead className="w-56 font-bold text-slate-700">Ubicación</TableHead>
-                            <TableHead className="w-20 text-center font-bold text-slate-700">Cant.</TableHead>
-                            <TableHead className="w-48 text-right font-bold text-slate-700">Precio</TableHead>
-                            <TableHead className="w-32 text-right pr-6 font-bold text-slate-700">Subtotal</TableHead>
+                            <TableHead className="w-20 font-bold text-slate-700">Cant.</TableHead>
+                            <TableHead className="w-48 font-bold text-slate-700">Precio</TableHead>
+                            <TableHead className="w-32 font-bold text-slate-700">Subtotal</TableHead>
                             <TableHead className="w-12"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -98,11 +102,11 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                         )}
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-center">
+                                <TableCell>
                                     <span className="text-sm font-medium text-slate-900">{detalle.cantidad}</span>
                                 </TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex items-center justify-end gap-1.5">
+                                <TableCell>
+                                    <div className="flex items-center gap-1.5">
                                         <span className={`px-2 py-1 rounded-lg border text-sm font-medium transition-all shadow-sm ${getPriceHighlight(detalle) || 'bg-white border-slate-100 text-slate-700'}`}>
                                             ${Number(detalle.precio_unitario || 0).toLocaleString()}
                                         </span>
@@ -116,18 +120,68 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                         )}
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-right pr-6">
+                                <TableCell className="pr-6">
                                     <span className="text-sm font-bold text-slate-900">${Number(detalle.subtotal || 0).toLocaleString()}</span>
                                 </TableCell>
-                                <TableCell className="p-0 text-center">
-                                    {factura.estado === 'abierta' && isAdmin && (
-                                        <button
-                                            onClick={() => onDeleteDetail(detalle.id)}
-                                            className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                        >
-                                            <Trash className="w-4 h-4" />
-                                        </button>
-                                    )}
+                                <TableCell className="p-0">
+                                    <div className="flex items-center justify-end px-4 gap-2">
+                                        {detalle.cambio && (
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button
+                                                        className="p-2 rounded-lg transition-all text-amber-500 hover:bg-amber-50 data-[state=open]:bg-amber-100 data-[state=open]:text-amber-600 data-[state=open]:shadow-inner"
+                                                        title="Ver detalles del cambio"
+                                                    >
+                                                        <RefreshCcw className="w-4 h-4" />
+                                                    </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent 
+                                                    align="end" 
+                                                    side="top" 
+                                                    sideOffset={12}
+                                                    className="w-72 p-4 bg-slate-900 text-white rounded-2xl shadow-2xl border-slate-800"
+                                                >
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Detalles del Cambio</span>
+                                                            <span className="text-[10px] text-slate-400 font-bold uppercase">{detalle.cambio.usuario}</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5 mb-4">
+                                                        <p className="text-[12px] leading-relaxed text-slate-200 font-medium italic">
+                                                            "{detalle.cambio.observacion || 'Sin observaciones'}"
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    {detalle.cambio.nueva_venta_id && (
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                onViewInvoice?.(detalle.cambio.nueva_venta_id);
+                                                            }}
+                                                            className="w-full flex items-center justify-between gap-3 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all border border-indigo-400/30 group/btn shadow-xl shadow-indigo-900/40"
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <ExternalLink className="w-3.5 h-3.5 text-indigo-200 group-hover/btn:scale-110 transition-transform" />
+                                                                <span className="text-[11px] font-black uppercase tracking-tight">Ver Factura Nueva</span>
+                                                            </div>
+                                                            <span className="text-[10px] font-mono font-bold text-indigo-100 bg-white/10 px-2 py-0.5 rounded-lg border border-white/10"># {detalle.cambio.nueva_venta_id}</span>
+                                                        </button>
+                                                    )}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        )}
+
+                                        {factura.estado === 'abierta' && isAdmin && (
+                                            <button
+                                                onClick={() => onDeleteDetail(detalle.id)}
+                                                className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Trash className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}

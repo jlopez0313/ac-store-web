@@ -51,6 +51,11 @@ trait Blameable
         return $this->belongsTo(User::class, 'creado_por');
     }
 
+    public function eliminador()
+    {
+        return $this->belongsTo(User::class, 'eliminado_por');
+    }
+
     public function auditEvent(string $event, array $values = [])
     {
         \OwenIt\Auditing\Models\Audit::create([

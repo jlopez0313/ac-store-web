@@ -16,7 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Referencias', href: route('referencias.index') },
 ];
 
-export default function Index({ filters, lista, cuentas, categorias }: any) {
+export default function Index({ filters, lista, cuentas, categorias, marcas }: any) {
 	const { isSuperAdmin } = useAuth();
 
 	const {
@@ -51,7 +51,7 @@ export default function Index({ filters, lista, cuentas, categorias }: any) {
 		},
 		{
 			name: 'Marca',
-			selector: (row: any) => row.marca,
+			selector: (row: any) => row.marca?.nombre || 'N/A',
 			sortable: true,
 		},
 		{
@@ -137,6 +137,7 @@ export default function Index({ filters, lista, cuentas, categorias }: any) {
 					id={id}
 					cuentas={cuentas}
 					categorias={categorias}
+					marcas={marcas}
 					processing={processing}
 					onClose={() => onToggleModal(false)}
 					onStore={onStore}

@@ -51,6 +51,11 @@ class VentaResource extends JsonResource
                     'descuento_bodega' => \App\Models\BodegaAcceso::where('user_id', $this->user_id)
                         ->where('bodega_id', $d->bodega_id)
                         ->first()?->descuento ?? 0,
+                    'cambio' => $d->cambio ? [
+                        'observacion' => $d->cambio->observacion,
+                        'usuario' => $d->cambio->creator->name ?? 'Sistema',
+                        'nueva_venta_id' => $d->cambio->nueva_venta_id,
+                    ] : null,
                 ];
             }) : [],
         ];

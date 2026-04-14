@@ -7,7 +7,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { DollarSign, Eye, Search as SearchIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Sub-components
 import { DetailModal } from './DetailModal';
@@ -22,6 +22,27 @@ export default function Index({ lista, filters, gran_total }: any) {
 	const [searchValue, setSearchValue] = useState(filters.search || '');
 	const [selectedFactura, setSelectedFactura] = useState<any>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	const handleViewInvoice = (id: number) => {
+		setIsModalOpen(false);
+		router.visit(route('facturas.index', { ...filters, search: id, page: 1 }), {
+			preserveState: true,
+			onSuccess: () => {
+				setSearchValue(id.toString());
+			}
+		});
+	};
+
+	// Auto-open modal if search matches a single record
+	useEffect(() => {
+		if (filters.search && data.length > 0) {
+			const found = data.find((f: any) => f.id == filters.search);
+			if (found) {
+				setSelectedFactura(found);
+				setIsModalOpen(true);
+			}
+		}
+	}, [filters.search, data]);
 
 	const tabs = [
 		{ id: 'todas', label: 'Todas' },
@@ -187,6 +208,7 @@ export default function Index({ lista, filters, gran_total }: any) {
 				isOpen={isModalOpen}
 				onClose={() => setIsModalOpen(false)}
 				factura={selectedFactura}
+				onViewInvoice={handleViewInvoice}
 			/>
 		</AppLayout>
 	);

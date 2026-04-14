@@ -5,8 +5,10 @@ import { showAlert } from '@/plugins/sweetalert';
 import axios from 'axios';
 import { Box, ChevronLeft, Image as ImageIcon, Minus, Package, Plus, Search, Tag, Warehouse } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { usePage } from '@inertiajs/react';
 
 export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factura, bodegas, bodega_accesos, onAdded }: any) => {
+	const { auth } = usePage().props as any;
 	const [mode, setMode] = useState<'search' | 'detail'>('search');
 	const [searchTerm, setSearchTerm] = useState('');
 	const [selectedRef, setSelectedRef] = useState<any>(null);
@@ -124,6 +126,8 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 
 		allStock.forEach(s => {
 			if (s.type === 'muestra') {
+				if (!['admin', 'bodega', 'superadmin'].includes(auth.user.role)) return;
+
 				if (!groups['muestras']) {
 					groups['muestras'] = {
 						id: 'muestras',
@@ -387,7 +391,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 																<div className="space-y-0.5">
 																	<div className="flex items-center gap-2">
 																		<span className="text-sm font-bold text-slate-700">
-																			{item.is_muestra ? 'Muestra Física' : 'Stock en Bodega'}
+																		{item.is_muestra ? item.bodega_nombre : 'Stock en Bodega'}
 																		</span>
 																		{item.etiquetas && (
 																			<div className="flex gap-1">

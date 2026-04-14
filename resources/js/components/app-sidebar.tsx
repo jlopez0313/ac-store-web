@@ -2,7 +2,7 @@ import { NavMain } from '@/components/nav-main';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { SharedData, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Archive, ArrowLeftRight, BarChart2, BarChart3, Box, Building2, FileText, Home, Landmark, Package, Receipt, RefreshCcw, Settings, ShoppingCart, Tag, TrendingUp, Undo2, Users, Wallet, WarehouseIcon } from 'lucide-react';
+import { Archive, ArrowLeftRight, Award, BarChart2, BarChart3, Box, Building2, FileText, Home, Landmark, Package, Receipt, RefreshCcw, Settings, ShoppingCart, Tag, TrendingUp, Undo2, Users, Wallet, WarehouseIcon } from 'lucide-react';
 import AppLogo from './app-logo';
 
 
@@ -25,6 +25,7 @@ export const NAV_ITEMS: NavItem[] = [
     { title: 'Cartera', url: '/cartera', icon: Wallet, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },
     { title: 'Bodegas', url: '/bodegas', icon: WarehouseIcon, roles: ['superadmin', 'admin', 'bodega'], group: 'admin' },
     { title: 'Categorías', url: '/categorias', icon: Tag, roles: ['superadmin', 'admin'], group: 'admin' },
+    { title: 'Marcas', url: '/marcas', icon: Award, roles: ['superadmin', 'admin', 'bodega'], group: 'admin' },
     { title: 'Proveedores', url: '/proveedores', icon: Building2, roles: ['superadmin', 'admin', 'bodega'], group: 'admin' },
     { title: 'Usuarios', url: '/usuarios', icon: Users, roles: ['superadmin', 'admin'], group: 'admin' },
     { title: 'Opciones', url: '/opciones', icon: Settings, roles: ['superadmin', 'admin'], group: 'admin' },

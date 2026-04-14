@@ -11,8 +11,9 @@ class DevolucionesController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Devolucion::with(['venta.local', 'producto', 'bodega', 'estanteria', 'creator'])
-            ->orderBy('fecha_devolucion', 'desc');
+        $query = \App\Models\VentaDetalle::onlyTrashed()
+            ->with(['venta.local', 'producto', 'bodega', 'estanteria', 'eliminador'])
+            ->orderBy('deleted_at', 'desc');
 
         if ($request->filled('local_id')) {
             $query->whereHas('venta', function ($q) use ($request) {
@@ -21,11 +22,11 @@ class DevolucionesController extends Controller
         }
 
         if ($request->filled('from')) {
-            $query->whereDate('fecha_devolucion', '>=', $request->from);
+            $query->whereDate('deleted_at', '>=', $request->from);
         }
 
         if ($request->filled('to')) {
-            $query->whereDate('fecha_devolucion', '<=', $request->to);
+            $query->whereDate('deleted_at', '<=', $request->to);
         }
 
         $devoluciones = $query->paginate($request->input('per_page', 25))->appends($request->all());

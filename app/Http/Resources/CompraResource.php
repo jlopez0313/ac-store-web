@@ -22,6 +22,7 @@ class CompraResource extends JsonResource
             'fecha_apertura' => $this->fecha_apertura ? $this->fecha_apertura->format('Y-m-d\TH:i:s') : null,
             'fecha_cierre'   => $this->fecha_cierre ? $this->fecha_cierre->format('Y-m-d\TH:i:s') : null,
             'observaciones'  => $this->observaciones,
+            'flete'          => $this->flete,
             'cuenta'         => $this->whenLoaded('cuenta'),
             'proveedor'      => clone $this->whenLoaded('proveedor'),
             'detalles'       => CompraDetalleResource::collection($this->whenLoaded('detalles')),

@@ -83,6 +83,7 @@ class CambiosController extends Controller
             'venta_detalle_id' => 'required|exists:venta_detalles,id',
             'nuevo_inventario_id' => 'required|exists:inventarios,id',
             'precio_nuevo' => 'required|numeric|min:0',
+            'observacion' => 'required|string|min:5',
         ]);
 
         try {
@@ -111,8 +112,13 @@ class CambiosController extends Controller
                 // 2. Deduct new stock
                 $nuevoInventario->decrement('stock', 1);
 
-                // 3. Mark original as returned
-                $detalleOriginal->update(['estado' => 'devuelto_por_cambio']);
+                // 3. Mark original as returned and ZERO OUT price in ORIGINAL invoice
+                $detalleOriginal->update([
+                    'estado' => 'devuelto_por_cambio',
+                    'precio_unitario' => 0,
+                    'subtotal' => 0
+                ]);
+                $detalleOriginal->venta->decrement('total', $precioOriginal);
 
                 // 4. Create Cambio record
                 $cambio = Cambio::create([
@@ -126,20 +132,25 @@ class CambiosController extends Controller
                     'precio_original' => $precioOriginal,
                     'precio_nuevo' => $precioNuevo,
                     'diferencia' => $diferencia,
+                    'observacion' => $request->observacion,
                     'status' => 'completado',
                 ]);
 
                 // 5. Create a new Venta record for the replacement item
-                // This ensures it goes to "the invoice" with the final value
+                // Total is now the difference to pay
                 $nuevaVenta = Venta::create([
                     'user_id' => $detalleOriginal->venta->user_id,
                     'cuenta_id' => $detalleOriginal->venta->cuenta_id,
                     'fecha' => now()->format('Y-m-d'),
                     'estado' => 'cerrada',
-                    'observaciones' => "Cambio de producto (Factura Original #{$detalleOriginal->venta_id})",
-                    'total' => $precioNuevo,
+                    'observaciones' => "Cambio de producto (Factura Original #{$detalleOriginal->venta_id}). Observación: " . $request->observacion,
+                    'total' => $diferencia,
                 ]);
 
+                // Update Cambio with the new invoice ID
+                $cambio->update(['nueva_venta_id' => $nuevaVenta->id]);
+
+                // 5a. Positive line: The new item
                 $nuevaVenta->detalles()->create([
                     'producto_id' => $nuevoInventario->referencia_id,
                     'inventario_id' => $nuevoInventario->id,
@@ -149,6 +160,19 @@ class CambiosController extends Controller
                     'cantidad' => 1,
                     'precio_unitario' => $precioNuevo,
                     'subtotal' => $precioNuevo,
+                ]);
+
+                // 5b. Negative line: The credit (Saldo a favor)
+                $nuevaVenta->detalles()->create([
+                    'producto_id' => $detalleOriginal->producto_id,
+                    'inventario_id' => $detalleOriginal->inventario_id,
+                    'bodega_id' => $detalleOriginal->bodega_id,
+                    'estanteria_id' => $detalleOriginal->estanteria_id,
+                    'talla' => $detalleOriginal->talla,
+                    'cantidad' => 1,
+                    'precio_unitario' => -$precioOriginal,
+                    'subtotal' => -$precioOriginal,
+                    'estado' => 'cambio_saldo'
                 ]);
 
                 return response()->json([

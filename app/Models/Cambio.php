@@ -20,8 +20,20 @@ class Cambio extends Model
         'precio_original',
         'precio_nuevo',
         'diferencia',
+        'observacion',
+        'nueva_venta_id',
         'status',
     ];
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'creado_por');
+    }
+
+    public function nuevaVenta()
+    {
+        return $this->belongsTo(Venta::class, 'nueva_venta_id');
+    }
 
     public function cuenta()
     {

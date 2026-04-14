@@ -19,6 +19,7 @@ class Compra extends Model
         'fecha_apertura',
         'fecha_cierre',
         'observaciones',
+        'flete',
     ];
 
     protected $casts = [

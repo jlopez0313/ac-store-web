@@ -31,9 +31,22 @@ export default function Index({ filters, lista, cuentas, referencias, bodegas, b
 	const [selectedDetailIds, setSelectedDetailIds] = useState<number[]>([]);
 
 	useEffect(() => {
-		if (facturas.length > 0 && filters.search && !selectedFactura) {
-			const found = facturas.find((f: any) => f.id == filters.search);
-			if (found) setSelectedFactura(found);
+		if (facturas.length > 0) {
+            // If there's a search filter, prioritize showing that invoice
+            if (filters.search) {
+                const found = facturas.find((f: any) => f.id == filters.search);
+                if (found && (!selectedFactura || selectedFactura.id != found.id)) {
+                    setSelectedFactura(found);
+                } else if (selectedFactura) {
+                    // Sync current selection
+                    const updated = facturas.find((f: any) => f.id == selectedFactura.id);
+                    if (updated) setSelectedFactura(updated);
+                }
+            } else if (selectedFactura) {
+                // Regular sync without search
+                const updated = facturas.find((f: any) => f.id == selectedFactura.id);
+                if (updated) setSelectedFactura(updated);
+            }
 		}
 	}, [facturas, filters.search]);
 
@@ -189,6 +202,7 @@ export default function Index({ filters, lista, cuentas, referencias, bodegas, b
 									}}
 									onUpdatePrice={handleUpdatePrice}
 									onDeleteDetail={handleDeleteDetail}
+									onViewInvoice={(id) => handleSearch(id.toString())}
 								/>
 							</>
 						) : (

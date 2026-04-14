@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\Blameable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class VentaDetalle extends Model
 {
-    use HasFactory;
+    use HasFactory, Blameable;
 
     protected $table = 'venta_detalles';
 
@@ -58,5 +59,10 @@ class VentaDetalle extends Model
     public function muestra()
     {
         return $this->belongsTo(Muestra::class);
+    }
+
+    public function cambio()
+    {
+        return $this->hasOne(Cambio::class, 'venta_detalle_id');
     }
 }

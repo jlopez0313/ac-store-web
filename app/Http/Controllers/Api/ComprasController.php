@@ -21,6 +21,7 @@ class ComprasController extends Controller
             'fecha_apertura' => 'required|date',
             'fecha_cierre'   => 'nullable|date|after_or_equal:fecha_apertura',
             'observaciones'  => 'nullable|string',
+            'flete'          => 'nullable|numeric|min:0',
             'cuenta_id'      => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
         ]);
 
@@ -54,6 +55,7 @@ class ComprasController extends Controller
             'fecha_apertura' => 'required|date',
             'fecha_cierre'   => 'nullable|date|after_or_equal:fecha_apertura',
             'observaciones'  => 'nullable|string',
+            'flete'          => 'nullable|numeric|min:0',
             'cuenta_id'      => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
         ]);
 

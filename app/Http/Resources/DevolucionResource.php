@@ -25,7 +25,7 @@ class DevolucionResource extends JsonResource
             'cantidad' => $this->cantidad,
             'precio_unitario' => $this->precio_unitario,
             'subtotal' => $this->subtotal,
-            'fecha_devolucion' => $this->fecha_devolucion,
+            'fecha_devolucion' => $this->deleted_at ?? $this->fecha_devolucion,
             'venta' => $this->whenLoaded('venta', function () {
                 return [
                     'id' => $this->venta->id,
@@ -55,10 +55,15 @@ class DevolucionResource extends JsonResource
                     'nombre' => $this->estanteria->nombre,
                 ];
             }),
-            'creator' => $this->whenLoaded('creator', function () {
+            'creator' => $this->whenLoaded('eliminador', function () {
                 return [
-                    'id' => $this->creator->id,
-                    'name' => $this->creator->name,
+                    'id' => $this->eliminador->id,
+                    'name' => $this->eliminador->name,
+                ];
+            }, function() {
+                return [
+                    'id' => 0,
+                    'name' => 'Sistema'
                 ];
             }),
         ];

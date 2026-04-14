@@ -11,7 +11,7 @@ import { FormEventHandler, useEffect, useRef, useState } from 'react';
 
 type ThisForm = {
 	codigo: string;
-	marca: string;
+	marca_id: string;
 	descripcion: string;
 	categoria_id: string;
 	cuenta_id: string;
@@ -19,7 +19,7 @@ type ThisForm = {
 	_method?: string; // For Laravel form method spoofing with file uploads
 };
 
-export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, onGetItem, onReload }: any) => {
+export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onStore, onGetItem, onReload }: any) => {
 	const { isSuperAdmin } = useAuth();
 
 	// Previews the currently selected file or the absolute URL from the backend
@@ -28,7 +28,7 @@ export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, on
 
 	const { data, setData, errors, reset, setError } = useForm<ThisForm>({
 		codigo: '',
-		marca: '',
+		marca_id: '',
 		descripcion: '',
 		categoria_id: '',
 		cuenta_id: '',
@@ -92,7 +92,7 @@ export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, on
 			if (item) {
 				setData({
 					codigo: item.codigo,
-					marca: item.marca,
+					marca_id: item.marca?.id || '',
 					descripcion: item.descripcion || '',
 					categoria_id: item.categoria_id,
 					cuenta_id: item.cuenta_id || '',
@@ -133,13 +133,15 @@ export const Form = ({ id, categorias, cuentas, onClose, processing, onStore, on
 							error={errors.codigo}
 						/>
 
-						<InputField
-							name="marca"
+						<SelectField
+							name="marca_id"
 							title="Marca"
 							required
-							value={data.marca}
-							onChange={(val) => setData('marca', val as string)}
-							error={errors.marca}
+							value={data.marca_id}
+							onChange={(val) => setData('marca_id', val as string)}
+							lista={marcas}
+							item={{ idx: 'id', value: 'nombre' }}
+							error={errors.marca_id}
 						/>
 
 						<SelectField

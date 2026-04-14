@@ -32,6 +32,7 @@ class UsuariosController extends Controller
             'role' => 'required|exists:roles,name',
             'cuenta_id' => 'nullable|exists:cuentas,id',
             'estado' => 'required|boolean',
+            'ciudad_id' => 'nullable|exists:cities,id',
         ]);
 
         $user = User::create([
@@ -41,6 +42,7 @@ class UsuariosController extends Controller
             'password' => Hash::make($validated['password']),
             'cuenta_id' => $validated['cuenta_id'],
             'estado' => $validated['estado'],
+            'ciudad_id' => $request->ciudad_id ?? null,
         ]);
 
         $user->syncRoles($validated['role']);
@@ -53,7 +55,7 @@ class UsuariosController extends Controller
      */
     public function show(User $usuario)
     {
-        return new UserResource($usuario->load(['roles', 'cuenta']));
+        return new UserResource($usuario->load(['roles', 'cuenta', 'ciudad.state.country']));
     }
 
     /**
@@ -69,6 +71,7 @@ class UsuariosController extends Controller
             'role' => 'required|exists:roles,name',
             'cuenta_id' => 'nullable|exists:cuentas,id',
             'estado' => 'required|boolean',
+            'ciudad_id' => 'nullable|exists:cities,id',
         ]);
 
         $usuario->update([
@@ -77,6 +80,7 @@ class UsuariosController extends Controller
             'email' => $validated['email'],
             'cuenta_id' => $validated['cuenta_id'],
             'estado' => $validated['estado'],
+            'ciudad_id' => $request->ciudad_id ?? null,
         ]);
 
         if (!empty($validated['password'])) {

@@ -19,6 +19,7 @@ type ThisForm = {
 	precio_nuevo: number;
 	cuenta_id: string;
 	talla_nueva: string;
+	observacion: string;
 };
 
 export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
@@ -42,6 +43,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 		precio_nuevo: 0,
 		cuenta_id: isSuperAdmin ? '' : (user?.cuenta_id?.toString() || ''),
 		talla_nueva: '',
+		observacion: '',
 	});
 
 	// Fetch references only for the chosen account
@@ -468,6 +470,18 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 								</div>
 							</div>
 
+							<div className="px-6 pb-6 space-y-2">
+								<Label className="text-[10px] font-black uppercase text-slate-400">Observación del Cambio <span className="text-red-500">*</span></Label>
+								<textarea
+									required
+									className={`w-full min-h-[80px] p-3 text-sm bg-slate-50 border rounded-xl focus:ring-2 transition-all outline-none resize-none ${errors.observacion ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-indigo-500/20 focus:border-indigo-500'}`}
+									placeholder="Indica el motivo del cambio (Obligatorio)..."
+									value={data.observacion}
+									onChange={(e) => setData('observacion', e.target.value)}
+								/>
+								{errors.observacion && <p className="text-[10px] text-red-500 font-bold uppercase">{errors.observacion}</p>}
+							</div>
+
 							<div className="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
 								<div>
 									<p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">TOTAL A COBRAR (Diferencia)</p>
@@ -486,7 +500,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 										reset={() => setStep(1)}
 										buttons={{ submit: true }}
 										labels={{ submit: 'PROCESAR CAMBIO' }}
-										submitDisabled={isPriceLower}
+										submitDisabled={isPriceLower || !data.observacion.trim() || data.observacion.trim().length < 5}
 									/>
 								</div>
 							</div>

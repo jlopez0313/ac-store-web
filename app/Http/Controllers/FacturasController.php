@@ -14,7 +14,7 @@ class FacturasController extends Controller
         $user = auth()->user();
         $isSuper = $user->role === 'superadmin';
 
-        $query = Venta::with(['local', 'creator', 'detalles.bodega'])
+        $query = Venta::with(['local', 'creator', 'detalles.bodega', 'detalles.cambio'])
             ->orderBy('id', 'desc');
 
         if (!$isSuper) {

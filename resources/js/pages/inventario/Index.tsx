@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { ArrowLeftRight, Search } from 'lucide-react';
+import { Eye, Search } from 'lucide-react';
+import { useState } from 'react';
+import { DetailModal } from './DetailModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Panel principal', href: route('dashboard') },
@@ -18,6 +20,9 @@ export default function Index({ filters, lista }: any) {
 		meta: { total, current_page, per_page },
 	} = lista;
 
+	const [selectedReferencia, setSelectedReferencia] = useState<any>(null);
+	const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
 	const handleSearch = (search?: string, page?: number, perPage?: number) => {
 		router.visit(route('inventario.index', {
 			search: search !== undefined ? search : filters.search,
@@ -29,72 +34,48 @@ export default function Index({ filters, lista }: any) {
 	const columns = [
 		{
 			name: 'Código',
-			selector: (row: any) => row.referencia_codigo,
+			selector: (row: any) => row.codigo,
 			sortable: true,
-			width: '120px',
-			cell: (row: any) => <span className="font-mono font-bold text-primary">{row.referencia_codigo}</span>,
+			width: '140px',
+			cell: (row: any) => <span className="font-mono font-bold text-indigo-600">{row.codigo}</span>,
 		},
 		{
 			name: 'Producto',
 			grow: 1.5,
-			selector: (row: any) => row.referencia_descripcion,
+			selector: (row: any) => row.descripcion,
 			sortable: true,
 		},
 		{
 			name: 'Marca',
-			selector: (row: any) => row.referencia_marca,
+			selector: (row: any) => row.marca?.nombre || 'N/A',
 			sortable: true,
 			width: '120px',
 		},
 		{
-			name: 'Ubicación',
-			grow: 1.2,
+			name: 'Stock Total',
+			width: '150px',
 			cell: (row: any) => (
-				<div className="flex flex-col py-2">
-					<span className="font-medium text-slate-900">{row.bodega_nombre}</span>
-					<span className="text-xs text-slate-500">{row.estanteria_nombre}</span>
-				</div>
-			),
-			sortable: true,
-			noTruncate: true,
-		},
-		{
-			name: 'Talla',
-			width: '100px',
-			cell: (row: any) => <Badge variant="outline" className="font-mono bg-white text-slate-700 border-slate-200">{row.talla}</Badge>,
-			sortable: true,
-		},
-		{
-			name: 'Stock',
-			width: '100px',
-			cell: (row: any) => (
-				<span className={`font-medium ${row.stock <= 0 ? 'text-red-500' : 'text-slate-900'}`}>
-					{row.stock}
+				<span className={`font-bold ${Number(row.total_stock) <= 0 ? 'text-red-500' : 'text-slate-900'}`}>
+					{row.total_stock || 0}
 				</span>
 			),
 			sortable: true,
 		},
 		{
-			name: 'P. Costo',
-			width: '120px',
-			cell: (row: any) => <span className="font-semibold text-slate-600">${Number(row.precio_compra).toLocaleString()}</span>,
-			sortable: true,
-		},
-		{
-			name: 'P. Venta',
-			width: '120px',
-			cell: (row: any) => <span className="font-semibold text-green-600">${Number(row.precio_venta).toLocaleString()}</span>,
+			name: 'Precio de Venta Sugerido',
+			width: '240px',
+			cell: (row: any) => <span className="font-semibold text-green-600">${Number(row.precio_venta || 0).toLocaleString()}</span>,
 			sortable: true,
 		}
 	];
 
 	const actions = [
 		{
-			title: 'Trasladar',
-			icon: ArrowLeftRight,
-			action: (id: number) => {
-				// Implement transfer logic or open modal
-				console.log('Trasladar', id);
+			title: 'Ver Detalle',
+			icon: Eye,
+			action: (id: any, row: any) => {
+				setSelectedReferencia(row);
+				setIsDetailModalOpen(true);
 			}
 		}
 	];
@@ -106,14 +87,14 @@ export default function Index({ filters, lista }: any) {
 			<div className="p-4 space-y-6">
 				<PageHeader
 					title="Inventario General"
-					description="Visualiza el stock disponible por referencia, talla y ubicación."
+					description="Visualiza el stock disponible agrupado por referencia y marca."
 				/>
 
 				<div className="flex items-center justify-between gap-4">
 					<div className="relative flex-1 max-w-sm">
 						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 						<Input
-							placeholder="Buscar por código, descripción, talla..."
+							placeholder="Buscar por código, descripción, marca..."
 							className="pl-9"
 							defaultValue={filters.search}
 							onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
@@ -126,7 +107,7 @@ export default function Index({ filters, lista }: any) {
 					</div>
 					<div className="flex items-center gap-2">
 						<Badge variant="secondary" className="px-3 py-1 text-xs">
-							Total registros: {total}
+							Total referencias: {total}
 						</Badge>
 					</div>
 				</div>
@@ -147,6 +128,12 @@ export default function Index({ filters, lista }: any) {
 					/>
 				</div>
 			</div>
+
+			<DetailModal
+				isOpen={isDetailModalOpen}
+				onClose={() => setIsDetailModalOpen(false)}
+				referencia={selectedReferencia}
+			/>
 		</AppLayout>
 	);
 }

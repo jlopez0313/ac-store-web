@@ -22,6 +22,21 @@ class UserResource extends JsonResource
             'role'       => $this->role,
             'cuenta_id'  => $this->cuenta_id,
             'estado'     => $this->estado,
+            'ciudad_id'  => $this->ciudad_id,
+            'ciudad'     => $this->ciudad ? [
+                'id' => $this->ciudad->id,
+                'name' => $this->ciudad->name,
+                'state_id' => $this->ciudad->state_id,
+                'state' => $this->ciudad->state ? [
+                    'id' => $this->ciudad->state->id,
+                    'name' => $this->ciudad->state->name,
+                    'country_id' => $this->ciudad->state->country_id,
+                    'country' => $this->ciudad->state->country ? [
+                        'id' => $this->ciudad->state->country->id,
+                        'name' => $this->ciudad->state->country->name,
+                    ] : null,
+                ] : null,
+            ] : null,
             'cuenta'     => [
                 'id'     => $this->cuenta?->id,
                 'nombre' => $this->cuenta?->nombre,

@@ -13,12 +13,17 @@ class Referencia extends Model
 
     protected $fillable = [
         'codigo',
-        'marca',
+        'marca_id',
         'descripcion',
         'categoria_id',
         'foto',
         'cuenta_id',
     ];
+
+    public function marca()
+    {
+        return $this->belongsTo(Marca::class);
+    }
 
     /**
      * Get the category that owns the product.
@@ -34,5 +39,15 @@ class Referencia extends Model
     public function cuenta()
     {
         return $this->belongsTo(Cuenta::class);
+    }
+
+    public function inventarios()
+    {
+        return $this->hasMany(Inventario::class);
+    }
+
+    public function ventaDetalles()
+    {
+        return $this->hasMany(VentaDetalle::class, 'producto_id');
     }
 }

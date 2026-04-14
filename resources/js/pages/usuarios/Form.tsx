@@ -1,10 +1,11 @@
 import { FormButtons } from '@/components/ui/form/FormButtons';
 import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
+import { useAuth } from '@/hooks/use-auth';
 import { showAlert } from '@/plugins/sweetalert';
 import { useForm } from '@inertiajs/react';
-import { FormEventHandler, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import axios from 'axios';
+import { FormEventHandler, useEffect, useState } from 'react';
 
 type ThisForm = {
 	name: string;
@@ -14,6 +15,9 @@ type ThisForm = {
 	role: string;
 	cuenta_id: string;
 	estado: string;
+	country_id: string;
+	state_id: string;
+	ciudad_id: string;
 };
 
 export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore, onGetItem, onReload }: any) => {
@@ -26,7 +30,52 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 		role: '',
 		cuenta_id: '',
 		estado: '1',
+		country_id: '',
+		state_id: '',
+		ciudad_id: '',
 	});
+
+	const [countries, setCountries] = useState<any[]>([]);
+	const [states, setStates] = useState<any[]>([]);
+	const [cities, setCities] = useState<any[]>([]);
+
+	const loadCountries = async () => {
+		try {
+			const res = await axios.get(route('api.geography.countries'));
+			setCountries(res.data);
+		} catch (error) {
+			console.error('Error loading countries', error);
+		}
+	};
+
+	const loadStates = async (countryId: string) => {
+		if (!countryId) {
+			setStates([]);
+			setCities([]);
+			setData((prev) => ({ ...prev, state_id: '', ciudad_id: '' }));
+			return;
+		}
+		try {
+			const res = await axios.get(route('api.geography.states', { country_id: countryId }));
+			setStates(res.data);
+		} catch (error) {
+			console.error('Error loading states', error);
+		}
+	};
+
+	const loadCities = async (stateId: string) => {
+		if (!stateId) {
+			setCities([]);
+			setData((prev) => ({ ...prev, ciudad_id: '' }));
+			return;
+		}
+		try {
+			const res = await axios.get(route('api.geography.cities', { state_id: stateId }));
+			setCities(res.data);
+		} catch (error) {
+			console.error('Error loading cities', error);
+		}
+	};
 
 	const submit: FormEventHandler = async (e) => {
 		e.preventDefault();
@@ -54,16 +103,27 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 	};
 
 	useEffect(() => {
+		loadCountries();
+	}, []);
+
+	useEffect(() => {
 		if (!id) {
 			reset();
+			setStates([]);
+			setCities([]);
 			return;
 		}
 		const getItem = async () => {
-			const item: any = await onGetItem(
-				() => ({ url: route('usuarios.show', { usuario: id }) }),
-				{},
-			);
+			const item: any = await onGetItem(() => ({ url: route('usuarios.show', { usuario: id }) }), {});
 			if (item) {
+				const countryId = item.ciudad?.state?.country_id?.toString() || '';
+				const stateId = item.ciudad?.state_id?.toString() || '';
+				const ciudadId = item.ciudad_id?.toString() || '';
+
+				// Trigger loads sequentially for pre-population
+				if (countryId) loadStates(countryId);
+				if (stateId) loadCities(stateId);
+
 				setData({
 					name: item.name,
 					username: item.username,
@@ -72,6 +132,9 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 					role: item.role || '',
 					cuenta_id: item.cuenta_id?.toString() || '',
 					estado: item.estado ? '1' : '0',
+					country_id: countryId,
+					state_id: stateId,
+					ciudad_id: ciudadId,
 				});
 			}
 		};
@@ -141,6 +204,42 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 							lista={cuentas}
 							item={{ idx: 'id', value: 'name' }}
 							error={errors.cuenta_id}
+						/>
+
+						<SelectField
+							name="country_id"
+							title="País"
+							value={data.country_id}
+							onChange={(value) => {
+								setData('country_id', value as string);
+								loadStates(value as string);
+							}}
+							lista={countries}
+							item={{ idx: 'id', value: 'name' }}
+							error={errors.country_id}
+						/>
+
+						<SelectField
+							name="state_id"
+							title="Departamento"
+							value={data.state_id}
+							onChange={(value) => {
+								setData('state_id', value as string);
+								loadCities(value as string);
+							}}
+							lista={states}
+							item={{ idx: 'id', value: 'name' }}
+							error={errors.state_id}
+						/>
+
+						<SelectField
+							name="ciudad_id"
+							title="Ciudad"
+							value={data.ciudad_id}
+							onChange={(value) => setData('ciudad_id', value as string)}
+							lista={cities}
+							item={{ idx: 'id', value: 'name' }}
+							error={errors.ciudad_id}
 						/>
 
 						<SelectField

@@ -64,6 +64,11 @@ export default function Index({ filters, lista, roles, cuentas, estados }: any) 
 			sortable: true,
 		},
 		{
+			name: 'Ciudad',
+			selector: (row: any) => row.ciudad?.name ? `${row.ciudad.name} (${row.ciudad.state?.country?.name || ''})` : 'N/A',
+			sortable: true,
+		},
+		{
 			name: 'Estado',
 			cell: (row: any) => (
 				<Badge variant={row.estado ? 'default' : 'destructive'}>

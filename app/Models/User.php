@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'cuenta_id',
         'estado',
+        'ciudad_id',
     ];
 
     /**
@@ -82,5 +83,21 @@ class User extends Authenticatable
     public function bodegaAccesos()
     {
         return $this->hasMany(BodegaAcceso::class, 'user_id');
+    }
+
+    /**
+     * Get the city where the user is located.
+     */
+    public function ciudad()
+    {
+        return $this->belongsTo(\Nnjeim\World\Models\City::class, 'ciudad_id');
+    }
+
+    /**
+     * Get the sales where the user is the customer/local.
+     */
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class, 'user_id');
     }
 }

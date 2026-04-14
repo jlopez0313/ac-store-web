@@ -13,6 +13,7 @@ type ThisForm = {
 	fecha_apertura: string;
 	fecha_cierre: string;
 	observaciones: string;
+	flete: string;
 	cuenta_id: string;
 };
 
@@ -25,6 +26,7 @@ export const Form = ({ id, proveedores, cuentas, onClose, processing, onStore, o
 		fecha_apertura: new Date().toISOString().slice(0, 16), // YYYY-MM-DDThh:mm format for datetime-local
 		fecha_cierre: '',
 		observaciones: '',
+		flete: '0',
 		cuenta_id: '',
 	});
 
@@ -80,6 +82,7 @@ export const Form = ({ id, proveedores, cuentas, onClose, processing, onStore, o
 					fecha_apertura: item.fecha_apertura ? item.fecha_apertura.slice(0, 16) : '',
 					fecha_cierre: item.fecha_cierre ? item.fecha_cierre.slice(0, 16) : '',
 					observaciones: item.observaciones || '',
+					flete: item.flete?.toString() || '0',
 					cuenta_id: item.cuenta_id || '',
 				});
 			}
@@ -147,6 +150,18 @@ export const Form = ({ id, proveedores, cuentas, onClose, processing, onStore, o
 							onChange={(val) => setData('fecha_apertura', val as string)}
 							error={errors.fecha_apertura}
 						/>
+
+						<div className="col-span-1 md:col-span-2">
+							<InputField
+								name="flete"
+								title="Valor del Flete"
+								type="number"
+								required
+								value={data.flete}
+								onChange={(val) => setData('flete', val as string)}
+								error={errors.flete}
+							/>
+						</div>
 
 						<div className="col-span-1 md:col-span-2 hidden">
 							<InputField

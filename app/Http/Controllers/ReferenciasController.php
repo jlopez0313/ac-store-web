@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\ReferenciaResource;
 use App\Models\Categoria;
 use App\Models\Cuenta;
+use App\Models\Marca;
 use App\Models\Referencia;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,7 +17,7 @@ class ReferenciasController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Referencia::with(['categoria', 'cuenta'])->orderBy('codigo');
+        $query = Referencia::with(['categoria', 'cuenta', 'marca'])->orderBy('codigo');
 
         // Tenancy filtering if not superadmin
         if (!auth()->user()->hasRole('superadmin')) {
@@ -27,17 +28,23 @@ class ReferenciasController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('codigo', 'like', '%' . $request->search . '%')
-                    ->orWhere('marca', 'like', '%' . $request->search . '%')
-                    ->orWhere('descripcion', 'like', '%' . $request->search . '%');
+                    ->orWhere('descripcion', 'like', '%' . $request->search . '%')
+                    ->orWhereHas('marca', function ($mq) use ($request) {
+                        $mq->where('nombre', 'like', '%' . $request->search . '%');
+                    });
             });
         }
 
         // Sorting logic
         if ($request->filled('sort')) {
             // Check if column is sortable to prevent SQL injection or errors
-            $sortableColumns = ['id', 'codigo', 'marca', 'created_at'];
+            $sortableColumns = ['id', 'codigo', 'created_at'];
             if (in_array($request->sort, $sortableColumns)) {
                 $query->orderBy($request->sort, $request->input('order', 'asc'));
+            } elseif ($request->sort === 'marca') {
+                $query->join('marcas', 'referencias.marca_id', '=', 'marcas.id')
+                    ->orderBy('marcas.nombre', $request->input('order', 'asc'))
+                    ->select('referencias.*');
             }
         }
 
@@ -48,6 +55,7 @@ class ReferenciasController extends Controller
             ),
             'cuentas' => auth()->user()->hasRole('superadmin') ? Cuenta::select('id', 'nombre')->get() : [],
             'categorias' => Categoria::select('id', 'nombre')->orderBy('nombre')->get(),
+            'marcas' => Marca::select('id', 'nombre')->orderBy('nombre')->get(),
         ]);
     }
 
@@ -60,7 +68,7 @@ class ReferenciasController extends Controller
     {
         $request->validate([
             'codigo' => 'required|string|max:50',
-            'marca' => 'required|string|max:50',
+            'marca_id' => 'required|exists:marcas,id',
             'descripcion' => 'nullable|string',
             'categoria_id' => 'required|exists:categorias,id',
             'cuenta_id' => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
@@ -88,7 +96,7 @@ class ReferenciasController extends Controller
     {
         $request->validate([
             'codigo' => 'required|string|max:50',
-            'marca' => 'required|string|max:50',
+            'marca_id' => 'required|exists:marcas,id',
             'descripcion' => 'nullable|string',
             'categoria_id' => 'required|exists:categorias,id',
             'cuenta_id' => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
