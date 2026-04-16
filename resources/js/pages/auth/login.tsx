@@ -92,12 +92,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 					</Button>
 				</div>
 
-				<div className="text-muted-foreground text-center text-sm">
-					¿No tienes una cuenta?{' '}
-					<TextLink href={route('register')} tabIndex={5}>
-						Regístrate
-					</TextLink>
-				</div>
+
 
 				<p className="text-center text-xs text-muted-foreground">
 					{import.meta.env.VITE_APP_NAME} v{import.meta.env.VITE_APP_VERSION}
