@@ -37,7 +37,7 @@ class VentaResource extends JsonResource
                         'id' => $d->producto->id ?? null,
                         'codigo' => $d->producto->codigo ?? 'N/A',
                         'descripcion' => $d->producto->descripcion ?? 'N/A',
-                        'marca' => $d->producto->marca ?? 'N/A',
+                        'marca' => $d->producto->marca->nombre ?? $d->producto->marca ?? 'N/A',
                         'foto' => $d->producto->foto ? \Storage::url($d->producto->foto) : null,
                     ],
                     'bodega_id' => $d->bodega_id,

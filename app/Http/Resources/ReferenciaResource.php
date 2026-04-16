@@ -29,6 +29,9 @@ class ReferenciaResource extends JsonResource
                 'id' => $this->categoria->id ?? null,
                 'nombre' => $this->categoria->nombre ?? '',
             ],
+            'cuenta' => $this->whenLoaded('cuenta'),
+            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];
     }
 }

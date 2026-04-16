@@ -18,7 +18,7 @@ class ReferenciasController extends Controller
     {
         $validated = $request->validate([
             'codigo' => 'required|string|max:255|unique:referencias,codigo',
-            'marca' => 'required|string|max:255',
+            'marca_id' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'categoria_id' => 'required|exists:categorias,id',
             'foto' => 'nullable|image', // Max 2MB
@@ -62,7 +62,7 @@ class ReferenciasController extends Controller
     {
         $validated = $request->validate([
             'codigo' => 'required|string|max:255|unique:referencias,codigo,' . $referencia->id,
-            'marca' => 'required|string|max:255',
+            'marca_id' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'categoria_id' => 'required|exists:categorias,id',
             'foto' => 'nullable|image',

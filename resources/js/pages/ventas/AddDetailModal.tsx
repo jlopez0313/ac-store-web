@@ -92,7 +92,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 		}).filter((r: any) => {
 			const matchesSearch = r.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				r.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				r.marca?.toLowerCase().includes(searchTerm.toLowerCase());
+				(typeof r.marca === 'object' ? r.marca.nombre : r.marca)?.toLowerCase().includes(searchTerm.toLowerCase());
 
 			// Show if matches search AND (has stock in filtered view or no filters applied)
 			return matchesSearch && (r.displayStock > 0 || (!selectedBodegaId && !selectedTalla && !searchTerm));
@@ -295,7 +295,9 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 								<div className="space-y-0.5">
 									<div className="flex items-center gap-2">
 										<span className="text-xl font-black text-[#1e293b]">{selectedRef?.codigo}</span>
-										<Badge variant="outline" className="text-[#475569] border font-bold h-5 px-2 text-[10px] uppercase">{selectedRef?.marca}</Badge>
+										<Badge variant="outline" className="text-[#475569] border font-bold h-5 px-2 text-[10px] uppercase">
+											{typeof selectedRef?.marca === 'object' ? selectedRef.marca.nombre : (selectedRef?.marca || 'N/A')}
+										</Badge>
 									</div>
 									<h3 className="text-[13px] font-bold text-[#64748b] uppercase tracking-wide">{selectedRef?.descripcion}</h3>
 								</div>
@@ -335,7 +337,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 											</div>
 											<div className="flex gap-1.5 mt-1">
 												<Badge variant="outline" className="text-[10px] font-medium border-slate-200 text-slate-500 rounded-md py-0 px-1.5">
-													{r.marca || 'GENERIC'}
+													{typeof r.marca === 'object' ? r.marca.nombre : (r.marca || 'GENERIC')}
 												</Badge>
 												<Badge variant="secondary" className="text-[10px] font-medium bg-slate-100 text-slate-600 rounded-md py-0 px-1.5">
 													{r.displayTallas} tallas

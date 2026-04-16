@@ -85,7 +85,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                         <div className="text-sm font-medium text-slate-900 leading-tight">{detalle.producto?.descripcion}</div>
                                         <div className="text-[10px] text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                                             <Tag className="h-2.5 w-2.5" />
-                                            {detalle.producto?.marca} · Talla {detalle.talla}
+                                            {typeof detalle.producto?.marca === 'object' ? detalle.producto.marca.nombre : (detalle.producto?.marca || 'N/A')} · Talla {detalle.talla}
                                         </div>
                                     </div>
                                 </TableCell>

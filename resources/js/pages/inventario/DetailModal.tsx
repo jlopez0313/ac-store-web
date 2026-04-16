@@ -85,7 +85,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
 								</div>
 								<div className="flex flex-col">
 									<span className="text-[10px] font-medium text-slate-400 uppercase leading-none mb-1">Marca</span>
-									<span className="text-sm font-medium text-slate-900">{referencia.marca}</span>
+									<span className="text-sm font-medium text-slate-900">{typeof referencia.marca === 'object' ? referencia.marca.nombre : (referencia.marca || 'N/A')}</span>
 								</div>
 							</div>
 
