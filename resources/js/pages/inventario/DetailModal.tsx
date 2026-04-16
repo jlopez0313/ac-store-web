@@ -50,12 +50,12 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
 			maxWidth="4xl"
 			closeable={true}
 		>
-			<div className="max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+			<div className="max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-background">
 				<div className="p-6 space-y-8">
 					{/* Header Info */}
-					<div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
+					<div className="bg-muted/30 border border-border rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
 						{referencia.foto && (
-							<div className="w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 bg-white flex-shrink-0 shadow-sm transition-transform hover:scale-105 duration-300">
+							<div className="w-24 h-24 rounded-2xl overflow-hidden border border-border bg-background flex-shrink-0 shadow-sm transition-transform hover:scale-105 duration-300">
 								<img
 									src={referencia.foto}
 									alt={referencia.codigo}
@@ -70,32 +70,32 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
 
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 w-full">
 							<div className="flex items-center gap-4">
-								<div className="h-10 w-10 flex items-center justify-center bg-white rounded-xl text-slate-500 border border-slate-100 flex-shrink-0">
+								<div className="h-10 w-10 flex items-center justify-center bg-background rounded-xl text-muted-foreground border border-border/50 flex-shrink-0">
 									<Package className="h-5 w-5" />
 								</div>
 								<div className="flex flex-col">
-									<span className="text-[10px] font-medium text-slate-400 uppercase leading-none mb-1">Producto</span>
-									<span className="text-sm font-medium text-slate-900 line-clamp-2 md:line-clamp-1">{referencia.descripcion}</span>
+									<span className="text-[10px] font-medium text-muted-foreground uppercase leading-none mb-1">Producto</span>
+									<span className="text-sm font-medium text-foreground line-clamp-2 md:line-clamp-1">{referencia.descripcion}</span>
 								</div>
 							</div>
 
 							<div className="flex items-center gap-4">
-								<div className="h-10 w-10 flex items-center justify-center bg-white rounded-xl text-slate-500 border border-slate-100 flex-shrink-0">
+								<div className="h-10 w-10 flex items-center justify-center bg-background rounded-xl text-muted-foreground border border-border/50 flex-shrink-0">
 									<Tag className="h-5 w-5" />
 								</div>
 								<div className="flex flex-col">
-									<span className="text-[10px] font-medium text-slate-400 uppercase leading-none mb-1">Marca</span>
-									<span className="text-sm font-medium text-slate-900">{typeof referencia.marca === 'object' ? referencia.marca.nombre : (referencia.marca || 'N/A')}</span>
+									<span className="text-[10px] font-medium text-muted-foreground uppercase leading-none mb-1">Marca</span>
+									<span className="text-sm font-medium text-foreground">{typeof referencia.marca === 'object' ? referencia.marca.nombre : (referencia.marca || 'N/A')}</span>
 								</div>
 							</div>
 
 							<div className="flex items-center gap-4">
-								<div className="h-10 w-10 flex items-center justify-center bg-white rounded-xl text-slate-500 border border-slate-100 flex-shrink-0">
+								<div className="h-10 w-10 flex items-center justify-center bg-background rounded-xl text-muted-foreground border border-border/50 flex-shrink-0">
 									<Info className="h-5 w-5" />
 								</div>
 								<div className="flex flex-col">
-									<span className="text-[10px] font-medium text-slate-400 uppercase leading-none mb-1">Stock Total</span>
-									<span className={`text-sm font-medium ${Number(referencia.total_stock) <= 0 ? 'text-red-500' : 'text-slate-900'}`}>
+									<span className="text-[10px] font-medium text-muted-foreground uppercase leading-none mb-1">Stock Total</span>
+									<span className={`text-sm font-medium ${Number(referencia.total_stock) <= 0 ? 'text-red-500' : 'text-foreground'}`}>
 										{referencia.total_stock} unidades
 									</span>
 								</div>
@@ -106,18 +106,18 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
 					{/* Totals by Warehouse Summary */}
 					{!loading && details.length > 0 && (
 						<div className="space-y-4">
-							<h3 className="text-sm font-medium text-slate-900 uppercase flex items-center gap-2">
+							<h3 className="text-sm font-medium text-foreground uppercase flex items-center gap-2">
 								Resumen por Bodega
 							</h3>
 							<div className="flex flex-wrap gap-3">
 								{Object.entries(warehouseTotals).map(([bodega, total]: any) => (
-									<div key={bodega} className="bg-white border border-slate-200 px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-3">
-										<div className="p-1.5 bg-indigo-50 rounded-lg">
-											<Warehouse className="h-3.5 w-3.5 text-indigo-600" />
+									<div key={bodega} className="bg-background border border-border px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-3">
+										<div className="p-1.5 bg-primary/10 rounded-lg">
+											<Warehouse className="h-3.5 w-3.5 text-primary" />
 										</div>
 										<div className="flex flex-col">
-											<span className="text-[10px] font-medium text-slate-400 uppercase leading-none mb-1">{bodega}</span>
-											<span className="text-xs font-medium text-slate-900 leading-none">{total} <span className="text-[10px] text-slate-400 font-medium">unidades</span></span>
+											<span className="text-[10px] font-medium text-muted-foreground uppercase leading-none mb-1">{bodega}</span>
+											<span className="text-xs font-medium text-foreground leading-none">{total} <span className="text-[10px] text-muted-foreground font-medium">unidades</span></span>
 										</div>
 									</div>
 								))}
@@ -127,7 +127,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
 
 					{/* Table Details */}
 					<div className="space-y-4">
-						<h3 className="text-sm font-medium text-slate-900 uppercase flex items-center gap-2">
+						<h3 className="text-sm font-medium text-foreground uppercase flex items-center gap-2">
 							Distribución por Bodega y Talla
 						</h3>
 
@@ -136,49 +136,49 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
 								<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
 							</div>
 						) : details.length === 0 ? (
-							<div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-slate-500">
+							<div className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed border-border text-muted-foreground">
 								No se encontraron registros detallados de inventario.
 							</div>
 						) : (
-							<div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+							<div className="bg-background rounded-2xl border border-border overflow-hidden shadow-sm">
 								<Table>
 									<TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
 										<TableRow>
-											<TableHead className="font-bold text-slate-700 h-12 bg-slate-50">Bodega / Estantería</TableHead>
-											<TableHead className="text-center font-bold text-slate-700 h-12 bg-slate-50">Talla</TableHead>
-											<TableHead className="text-center font-bold text-slate-700 h-12 bg-slate-50">Stock</TableHead>
-											<TableHead className="text-right font-bold text-slate-700 h-12 bg-slate-50">Precio Costo</TableHead>
-											<TableHead className="text-right font-bold text-slate-700 h-12 bg-slate-50 pr-6">Precio Venta</TableHead>
+											<TableHead className="font-bold text-foreground h-12 bg-muted/50">Bodega / Estantería</TableHead>
+											<TableHead className="text-center font-bold text-foreground h-12 bg-muted/50">Talla</TableHead>
+											<TableHead className="text-center font-bold text-foreground h-12 bg-muted/50">Stock</TableHead>
+											<TableHead className="text-right font-bold text-foreground h-12 bg-muted/50">Precio Costo</TableHead>
+											<TableHead className="text-right font-bold text-foreground h-12 bg-muted/50 pr-6">Precio Venta</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
 										{details.map((item: any) => (
-											<TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors border-slate-100">
+											<TableRow key={item.id} className="hover:bg-muted/20 transition-colors border-border/50">
 												<TableCell>
 													<div className="flex items-center gap-3">
-														<div className="p-2 bg-slate-100 rounded-lg text-slate-400">
+														<div className="p-2 bg-muted rounded-lg text-muted-foreground">
 															<Warehouse className="h-4 w-4" />
 														</div>
 														<div className="flex flex-col">
-															<span className="font-medium text-slate-900 text-sm">{item.bodega_nombre}</span>
-															<span className="text-[10px] text-slate-500 uppercase">{item.estanteria_nombre}</span>
+															<span className="font-medium text-foreground text-sm">{item.bodega_nombre}</span>
+															<span className="text-[10px] text-muted-foreground uppercase">{item.estanteria_nombre}</span>
 														</div>
 													</div>
 												</TableCell>
 												<TableCell className="text-center">
-													<Badge variant="outline" className="bg-white border-slate-200 font-mono">
+													<Badge variant="outline" className="bg-background border-border font-mono">
 														{item.talla}
 													</Badge>
 												</TableCell>
 												<TableCell className="text-center">
-													<span className={`font-bold ${item.stock <= 0 ? 'text-red-500' : 'text-slate-700'}`}>
+													<span className={`font-bold ${item.stock <= 0 ? 'text-red-500' : 'text-foreground'}`}>
 														{item.stock}
 													</span>
 												</TableCell>
-												<TableCell className="text-right text-slate-500 font-medium">
+												<TableCell className="text-right text-muted-foreground font-medium">
 													${Number(item.precio_compra).toLocaleString()}
 												</TableCell>
-												<TableCell className="text-right font-medium text-slate-900 pr-6">
+												<TableCell className="text-right font-medium text-foreground pr-6">
 													${Number(item.precio_venta).toLocaleString()}
 												</TableCell>
 											</TableRow>

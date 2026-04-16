@@ -252,11 +252,11 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 									<span>Variación</span>
 									<span className="text-center">Cant.</span>
 								</div>
-								<div className="flex-1 overflow-y-auto bg-white">
-									<div className="grid grid-cols-1 divide-y divide-slate-100 px-2">
+								<div className="flex-1 overflow-y-auto bg-background">
+									<div className="grid grid-cols-1 divide-y border-border px-2">
 										{sizedRows.map((row, i) => (
-											<div key={row.size} className="grid grid-cols-[1fr_80px] gap-4 items-center py-2 px-2 hover:bg-slate-50 transition-colors">
-												<span className="font-bold text-sm text-slate-600 ml-2">{row.size}</span>
+											<div key={row.size} className="grid grid-cols-[1fr_80px] gap-4 items-center py-2 px-2 hover:bg-muted/50 transition-colors">
+												<span className="font-bold text-sm text-foreground ml-2">{row.size}</span>
 
 												<div className="-mt-1">
 													<InputField
@@ -282,11 +282,11 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 						</TabsContent>
 					</Tabs>
 				</div>
-				<div className="px-6 py-4 bg-slate-50 border-t flex justify-end gap-3 flex-shrink-0">
-					<button type="button" onClick={onClose} className="px-4 py-2 border rounded-md shadow-sm text-sm font-medium bg-white hover:bg-slate-50">
+				<div className="px-6 py-4 bg-muted/30 border-t flex justify-end gap-3 flex-shrink-0">
+					<button type="button" onClick={onClose} className="px-4 py-2 border border-border rounded-md shadow-sm text-sm font-medium bg-background hover:bg-muted text-foreground">
 						Cancelar
 					</button>
-					<button type="submit" className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 flex items-center">
+					<button type="submit" className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 flex items-center">
 						<Plus className="w-4 h-4 mr-2" />
 						Agregar a factura
 					</button>

@@ -39,7 +39,7 @@ export default function Accesos({ bodega, lista, filters }: any) {
 			name: 'Usuario Local',
 			cell: (row: any) => (
 				<div className="flex flex-col py-2">
-					<span className="font-bold text-slate-900">{row.nombre}</span>
+					<span className="font-bold text-foreground">{row.nombre}</span>
 					<span className="text-xs text-muted-foreground italic">{row.username}</span>
 				</div>
 			),
@@ -60,7 +60,7 @@ export default function Accesos({ bodega, lista, filters }: any) {
 						<Check className="h-3 w-3" /> Permitido
 					</Badge>
 				) : (
-					<Badge variant="outline" className="text-slate-400 border-slate-200 gap-1">
+					<Badge variant="outline" className="text-muted-foreground border-border gap-1">
 						<X className="h-3 w-3" /> Denegado
 					</Badge>
 				)
@@ -74,7 +74,7 @@ export default function Accesos({ bodega, lista, filters }: any) {
 						<Check className="h-3 w-3" /> Permitido
 					</Badge>
 				) : (
-					<Badge variant="outline" className="text-slate-400 border-slate-200 gap-1">
+					<Badge variant="outline" className="text-muted-foreground border-border gap-1">
 						<X className="h-3 w-3" /> Denegado
 					</Badge>
 				)
@@ -134,7 +134,7 @@ export default function Accesos({ bodega, lista, filters }: any) {
 					</div>
 				</div>
 
-				<div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+				<div className="bg-background rounded-xl shadow-xs border border-border overflow-hidden">
 					<DataGrid
 						data={lista}
 						columns={columns}

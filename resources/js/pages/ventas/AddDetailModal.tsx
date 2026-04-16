@@ -235,9 +235,9 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 			title={mode === 'search' ? 'Búsqueda por Referencia' : 'Seleccionar Detalle'}
 			maxWidth="2xl"
 		>
-			<form onSubmit={(e) => { e.preventDefault(); submit(); }} className="flex flex-col h-[700px] overflow-hidden bg-white">
+			<form onSubmit={(e) => { e.preventDefault(); submit(); }} className="flex flex-col h-[700px] overflow-hidden bg-background">
 				{/* Header / Search Area */}
-				<div className="p-6 border-b bg-white space-y-4">
+				<div className="p-6 border-b bg-background space-y-4">
 					{mode === 'search' ? (
 						<>
 							<div className="relative">
@@ -247,17 +247,17 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
 									placeholder="Buscar por código, marca o descripción..."
-									className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/5 focus:border-slate-400 transition-all font-medium text-slate-600"
+									className="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring transition-all font-medium text-foreground"
 								/>
 							</div>
 
 							<div className="flex gap-2">
 								<div className="flex-1 relative">
-									<Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+									<Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
 									<select
 										value={selectedBodegaId || ''}
 										onChange={(e) => setSelectedBodegaId(e.target.value ? parseInt(e.target.value) : null)}
-										className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 appearance-none focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-all cursor-pointer"
+										className="w-full pl-9 pr-8 py-2 bg-background border border-border rounded-lg text-sm font-medium text-muted-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-ring transition-all cursor-pointer"
 									>
 										<option value="">Todas las bodegas</option>
 										{bodegas?.filter((b: any) => permittedBodegaIds.has(b.id)).map((b: any) => (
@@ -271,7 +271,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 									<select
 										value={selectedTalla || ''}
 										onChange={(e) => setSelectedTalla(e.target.value || null)}
-										className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 appearance-none focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-all cursor-pointer"
+										className="w-full pl-9 pr-8 py-2 bg-background border border-border rounded-lg text-sm font-medium text-muted-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-ring transition-all cursor-pointer"
 									>
 										<option value="">Todas las tallas</option>
 										{availableTallas.map((t) => (
@@ -294,17 +294,17 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 								</div>
 								<div className="space-y-0.5">
 									<div className="flex items-center gap-2">
-										<span className="text-xl font-black text-[#1e293b]">{selectedRef?.codigo}</span>
-										<Badge variant="outline" className="text-[#475569] border font-bold h-5 px-2 text-[10px] uppercase">
+										<span className="text-xl font-black text-foreground">{selectedRef?.codigo}</span>
+										<Badge variant="outline" className="text-muted-foreground border font-bold h-5 px-2 text-[10px] uppercase">
 											{typeof selectedRef?.marca === 'object' ? selectedRef.marca.nombre : (selectedRef?.marca || 'N/A')}
 										</Badge>
 									</div>
-									<h3 className="text-[13px] font-bold text-[#64748b] uppercase tracking-wide">{selectedRef?.descripcion}</h3>
+									<h3 className="text-[13px] font-bold text-muted-foreground uppercase tracking-wide">{selectedRef?.descripcion}</h3>
 								</div>
 							</div>
 							<button
 								onClick={() => setMode('search')}
-								className="text-xs font-bold text-[#64748b] hover:text-slate-900 flex items-center gap-1 transition-colors bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl"
+								className="text-xs font-bold text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors bg-muted/50 border border-border px-3 py-2 rounded-xl"
 							>
 								← Volver
 							</button>
@@ -332,21 +332,21 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 										</div>
 										<div className="space-y-0.5">
 											<div className="flex items-center gap-2">
-												<span className="font-bold text-[#1e293b]">{r.codigo}</span>
-												<span className="text-[#1e293b] font-medium uppercase truncate max-w-[200px]">{r.descripcion}</span>
+												<span className="font-bold text-foreground">{r.codigo}</span>
+												<span className="text-foreground font-medium uppercase truncate max-w-[200px]">{r.descripcion}</span>
 											</div>
 											<div className="flex gap-1.5 mt-1">
-												<Badge variant="outline" className="text-[10px] font-medium border-slate-200 text-slate-500 rounded-md py-0 px-1.5">
+												<Badge variant="outline" className="text-[10px] font-medium border-border text-muted-foreground rounded-md py-0 px-1.5">
 													{typeof r.marca === 'object' ? r.marca.nombre : (r.marca || 'GENERIC')}
 												</Badge>
-												<Badge variant="secondary" className="text-[10px] font-medium bg-slate-100 text-slate-600 rounded-md py-0 px-1.5">
+												<Badge variant="secondary" className="text-[10px] font-medium bg-muted text-muted-foreground rounded-md py-0 px-1.5">
 													{r.displayTallas} tallas
 												</Badge>
 											</div>
 										</div>
 									</div>
 									<div className="flex items-center gap-6">
-										<Badge variant="secondary" className="bg-slate-100 text-[#475569] py-1 px-3 rounded-full flex items-center gap-2 text-[10px] uppercase border-none">
+										<Badge variant="secondary" className="bg-muted text-muted-foreground py-1 px-3 rounded-full flex items-center gap-2 text-[10px] uppercase border-none">
 											<Box className="h-3 w-3" />
 											{r.displayStock} uds
 										</Badge>
@@ -371,13 +371,13 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 							) : (
 								<div className="space-y-4">
 									{groupedStock.map((bodega) => (
-										<div key={bodega.id} className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
-											<div className="bg-[#f8fafc] px-4 py-2 border-b flex items-center justify-between">
-												<div className="flex items-center gap-2 text-[#1e293b]">
-													<Warehouse className="h-3.5 w-3.5 text-slate-400" />
+										<div key={bodega.id} className="border border-border rounded-2xl overflow-hidden bg-background">
+											<div className="bg-muted/30 px-4 py-2 border-b flex items-center justify-between">
+												<div className="flex items-center gap-2 text-foreground">
+													<Warehouse className="h-3.5 w-3.5 text-muted-foreground" />
 													<span className="text-[11px] uppercase font-bold tracking-widest">{bodega.nombre}</span>
 												</div>
-												<span className="text-[11px] text-slate-400">
+												<span className="text-[11px] text-muted-foreground">
 													{bodega.total_stock} uds disponibles
 												</span>
 											</div>
@@ -385,50 +385,50 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 												{bodega.items.map((item: any) => {
 													const qty = quantities[item.key] || 0;
 													return (
-														<div key={item.key} className="p-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+														<div key={item.key} className="p-4 flex items-center justify-between hover:bg-muted/20 transition-colors">
 															<div className="flex items-center gap-6">
-																<div className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center bg-white">
-																	<span className="text-slate-900 text-xs font-bold">{item.talla}</span>
+																<div className="w-8 h-8 rounded-lg border border-border flex items-center justify-center bg-background">
+																	<span className="text-foreground text-xs font-bold">{item.talla}</span>
 																</div>
 																<div className="space-y-0.5">
 																	<div className="flex items-center gap-2">
-																		<span className="text-sm font-bold text-slate-700">
+																		<span className="text-sm font-bold text-foreground/80">
 																		{item.is_muestra ? item.bodega_nombre : 'Stock en Bodega'}
 																		</span>
 																		{item.etiquetas && (
 																			<div className="flex gap-1">
 																				{item.etiquetas.map((t: string) => (
-																					<Badge key={t} variant="outline" className="text-[9px] py-0 border-slate-200">
+																					<Badge key={t} variant="outline" className="text-[9px] py-0 border-border">
 																						{t}
 																					</Badge>
 																				))}
 																			</div>
 																		)}
 																	</div>
-																	<div className="flex items-center gap-2 text-[11px] text-slate-500 tracking-tight">
+																	<div className="flex items-center gap-2 text-[11px] text-muted-foreground tracking-tight">
 																		<span>{item.stock} disp.</span>
-																		<span className="text-slate-900 border-l border-slate-200 pl-2 ml-1">
+																		<span className="text-foreground border-l border-border pl-2 ml-1">
 																			${Number(item.precio_ajustado || 0).toLocaleString()}
 																		</span>
 																	</div>
 																</div>
 															</div>
 															{bodega.can_order && (
-																<div className="flex items-center gap-3 bg-white border border-slate-100 p-1.5 rounded-xl shadow-xs">
+																<div className="flex items-center gap-3 bg-background border border-border/50 p-1.5 rounded-xl shadow-xs">
 																	<button
 																		type="button"
 																		onClick={() => handleQtyChange(item.key, -1, item.stock)}
-																		className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 transition-all active:scale-95"
+																		className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-muted text-muted-foreground transition-all active:scale-95"
 																	>
 																		<Minus className="h-4 w-4" />
 																	</button>
-																	<div className="w-6 text-center text-slate-900 text-sm font-medium">
+																	<div className="w-6 text-center text-foreground text-sm font-medium">
 																		{qty}
 																	</div>
 																	<button
 																		type="button"
 																		onClick={() => handleQtyChange(item.key, 1, item.stock)}
-																		className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-900 transition-all active:scale-95 shadow-sm"
+																		className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-muted text-foreground transition-all active:scale-95 shadow-sm"
 																	>
 																		<Plus className="h-4 w-4" />
 																	</button>
@@ -447,7 +447,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 				</div>
 
 				{/* Footer Bar */}
-				<div className="p-6 bg-white border-t">
+				<div className="p-6 bg-background border-t">
 					{mode === 'detail' ? (
 						<FormButtons
 							processing={saving}
@@ -461,7 +461,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, referencias, factu
 							<button
 								type="button"
 								onClick={onClose}
-								className="px-6 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
+								className="px-6 py-2.5 text-sm font-bold text-muted-foreground bg-muted/50 hover:bg-muted rounded-xl transition-colors"
 							>
 								Cerrar
 							</button>

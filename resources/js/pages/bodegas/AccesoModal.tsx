@@ -48,27 +48,27 @@ export const AccesoModal = ({ isOpen, onClose, bodega, local }: any) => {
 		>
 			<div className="p-6 space-y-6">
 				<div className="space-y-4">
-					<div className="flex items-start space-x-3 p-4 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setCanView(!canView)}>
+					<div className="flex items-start space-x-3 p-4 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer" onClick={() => setCanView(!canView)}>
 						<Checkbox
 							id="can_view"
 							checked={canView}
 							onCheckedChange={(v) => setCanView(v as boolean)}
 						/>
 						<div className="text-sm select-none">
-							<p className="font-bold text-slate-800">Ver Inventario</p>
-							<p className="text-xs text-slate-500">Permite que este usuario consulte el stock actual de la bodega.</p>
+							<p className="font-bold text-foreground">Ver Inventario</p>
+							<p className="text-xs text-muted-foreground">Permite que este usuario consulte el stock actual de la bodega.</p>
 						</div>
 					</div>
 
-					<div className="flex items-start space-x-3 p-4 rounded-lg border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => setCanOrder(!canOrder)}>
+					<div className="flex items-start space-x-3 p-4 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer" onClick={() => setCanOrder(!canOrder)}>
 						<Checkbox
 							id="can_order"
 							checked={canOrder}
 							onCheckedChange={(v) => setCanOrder(v as boolean)}
 						/>
 						<div className="text-sm select-none">
-							<p className="font-bold text-slate-800">Pedir Stock</p>
-							<p className="text-xs text-slate-500">Permite que este usuario genere solicitudes de traslado desde esta bodega.</p>
+							<p className="font-bold text-foreground">Pedir Stock</p>
+							<p className="text-xs text-muted-foreground">Permite que este usuario genere solicitudes de traslado desde esta bodega.</p>
 						</div>
 					</div>
 

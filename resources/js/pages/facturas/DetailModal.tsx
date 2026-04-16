@@ -25,50 +25,50 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 			maxWidth="4xl"
 			closeable={true}
 		>
-			<div className="max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+			<div className="max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-background">
 				<div className="p-6 space-y-8">
 					{/* Premium Header Decoration */}
 					<div className="relative">
-						<div className="absolute inset-0 bg-indigo-500/5 blur-3xl -z-10 rounded-full" />
+						<div className="absolute inset-0 bg-primary/5 blur-3xl -z-10 rounded-full" />
 
-						<div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+						<div className="bg-background border border-border rounded-2xl p-6 shadow-sm">
 							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 								<div className="flex items-center gap-4">
-									<div className="h-10 w-10 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500">
+									<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
 										<User className="h-5 w-5" />
 									</div>
 									<div className="flex flex-col">
-										<span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest leading-none mb-1">Vendedor</span>
-										<span className="text-sm font-bold text-slate-900">{factura.vendedor || 'Superadmin'}</span>
+										<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Vendedor</span>
+										<span className="text-sm font-bold text-foreground">{factura.vendedor || 'Superadmin'}</span>
 									</div>
 								</div>
 
 								<div className="flex items-center gap-4">
-									<div className="h-10 w-10 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500">
+									<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
 										<MapPin className="h-5 w-5" />
 									</div>
 									<div className="flex flex-col">
-										<span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest leading-none mb-1">Local Destino</span>
-										<span className="text-sm font-bold text-slate-900">{factura.local?.name || 'N/A'}</span>
+										<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Local Destino</span>
+										<span className="text-sm font-bold text-foreground">{factura.local?.name || 'N/A'}</span>
 									</div>
 								</div>
 
 								<div className="flex items-center gap-4">
-									<div className="h-10 w-10 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500">
+									<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
 										<Calendar className="h-5 w-5" />
 									</div>
 									<div className="flex flex-col">
-										<span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest leading-none mb-1">Emisión</span>
-										<span className="text-sm font-bold text-slate-900">{new Date(factura.created_at).toLocaleDateString()}</span>
+										<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Emisión</span>
+										<span className="text-sm font-bold text-foreground">{new Date(factura.created_at).toLocaleDateString()}</span>
 									</div>
 								</div>
 
 								<div className="flex items-center gap-4">
-									<div className="h-10 w-10 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500">
+									<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
 										<Tag className="h-5 w-5" />
 									</div>
 									<div className="flex flex-col">
-										<span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest leading-none mb-1">Estado</span>
+										<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Estado</span>
 										<Badge variant={factura.estado === 'cerrada' ? 'default' : 'outline'} className="capitalize mt-0.5 w-fit">
 											{factura.estado}
 										</Badge>
@@ -76,22 +76,22 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 								</div>
 
 								<div className="flex items-center gap-4">
-									<div className="h-10 w-10 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500">
+									<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
 										<House className="h-5 w-5" />
 									</div>
 									<div className="flex flex-col">
-										<span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest leading-none mb-1">Bodega</span>
-										<span className="text-sm font-bold text-slate-900">{factura.bodega?.nombre || 'N/A'}</span>
+										<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Bodega</span>
+										<span className="text-sm font-bold text-foreground">{factura.bodega?.nombre || 'N/A'}</span>
 									</div>
 								</div>
 
 								<div className="flex items-center gap-4">
-									<div className="h-10 w-10 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500">
+									<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
 										<Clock className="h-5 w-5" />
 									</div>
 									<div className="flex flex-col">
-										<span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest leading-none mb-1">Antigüedad</span>
-										<span className="text-sm font-bold text-slate-900">{days} días</span>
+										<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Antigüedad</span>
+										<span className="text-sm font-bold text-foreground">{days} días</span>
 									</div>
 								</div>
 							</div>
@@ -100,38 +100,38 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 
 					{/* Items Table Section */}
 					<div className="space-y-4">
-						<h3 className="text-sm font-medium text-slate-900 uppercase flex items-center gap-2">
+						<h3 className="text-sm font-medium text-foreground uppercase flex items-center gap-2">
 							Lista de Productos
 						</h3>
-						<div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+						<div className="bg-background rounded-2xl border border-border overflow-hidden shadow-sm">
 							<Table>
-								<TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+								<TableHeader className="bg-muted/50 sticky top-0 z-10 shadow-sm">
 									<TableRow>
-										<TableHead className="font-bold text-slate-700 h-12 bg-slate-50">Referencia</TableHead>
-										<TableHead className="text-center font-bold text-slate-700 h-12 bg-slate-50">Talla</TableHead>
-										<TableHead className="text-right font-bold text-slate-700 h-12 bg-slate-50">Cant.</TableHead>
-										<TableHead className="text-right font-bold text-slate-700 h-12 bg-slate-50">Precio Unit.</TableHead>
-										<TableHead className="text-right font-bold text-slate-700 h-12 bg-slate-50">Subtotal</TableHead>
-										<TableHead className="w-10 bg-slate-50 h-12 pr-6"></TableHead>
+										<TableHead className="font-bold text-foreground h-12 bg-muted/50">Referencia</TableHead>
+										<TableHead className="text-center font-bold text-foreground h-12 bg-muted/50">Talla</TableHead>
+										<TableHead className="text-right font-bold text-foreground h-12 bg-muted/50">Cant.</TableHead>
+										<TableHead className="text-right font-bold text-foreground h-12 bg-muted/50">Precio Unit.</TableHead>
+										<TableHead className="text-right font-bold text-foreground h-12 bg-muted/50">Subtotal</TableHead>
+										<TableHead className="w-10 bg-muted/50 h-12 pr-6"></TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{factura.detalles?.map((detalle: any) => (
-										<TableRow key={detalle.id} className="hover:bg-slate-50/50 transition-colors border-slate-100 group">
+										<TableRow key={detalle.id} className="hover:bg-muted/20 transition-colors border-border/50 group">
 											<TableCell>
 												<div className="flex flex-col py-1">
-													<span className="font-mono font-bold text-indigo-600 text-sm">{detalle.producto.codigo}</span>
-													<span className="text-[10px] text-slate-500 uppercase font-medium">{detalle.producto.descripcion}</span>
+													<span className="font-mono font-bold text-primary text-sm">{detalle.producto.codigo}</span>
+													<span className="text-[10px] text-muted-foreground uppercase font-medium">{detalle.producto.descripcion}</span>
 												</div>
 											</TableCell>
 											<TableCell className="text-center">
-												<span className="bg-slate-100 border border-slate-200 px-2 py-1 rounded text-xs font-bold shadow-xs">
+												<span className="bg-muted border border-border px-2 py-1 rounded text-xs font-bold shadow-xs">
 													{detalle.talla}
 												</span>
 											</TableCell>
-											<TableCell className="text-right font-bold text-slate-600">{detalle.cantidad}</TableCell>
-											<TableCell className="text-right text-slate-600">${Number(detalle.precio_unitario).toLocaleString()}</TableCell>
-											<TableCell className="text-right font-bold text-slate-900">
+											<TableCell className="text-right font-bold text-muted-foreground">{detalle.cantidad}</TableCell>
+											<TableCell className="text-right text-muted-foreground">${Number(detalle.precio_unitario).toLocaleString()}</TableCell>
+											<TableCell className="text-right font-bold text-foreground">
 												${Number(detalle.subtotal).toLocaleString()}
 											</TableCell>
 											<TableCell className="p-0 pr-6">
@@ -150,17 +150,17 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 																align="end" 
 																side="top" 
 																sideOffset={12}
-																className="w-72 p-4 bg-slate-900 text-white rounded-2xl shadow-2xl border-slate-800 z-[1001]"
+																className="w-72 p-4 bg-popover text-popover-foreground rounded-2xl shadow-2xl border-border z-[1001]"
 															>
 																<div className="flex items-center justify-between mb-3">
 																	<div className="flex flex-col">
-																		<span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1">Detalles del Cambio</span>
-																		<span className="text-[10px] text-slate-400 font-bold uppercase">{detalle.cambio.usuario}</span>
+																		<span className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mb-1">Detalles del Cambio</span>
+																		<span className="text-[10px] text-muted-foreground font-bold uppercase">{detalle.cambio.usuario}</span>
 																	</div>
 																</div>
 																
-																<div className="bg-white/5 rounded-xl p-3 border border-white/5 mb-4">
-																	<p className="text-[12px] leading-relaxed text-slate-200 font-medium italic">
+																<div className="bg-muted rounded-xl p-3 border border-border mb-4">
+																	<p className="text-[12px] leading-relaxed text-muted-foreground font-medium italic">
 																		"{detalle.cambio.observacion || 'Sin observaciones'}"
 																	</p>
 																</div>
@@ -193,10 +193,10 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 					</div>
 
 					{/* Premium Footer Totals */}
-					<div className="flex justify-end p-6 bg-slate-900 rounded-2xl text-white shadow-lg shadow-slate-200">
+					<div className="flex justify-end p-6 bg-muted rounded-2xl shadow-lg border border-border">
 						<div className="text-right">
-							<p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-1">VALOR TOTAL DE FACTURA</p>
-							<p className="text-2xl font-medium tracking-tighter">
+							<p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mb-1">VALOR TOTAL DE FACTURA</p>
+							<p className="text-2xl font-medium tracking-tighter text-foreground">
 								${Number(factura.total || 0).toLocaleString()}
 							</p>
 						</div>

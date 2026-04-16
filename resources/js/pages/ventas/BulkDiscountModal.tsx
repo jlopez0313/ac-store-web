@@ -94,19 +94,19 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                     });
                     onApply(discounts);
                 }}
-                className="p-6 space-y-6 bg-white"
+                className="p-6 space-y-6 bg-background"
             >
-                <div className="overflow-x-auto overflow-y-auto max-h-[500px] border border-slate-200 rounded-2xl shadow-sm custom-scrollbar">
+                <div className="overflow-x-auto overflow-y-auto max-h-[500px] border border-border rounded-2xl shadow-sm custom-scrollbar">
                     <Table>
-                        <TableHeader className="bg-slate-50/50 sticky top-0 z-10 backdrop-blur-sm">
+                        <TableHeader className="bg-muted/50 sticky top-0 z-10 backdrop-blur-sm">
                             <TableRow>
-                                <TableHead className="font-bold text-slate-700">Referencia</TableHead>
-                                <TableHead className="w-30 text-center font-bold text-slate-700">Cant. Total</TableHead>
-                                <TableHead className="w-32 text-right font-bold text-slate-700">Precio Venta</TableHead>
-                                <TableHead className="w-32 text-right font-bold text-slate-700">Precio Actual</TableHead>
-                                <TableHead className="w-43 text-center font-bold text-slate-700">Nuevo Descuento ($)</TableHead>
-                                <TableHead className="w-32 text-right font-bold text-slate-700">Precio Final</TableHead>
-                                <TableHead className="w-36 text-right pr-6 font-bold text-slate-700">Subtotal</TableHead>
+                                <TableHead className="font-bold text-foreground">Referencia</TableHead>
+                                <TableHead className="w-30 text-center font-bold text-foreground">Cant. Total</TableHead>
+                                <TableHead className="w-32 text-right font-bold text-foreground">Precio Venta</TableHead>
+                                <TableHead className="w-32 text-right font-bold text-foreground">Precio Actual</TableHead>
+                                <TableHead className="w-43 text-center font-bold text-foreground">Nuevo Descuento ($)</TableHead>
+                                <TableHead className="w-32 text-right font-bold text-foreground">Precio Final</TableHead>
+                                <TableHead className="w-36 text-right pr-6 font-bold text-foreground">Subtotal</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -116,26 +116,26 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                                 const total = newPrice * group.totalInvoiceQuantity;
 
                                 return (
-                                    <TableRow key={group.producto_id} className="hover:bg-slate-50/30 transition-colors">
+                                    <TableRow key={group.producto_id} className="hover:bg-muted/20 transition-colors">
                                         <TableCell>
                                             <div className="flex flex-col">
                                                 <span className="font-mono font-black text-indigo-600 text-xs">
                                                     {group.producto?.codigo}
                                                 </span>
-                                                <span className="text-[11px] text-slate-500 truncate max-w-[200px]">
+                                                <span className="text-[11px] text-muted-foreground truncate max-w-[200px]">
                                                     {group.producto?.descripcion}
                                                 </span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-center">
                                             <div className="flex flex-col items-center">
-                                                <span className="text-sm text-slate-400 font-medium">{group.totalInvoiceQuantity} ud.</span>
+                                                <span className="text-sm text-muted-foreground font-medium">{group.totalInvoiceQuantity} ud.</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right text-slate-400 text-sm">
+                                        <TableCell className="text-right text-muted-foreground text-sm">
                                             ${group.originalPrice.toLocaleString()}
                                         </TableCell>
-                                        <TableCell className="text-right text-slate-400 text-sm">
+                                        <TableCell className="text-right text-muted-foreground text-sm">
                                             ${group.currentPrice.toLocaleString()}
                                         </TableCell>
                                         <TableCell>
@@ -144,21 +144,21 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                                                 value={newDiscount}
                                                 onChange={(e) => handleDiscountChange(group.producto_id, e.target.value)}
                                                 placeholder="0"
-                                                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-400 transition-all text-center font-bold"
+                                                className="w-full px-3 py-1.5 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all text-center font-bold text-foreground"
                                             />
                                         </TableCell>
                                         <TableCell className="text-right font-medium text-indigo-600">
                                             ${newPrice.toLocaleString()}
                                         </TableCell>
-                                        <TableCell className="text-right pr-6 font-medium text-slate-900">
+                                        <TableCell className="text-right pr-6 font-medium text-foreground">
                                             ${total.toLocaleString()}
                                         </TableCell>
                                     </TableRow>
                                 );
                             })}
                             {groupedItems.length > 0 && (
-                                <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 font-medium border-t-2 border-slate-200">
-                                    <TableCell colSpan={6} className="text-right text-slate-500 uppercase text-[10px]">
+                                <TableRow className="bg-muted/50 hover:bg-muted/50 font-medium border-t-2 border-border">
+                                    <TableCell colSpan={6} className="text-right text-muted-foreground uppercase text-[10px]">
                                         Total tras Descuentos Masivos:
                                     </TableCell>
                                     <TableCell className="text-right pr-6 text-indigo-700">
@@ -174,7 +174,7 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                     </Table>
                 </div>
 
-                <div className="pt-4 flex justify-between items-center text-sm text-slate-500">
+                <div className="pt-4 flex justify-between items-center text-sm text-muted-foreground">
                     <p className="flex items-center gap-2 italic">
                         <Tag className="h-4 w-4" />
                         Los descuentos se aplican sobre el precio de venta original.

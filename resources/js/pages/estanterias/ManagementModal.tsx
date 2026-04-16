@@ -104,10 +104,10 @@ export const ManagementModal = ({ isOpen, onClose, bodega }: any) => {
 			title={`Estanterías: ${bodega.nombre}`}
 			maxWidth="2xl"
 		>
-			<div className="p-6 space-y-8">
+			<div className="p-6 space-y-8 bg-background">
 				{/* Form Section */}
-				<form onSubmit={handleSubmit} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
-					<h4 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+				<form onSubmit={handleSubmit} className="bg-muted/30 p-4 rounded-xl border border-border space-y-4">
+					<h4 className="text-sm font-bold text-foreground flex items-center gap-2">
 						{editingId ? <Edit className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
 						{editingId ? 'Editar Estantería' : 'Nueva Estantería'}
 					</h4>
@@ -135,9 +135,9 @@ export const ManagementModal = ({ isOpen, onClose, bodega }: any) => {
 								id="shelf-status"
 								checked={form.estado}
 								onChange={(e) => setForm({ ...form, estado: e.target.checked })}
-								className="rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+								className="rounded border-border bg-background text-primary focus:ring-ring"
 							/>
-							<label htmlFor="shelf-status" className="text-sm font-medium text-slate-600 cursor-pointer">Activa</label>
+							<label htmlFor="shelf-status" className="text-sm font-medium text-muted-foreground cursor-pointer">Activa</label>
 						</div>
 						<div className="flex gap-2">
 							{editingId && (
@@ -154,46 +154,46 @@ export const ManagementModal = ({ isOpen, onClose, bodega }: any) => {
 
 				{/* List Section */}
 				<div className="space-y-4">
-					<h4 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+					<h4 className="text-sm font-bold text-foreground flex items-center gap-2">
 						<LayoutGrid className="h-4 w-4" />
 						Estanterías Existentes
 					</h4>
 					
 					{loading ? (
-						<div className="py-12 text-center text-slate-400 animate-pulse">Cargando estanterías...</div>
+						<div className="py-12 text-center text-muted-foreground animate-pulse">Cargando estanterías...</div>
 					) : shelves.length === 0 ? (
-						<div className="py-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+						<div className="py-12 text-center text-muted-foreground bg-muted/30 rounded-xl border border-dashed border-border">
 							No hay estanterías creadas en esta bodega.
 						</div>
 					) : (
 						<div className="grid grid-cols-1 gap-2">
 							{shelves.map((shelf) => (
-								<div key={shelf.id} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:shadow-sm transition-all group">
+								<div key={shelf.id} className="flex items-center justify-between p-4 bg-background border border-border rounded-xl hover:shadow-sm transition-all group">
 									<div className="flex items-center gap-4">
-										<div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-colors">
+										<div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
 											<LayoutGrid className="h-5 w-5" />
 										</div>
 										<div>
 											<div className="flex items-center gap-2">
-												<span className="font-bold text-slate-900">{shelf.nombre}</span>
+												<span className="font-bold text-foreground">{shelf.nombre}</span>
 												<Badge variant={shelf.estado ? 'default' : 'destructive'} className="text-[10px] h-4">
 													{shelf.estado ? 'Activa' : 'Inactiva'}
 												</Badge>
 											</div>
-											<p className="text-xs text-slate-500">{shelf.descripcion || 'Sin descripción'}</p>
+											<p className="text-xs text-muted-foreground">{shelf.descripcion || 'Sin descripción'}</p>
 										</div>
 									</div>
 									<div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
 										<button 
 											onClick={() => handleEdit(shelf)}
-											className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+											className="p-2 text-muted-foreground hover:text-primary hover:bg-muted rounded-lg transition-colors"
 											title="Editar"
 										>
 											<Edit className="h-4 w-4" />
 										</button>
 										<button 
 											onClick={() => handleDelete(shelf.id)}
-											className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+											className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
 											title="Eliminar"
 										>
 											<Trash className="h-4 w-4" />
@@ -206,7 +206,7 @@ export const ManagementModal = ({ isOpen, onClose, bodega }: any) => {
 				</div>
 			</div>
 			
-			<div className="p-4 bg-slate-50 border-t text-right">
+			<div className="p-4 bg-muted/30 border-t text-right">
 				<Button variant="outline" onClick={onClose}>Cerrar</Button>
 			</div>
 		</Modal>
