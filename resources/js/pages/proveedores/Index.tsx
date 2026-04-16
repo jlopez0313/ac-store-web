@@ -95,7 +95,7 @@ export default function Index({ filters, lista, cuentas, tipos_documento }: any)
 			</div>
 
 			<div className="p-4">
-				<div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+				<div className="bg-background rounded-xl shadow-xs border border-border overflow-hidden">
 					<DataGrid
 						data={data}
 						columns={columns}

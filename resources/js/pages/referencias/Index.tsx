@@ -33,7 +33,7 @@ export default function Index({ filters, lista, cuentas, categorias, marcas }: a
 		{
 			name: 'Foto',
 			cell: (row: any) => (
-				<div className="w-12 h-12 rounded overflow-hidden bg-slate-100 flex items-center justify-center my-1 border border-slate-200">
+				<div className="w-12 h-12 rounded overflow-hidden bg-muted flex items-center justify-center my-1 border border-border">
 					{row.foto ? (
 						<img src={row.foto} alt={row.codigo} className="w-full h-full object-cover" />
 					) : (
@@ -109,7 +109,7 @@ export default function Index({ filters, lista, cuentas, categorias, marcas }: a
 			</div>
 
 			<div className="p-4">
-				<div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+				<div className="bg-background rounded-xl shadow-xs border border-border overflow-hidden">
 					<DataGrid
 						data={data}
 						columns={columns}

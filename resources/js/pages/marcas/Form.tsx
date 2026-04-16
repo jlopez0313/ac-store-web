@@ -61,7 +61,7 @@ export const Form = ({ id, onClose, processing, onStore, onGetItem, onReload }: 
     return (
         <div className="pt-6 pb-12 px-6">
             <form onSubmit={submit}>
-                <div className="space-y-6 text-slate-900">
+                <div className="space-y-6 text-foreground">
                     <InputField
                         name="nombre"
                         title="Nombre de la Marca"

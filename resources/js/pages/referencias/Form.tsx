@@ -123,7 +123,7 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
 		<div className="pt-6 pb-12">
 			<div className="max-w-7xl mx-auto sm:px-6 lg:px-8 px-3">
 				<form onSubmit={submit} encType="multipart/form-data">
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-900">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-foreground">
 						<InputField
 							name="codigo"
 							title="Código / SKU"
@@ -180,10 +180,10 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
 
 						{/* Image Upload Area */}
 						<div className="col-span-1 md:col-span-2 mt-2">
-							<Label className="block mb-2 text-sm font-medium text-slate-700">Foto del Producto (Opcional)</Label>
+							<Label className="block mb-2 text-sm font-medium text-foreground">Foto del Producto (Opcional)</Label>
 							<div className="flex flex-col sm:flex-row items-center gap-6">
 								{/* Preview Circle */}
-								<div className="w-32 h-32 shrink-0 rounded-xl overflow-hidden bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center relative group">
+								<div className="w-32 h-32 shrink-0 rounded-xl overflow-hidden bg-muted border-2 border-dashed border-border flex items-center justify-center relative group">
 									{imagePreview ? (
 										<>
 											<img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
@@ -196,7 +196,7 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
 											</button>
 										</>
 									) : (
-										<ImageIcon className="w-8 h-8 text-slate-400" />
+										<ImageIcon className="w-8 h-8 text-muted-foreground" />
 									)}
 								</div>
 
@@ -211,7 +211,7 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
 											<Upload className="w-4 h-4 mr-2" />
 											Seleccionar Imagen
 										</Button>
-										<span className="text-xs text-slate-500">PNG, JPG hasta 2MB</span>
+										<span className="text-xs text-muted-foreground">PNG, JPG hasta 2MB</span>
 									</div>
 									<input
 										type="file"

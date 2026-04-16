@@ -111,7 +111,7 @@ export const Form = ({ id, tipos_control, tipos_muestras, onClose, processing, o
 		<div className="pt-6 pb-12">
 			<div className="max-w-7xl mx-auto sm:px-6 lg:px-8 px-3">
 				<form onSubmit={submit}>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-900">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-foreground">
 						<InputField
 							name="nombre"
 							title="Nombre de Categoría"
@@ -161,7 +161,7 @@ export const Form = ({ id, tipos_control, tipos_muestras, onClose, processing, o
 									if (!checked) setData('tipo_muestra', '');
 								}}
 							/>
-							<Label htmlFor="maneja_subdivision" className="cursor-pointer">
+							<Label htmlFor="maneja_subdivision" className="cursor-pointer text-foreground">
 								¿Maneja muestras?
 							</Label>
 						</div>

@@ -81,7 +81,7 @@ export const Form = ({ id, tiposDocs, cuentas, onClose, processing, onStore, onG
 		<div className="pt-6 pb-12">
 			<div className="max-w-7xl mx-auto sm:px-6 lg:px-8 px-3">
 				<form onSubmit={submit}>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-900">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-foreground">
 						
                         {isSuperAdmin && (
 							<div className="col-span-1 md:col-span-2">
