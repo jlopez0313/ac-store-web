@@ -3,6 +3,7 @@
 use App\Http\Controllers\ComprasController;
 use App\Http\Controllers\CuentasController;
 use App\Http\Controllers\DevolucionesController;
+use App\Http\Controllers\ImportacionController;
 use App\Http\Controllers\MuestrasController;
 use App\Http\Controllers\ProveedoresController;
 use App\Http\Controllers\ReferenciasController;
@@ -59,7 +60,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('api/ventas/{venta}/detalles/{detalle}', [App\Http\Controllers\VentasController::class, 'deleteDetail'])->name('api.ventas.detalles.delete');
     Route::get('/devoluciones', [DevolucionesController::class, 'index'])->name('devoluciones.index');
     Route::get('/muestras', [MuestrasController::class, 'index'])->name('muestras.index');
-    
+
     // Rutas de Geografía (para Selects)
     Route::get('/api/geography/countries', [App\Http\Controllers\UsuariosController::class, 'getCountries'])->name('api.geography.countries');
     Route::get('/api/geography/states', [App\Http\Controllers\UsuariosController::class, 'getStates'])->name('api.geography.states');
@@ -75,7 +76,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('api/ventas/{venta}/cerrar', [App\Http\Controllers\VentasController::class, 'closeVenta'])->name('api.ventas.cerrar');
     Route::get('api/inventario/stock', [App\Http\Controllers\VentasController::class, 'getStock'])->name('api.inventario.stock');
     Route::post('api/ventas/{venta}/detalles', [App\Http\Controllers\VentasController::class, 'addDetail'])->name('api.ventas.detalles');
+
+    Route::prefix('importar')->name('importar.')->group(function () {
+        Route::get('/', [ImportacionController::class, 'index'])->name('index');
+        Route::post('/ejecutar', [ImportacionController::class, 'ejecutar'])->name('ejecutar');
+    });
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';

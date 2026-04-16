@@ -22,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
     { title: 'Cardex', url: '/cardex', icon: TrendingUp, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },
     { title: 'Ventas Generales', url: '/ventas-generales', icon: BarChart2, roles: ['superadmin', 'admin'], group: 'reportes' },
     { title: 'Cartera', url: '/cartera', icon: Wallet, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },
+    { title: 'Importar Datos', url: '/importar', icon: Archive, roles: ['superadmin'], group: 'admin' },
     { title: 'Categorías', url: '/categorias', icon: Tag, roles: ['superadmin', 'admin'], group: 'admin' },
     { title: 'Marcas', url: '/marcas', icon: Award, roles: ['superadmin', 'admin', 'bodega'], group: 'admin' },
     { title: 'Cuentas', url: '/cuentas', icon: Landmark, roles: ['superadmin'], group: 'admin' },
