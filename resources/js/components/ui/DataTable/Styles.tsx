@@ -3,15 +3,16 @@ export const customStyles = {
   header: {
     style: {
       minHeight: '56px',
+      backgroundColor: 'var(--card)',
     },
   },
   headRow: {
     style: {
-      backgroundColor: '#f8fafc', // bg-slate-50
+      backgroundColor: 'var(--muted)',
       borderTopWidth: '1px',
-      borderTopColor: '#e2e8f0', // border-slate-200
+      borderTopColor: 'var(--border)',
       borderBottomWidth: '1px',
-      borderBottomColor: '#e2e8f0', // border-slate-200
+      borderBottomColor: 'var(--border)',
       minHeight: '48px',
     },
   },
@@ -19,7 +20,7 @@ export const customStyles = {
     style: {
       fontSize: '12px',
       fontWeight: '700',
-      color: '#334155', // text-slate-700
+      color: 'var(--muted-foreground)',
       textTransform: 'uppercase',
       letterSpacing: '0.05em',
       paddingLeft: '16px',
@@ -28,12 +29,14 @@ export const customStyles = {
   },
   rows: {
     style: {
-      minHeight: '60px', 
+      minHeight: '60px',
+      backgroundColor: 'var(--card)',
+      color: 'var(--card-foreground)',
       borderBottomStyle: 'solid' as any,
       borderBottomWidth: '1px',
-      borderBottomColor: '#f1f5f9', // border-slate-100
+      borderBottomColor: 'var(--border)',
       '&:hover': {
-        backgroundColor: '#f8fafc', // hover:bg-slate-50
+        backgroundColor: 'var(--muted)',
         transition: 'all 0.2s ease',
       },
     },
@@ -41,17 +44,18 @@ export const customStyles = {
   cells: {
     style: {
       fontSize: '14px',
-      color: '#1e293b', // text-slate-800
+      color: 'var(--card-foreground)',
       paddingLeft: '16px',
       paddingRight: '16px',
     }
   },
   pagination: {
     style: {
+      backgroundColor: 'var(--card)',
+      color: 'var(--muted-foreground)',
       borderTopWidth: '1px',
-      borderTopColor: '#e2e8f0',
+      borderTopColor: 'var(--border)',
       fontSize: '13px',
-      color: '#64748b',
     }
   }
 }

@@ -87,7 +87,9 @@ class ReferenciasController extends Controller
         // Handle image upload with compression
         if ($request->hasFile('foto')) {
             $imageService = app(ImageCompressionService::class);
-            $validated['foto'] = $imageService->compressImage($request->file('foto'), 'referencias');
+            $path = 'referencias/' . $validated['cuenta_id'];
+            $filename = $validated['codigo']; // Usar el código como nombre de archivo para consistencia
+            $validated['foto'] = $imageService->compressImage($request->file('foto'), $path, $filename);
         }
 
         $referencia = Referencia::create($validated);
@@ -133,7 +135,9 @@ class ReferenciasController extends Controller
             }
             // Store new photo with compression
             $imageService = app(ImageCompressionService::class);
-            $validated['foto'] = $imageService->compressImage($request->file('foto'), 'referencias');
+            $path = 'referencias/' . ($validated['cuenta_id'] ?? $referencia->cuenta_id);
+            $filename = $validated['codigo'] ?? $referencia->codigo;
+            $validated['foto'] = $imageService->compressImage($request->file('foto'), $path, $filename);
         }
 
         $referencia->update($validated);

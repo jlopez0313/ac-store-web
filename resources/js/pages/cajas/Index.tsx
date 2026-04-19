@@ -73,7 +73,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
             grow: 2,
             cell: (row: any) => (
                 <div className="flex flex-col py-2">
-                    <span className="text-sm font-medium text-slate-900">{row.referencia_descripcion}</span>
+                    <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{row.referencia_descripcion}</span>
                     <span className="text-muted-foreground text-xs">
                         Factura #{row.compra_id} ({row.compra_fecha})
                     </span>
@@ -93,7 +93,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
             selector: (row: any) => row.bodega_nombre,
             sortable: true,
             width: '180px',
-            cell: (row: any) => <span className="font-bold text-slate-900">{row.bodega_nombre}</span>,
+            cell: (row: any) => <span className="font-bold text-slate-900 dark:text-slate-100">{row.bodega_nombre}</span>,
         },
         {
             name: 'Unid/Caja',
@@ -106,14 +106,14 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
             selector: (row: any) => row.cantidad,
             right: true,
             width: '120px',
-            cell: (row: any) => <span className="text-lg font-bold text-slate-900">{row.cantidad}</span>,
+            cell: (row: any) => <span className="text-lg font-bold text-slate-900 dark:text-slate-100">{row.cantidad}</span>,
         },
         {
             name: 'P. Costo',
             selector: (row: any) => row.precio_compra,
             right: true,
             width: '120px',
-            cell: (row: any) => <span className="font-semibold text-slate-600">${Number(row.precio_compra).toLocaleString()}</span>,
+            cell: (row: any) => <span className="font-semibold text-slate-600 dark:text-slate-400">${Number(row.precio_compra).toLocaleString()}</span>,
         },
         {
             name: 'P. Venta',
@@ -160,7 +160,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}

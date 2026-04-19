@@ -158,25 +158,25 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 	const prevStep = () => setStep(prev => prev - 1);
 
 	return (
-		<div className="flex flex-col h-[80vh] bg-slate-50/30">
+		<div className="flex flex-col h-[80vh] bg-slate-50/30 dark:bg-slate-900/30">
 			{/* Progress Tracker */}
-			<div className="px-6 py-4 bg-white border-b flex items-center justify-between">
+			<div className="px-6 py-4 bg-white border-b flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
 				<div className="flex items-center gap-2">
 					{[1, 2, 3].map((i) => (
 						<div key={i} className="flex items-center">
-							<div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step === i ? 'bg-indigo-600 text-white ring-4 ring-indigo-50' :
-								step > i ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-400'
-								}`}>
-								{step > i ? <CheckCircle2 className="h-4 w-4" /> : i}
-							</div>
-							{i < 3 && <ChevronRight className="h-4 w-4 mx-1 text-slate-200" />}
+						<div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step === i ? 'bg-indigo-600 text-white ring-4 ring-indigo-50 dark:ring-indigo-950' :
+							step > i ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500'
+							}`}>
+							{step > i ? <CheckCircle2 className="h-4 w-4" /> : i}
+						</div>
+						{i < 3 && <ChevronRight className="h-4 w-4 mx-1 text-slate-200 dark:text-slate-600" />}
 						</div>
 					))}
 				</div>
 				<div className="flex items-center gap-4">
 					<div className="text-right">
 						<span className="text-[10px] font-black uppercase tracking-widest text-[#64748b]">Paso {step} de 3</span>
-						<h2 className="text-sm font-bold text-slate-900">
+						<h2 className="text-sm font-bold text-slate-900 dark:text-white">
 							{step === 1 && 'Búsqueda de Factura y Devolución'}
 							{step === 2 && 'Ítem de Reemplazo'}
 							{step === 3 && 'Confirmación'}
@@ -189,7 +189,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 				{/* STEP 1: SEARCH & DETAIL SELECTION */}
 				{step === 1 && (
 					<div className="space-y-6">
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm items-end">
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm items-end dark:bg-slate-900 dark:border-slate-700">
 							{isSuperAdmin && (
 								<SelectField
 									name="cuenta_id"
@@ -263,7 +263,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 								</Label>
 								<div className="flex flex-col gap-2 pb-20">
 									{loading.details ? (
-										[1, 2, 3].map(i => <div key={i} className="h-16 bg-white border border-slate-100 animate-pulse rounded-xl" />)
+									[1, 2, 3].map(i => <div key={i} className="h-16 bg-white border border-slate-100 animate-pulse rounded-xl dark:bg-slate-800 dark:border-slate-700" />)
 									) : [...invoiceDetails].sort((a, b) => (a.producto?.codigo || '').localeCompare(b.producto?.codigo || '')).map((det) => (
 										<button
 											key={det.id}
@@ -272,7 +272,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 												setData('venta_detalle_id', det.id.toString());
 												nextStep();
 											}}
-											className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-400 hover:shadow-md transition-all text-left group"
+											className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-400 hover:shadow-md transition-all text-left group dark:bg-slate-900 dark:border-slate-700 dark:hover:border-indigo-500"
 										>
 											<div className="flex items-center gap-4">
 												<div className="h-10 w-10 bg-indigo-50 rounded-lg overflow-hidden flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
@@ -287,12 +287,12 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 													)}
 												</div>
 												<div>
-													<p className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors uppercase">{det.producto?.codigo}</p>
-													<p className="text-xs text-slate-500 font-medium">Talla: <span className="text-slate-700">{det.talla}</span> | Cant: <span className="text-slate-700">{det.cantidad}</span></p>
+													<p className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors uppercase dark:text-slate-100 dark:group-hover:text-indigo-400">{det.producto?.codigo}</p>
+													<p className="text-xs text-slate-500 font-medium dark:text-slate-400">Talla: <span className="text-slate-700 dark:text-slate-300">{det.talla}</span> | Cant: <span className="text-slate-700 dark:text-slate-300">{det.cantidad}</span></p>
 												</div>
 											</div>
 											<div className="text-right flex flex-col items-end">
-												<p className="text-sm font-medium text-slate-900">${Number(det.precio_unitario).toLocaleString()}</p>
+												<p className="text-sm font-medium text-slate-900 dark:text-slate-100">${Number(det.precio_unitario).toLocaleString()}</p>
 											</div>
 										</button>
 									))}
@@ -305,7 +305,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 				{/* STEP 2: REPLACEMENT ITEM */}
 				{step === 2 && (
 					<div className="space-y-6">
-						<div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center justify-between mb-4 shadow-sm">
+						<div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center justify-between mb-4 shadow-sm dark:bg-amber-950/30 dark:border-amber-800">
 							<div className="flex items-center gap-3">
 								<div className="h-10 w-10 bg-amber-100 rounded-lg overflow-hidden flex items-center justify-center">
 									{selectedDetalle?.producto?.foto ? (
@@ -320,15 +320,15 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 								</div>
 								<div>
 									<p className="text-[10px] font-medium text-amber-800 uppercase tracking-widest">PRODUCTO A DEVOLVER</p>
-									<p className="text-sm font-black text-amber-900">{selectedDetalle?.producto?.codigo} (Talla {selectedDetalle?.talla})</p>
+									<p className="text-sm font-black text-amber-900 dark:text-amber-300">{selectedDetalle?.producto?.codigo} (Talla {selectedDetalle?.talla})</p>
 								</div>
 							</div>
 							<div className="text-right">
-								<p className="text-xs font-medium text-amber-900">${Number(selectedDetalle?.precio_unitario).toLocaleString()}</p>
+								<p className="text-xs font-medium text-amber-900 dark:text-amber-300">${Number(selectedDetalle?.precio_unitario).toLocaleString()}</p>
 							</div>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm dark:bg-slate-900 dark:border-slate-700">
 							<div className="space-y-6">
 								<SelectField
 									name="nuevo_producto_id"
@@ -371,7 +371,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 								)}
 							</div>
 
-							<div className="flex flex-col justify-center items-center p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+									<div className="flex flex-col justify-center items-center p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200 dark:bg-slate-800/30 dark:border-slate-700">
 								{selectedNuevoInv ? (
 									<div className="w-full space-y-4">
 										<InputField
@@ -406,22 +406,22 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 				{step === 3 && (
 					<div className="max-w-lg mx-auto space-y-8 pt-6">
 						<div className="text-center space-y-2">
-							<div className="h-16 w-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+								<div className="h-16 w-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-green-900/30 dark:text-green-400">
 								<RefreshCcw className="h-8 w-8" />
 							</div>
-							<h3 className="font-medium text-slate-900">Resumen Final</h3>
-							<p className="text-slate-500 text-sm">Verifica los subtotales y valores a cobrar antes de procesar.</p>
+								<h3 className="font-medium text-slate-900 dark:text-white">Resumen Final</h3>
+								<p className="text-slate-500 text-sm dark:text-slate-400">Verifica los subtotales y valores a cobrar antes de procesar.</p>
 						</div>
 
-						<div className="bg-white border rounded-2xl overflow-hidden shadow-xl border-slate-100">
-							<div className="p-4 border-b flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50">
+								<div className="bg-white border rounded-2xl overflow-hidden shadow-xl border-slate-100 dark:bg-slate-900 dark:border-slate-700">
+									<div className="p-4 border-b flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50 dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-500">
 								<span>DETALLE DEL CAMBIO</span>
 								<RefreshCcw className="h-3 w-3" />
 							</div>
 							<div className="p-6 space-y-3">
 								<div className="flex items-start justify-between">
 									<div className="flex gap-4">
-										<div className="h-12 w-12 bg-red-50 rounded-xl overflow-hidden flex items-center justify-center border border-red-100">
+											<div className="h-12 w-12 bg-red-50 rounded-xl overflow-hidden flex items-center justify-center border border-red-100 dark:bg-red-950/30 dark:border-red-800">
 											{selectedDetalle?.producto?.foto ? (
 												<img
 													src={selectedDetalle.producto.foto.startsWith('http') ? selectedDetalle.producto.foto : `/storage/${selectedDetalle.producto.foto}`}
@@ -434,20 +434,20 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 										</div>
 										<div>
 											<p className="text-[10px] font-medium text-red-500 uppercase">A DEVOLVER</p>
-											<p className="text-sm font-medium text-slate-900">{selectedDetalle?.producto?.codigo}</p>
-											<p className="text-xs text-slate-500 font-medium">Talla {selectedDetalle?.talla}</p>
+													<p className="text-sm font-medium text-slate-900 dark:text-slate-100">{selectedDetalle?.producto?.codigo}</p>
+													<p className="text-xs text-slate-500 font-medium dark:text-slate-400">Talla {selectedDetalle?.talla}</p>
 										</div>
 									</div>
-									<p className="font-medium text-slate-900">${Number(selectedDetalle?.precio_unitario).toLocaleString()}</p>
-								</div>
+											<p className="font-medium text-slate-900 dark:text-slate-100">${Number(selectedDetalle?.precio_unitario).toLocaleString()}</p>
+										</div>
 
-								<div className="flex justify-center flex-col items-center gap-1">
-									<ChevronDown className="h-4 w-4 text-slate-300" />
+										<div className="flex justify-center flex-col items-center gap-1">
+											<ChevronDown className="h-4 w-4 text-slate-300 dark:text-slate-600" />
 								</div>
 
 								<div className="flex items-start justify-between">
 									<div className="flex gap-4">
-										<div className="h-12 w-12 bg-indigo-50 rounded-xl overflow-hidden flex items-center justify-center border border-indigo-100">
+												<div className="h-12 w-12 bg-indigo-50 rounded-xl overflow-hidden flex items-center justify-center border border-indigo-100 dark:bg-indigo-950/30 dark:border-indigo-800">
 											{selectedNuevoInv?.referencia_foto ? (
 												<img
 													src={selectedNuevoInv.referencia_foto.startsWith('http') ? selectedNuevoInv.referencia_foto : `/storage/${selectedNuevoInv.referencia_foto}`}
@@ -460,13 +460,13 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 										</div>
 										<div>
 											<p className="text-[10px] font-medium text-indigo-500 uppercase">REEMPLAZO</p>
-											<p className="text-sm font-medium text-slate-900">
+											<p className="text-sm font-medium text-slate-900 dark:text-slate-100">
 												{references.find(r => r.id.toString() === data.nuevo_producto_id)?.codigo}
 											</p>
-											<p className="text-xs text-slate-500 font-medium">Talla {selectedNuevoInv?.talla} · {selectedNuevoInv?.bodega_nombre}</p>
+											<p className="text-xs text-slate-500 font-medium dark:text-slate-400">Talla {selectedNuevoInv?.talla} · {selectedNuevoInv?.bodega_nombre}</p>
 										</div>
 									</div>
-									<p className="font-medium text-slate-900">${Number(data.precio_nuevo).toLocaleString()}</p>
+											<p className="font-medium text-slate-900 dark:text-slate-100">${Number(data.precio_nuevo).toLocaleString()}</p>
 								</div>
 							</div>
 
@@ -474,7 +474,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 								<Label className="text-[10px] font-black uppercase text-slate-400">Observación del Cambio <span className="text-red-500">*</span></Label>
 								<textarea
 									required
-									className={`w-full min-h-[80px] p-3 text-sm bg-slate-50 border rounded-xl focus:ring-2 transition-all outline-none resize-none ${errors.observacion ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-indigo-500/20 focus:border-indigo-500'}`}
+											className={`w-full min-h-[80px] p-3 text-sm bg-slate-50 border rounded-xl focus:ring-2 transition-all outline-none resize-none dark:bg-slate-800 dark:text-slate-100 ${errors.observacion ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 focus:ring-indigo-500/20 focus:border-indigo-500 dark:border-slate-700'}`}
 									placeholder="Indica el motivo del cambio (Obligatorio)..."
 									value={data.observacion}
 									onChange={(e) => setData('observacion', e.target.value)}
@@ -482,7 +482,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 								{errors.observacion && <p className="text-[10px] text-red-500 font-bold uppercase">{errors.observacion}</p>}
 							</div>
 
-							<div className="bg-slate-900 px-6 py-4 flex items-center justify-between text-white">
+									<div className="bg-slate-900 px-6 py-4 flex items-center justify-between text-white dark:bg-slate-950">
 								<div>
 									<p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">TOTAL A COBRAR (Diferencia)</p>
 									{data.precio_nuevo - (selectedDetalle?.precio_unitario || 0) < 0 ? (
@@ -509,7 +509,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
 				)}
 			</form>
 
-			<div className="px-6 py-4 bg-white border-t flex justify-between items-center">
+			<div className="px-6 py-4 bg-white border-t flex justify-between items-center dark:bg-slate-900 dark:border-slate-700">
 				<Button
 					variant="outline"
 					onClick={onClose}

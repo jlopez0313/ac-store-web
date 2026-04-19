@@ -169,13 +169,13 @@ export default function Index({ filters: initialFilters }: any) {
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                     <PageHeader title="Gestión de Facturas" description="Historial de facturas de venta." />
 
-                    <div className="flex items-center gap-5 self-end rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-md transition-all hover:shadow-lg md:self-start">
-                        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-100">
+                    <div className="flex items-center gap-5 self-end rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-md transition-all hover:shadow-lg md:self-start dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-indigo-900">
                             <DollarSign className="h-4 w-4" />
                         </div>
                         <div>
-                            <p className="mb-1.5 text-[10px] leading-none font-medium text-slate-400 uppercase">Total Acumulado</p>
-                            <p className="text-xl leading-none font-bold tracking-tighter text-slate-900">
+                            <p className="mb-1.5 text-[10px] leading-none font-medium text-slate-400 uppercase dark:text-slate-500">Total Acumulado</p>
+                            <p className="text-xl leading-none font-bold tracking-tighter text-slate-900 dark:text-white">
                                 ${Number(meta.gran_total || 0).toLocaleString()}
                             </p>
                         </div>
@@ -200,13 +200,13 @@ export default function Index({ filters: initialFilters }: any) {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex rounded-lg bg-slate-100 p-1">
+                        <div className="flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => handleSearch(tab.id)}
                                     className={`rounded-md px-3 py-1.5 text-xs font-bold transition-all ${
-                                        filters.tab === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                                        filters.tab === tab.id ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                     }`}
                                 >
                                     {tab.label}
@@ -216,7 +216,7 @@ export default function Index({ filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={data}
                         columns={columns}

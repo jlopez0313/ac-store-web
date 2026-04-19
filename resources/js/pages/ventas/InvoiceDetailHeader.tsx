@@ -48,14 +48,14 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
     }, [isLocal, is_holiday, can_operate]);
 
     return (
-        <Card className="overflow-hidden border-slate-200 bg-white/80 shadow-sm backdrop-blur-xl">
+        <Card className="overflow-hidden border-slate-200 bg-white/80 shadow-sm backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/80">
             <CardContent className="space-y-6 p-6">
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div className="space-y-1">
                         <Label className="text-muted-foreground text-xs uppercase">Factura de Venta N°</Label>
                         <div className="text-primary text-2xl font-bold">#{factura.id}</div>
-                        <div className="flex items-center gap-2 pt-1 text-sm font-medium text-slate-500">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-100 bg-slate-50">
+                        <div className="flex items-center gap-2 pt-1 text-sm font-medium text-slate-500 dark:text-slate-400">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-100 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
                                 <Warehouse className="h-4 w-4 text-slate-400" />
                             </div>
                             {factura.local?.name}
@@ -66,17 +66,17 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                             variant="outline"
                             className={`px-3 py-1 text-xs ${
                                 factura.estado === 'cerrada'
-                                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700'
-                                    : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
+                                    : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                             }`}
                         >
                             {factura.estado === 'cerrada' ? 'Cerrada' : 'Abierta'}
                         </Badge>
-                        <div className="text-xs font-medium text-slate-400 uppercase">{new Date(factura.fecha).toLocaleDateString()}</div>
+                        <div className="text-xs font-medium text-slate-400 uppercase dark:text-slate-500">{new Date(factura.fecha).toLocaleDateString()}</div>
                     </div>
                 </div>
 
-                <div className="flex flex-col justify-between gap-6 border-t border-slate-100 pt-6 md:flex-row md:items-center">
+                <div className="flex flex-col justify-between gap-6 border-t border-slate-100 pt-6 md:flex-row md:items-center dark:border-slate-700">
                     <div className="flex flex-wrap gap-2">
                         {factura.estado === 'abierta' && (
                             <>
@@ -85,7 +85,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                         <button
                                             type="button"
                                             onClick={() => setIsBulkModalOpen(true)}
-                                            className="group flex flex-col justify-center gap-0.5 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                                            className="group flex flex-col justify-center gap-0.5 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                                         >
                                             <span className="text-[9px] tracking-tight text-slate-400 uppercase">
                                                 {sameRefItemsCount} con misma referencia
@@ -118,7 +118,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
+                                                className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                                             >
                                                 <Printer className="mr-2 h-4 w-4" />
                                                 Imprimir
@@ -142,7 +142,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                         variant="outline"
                                         size="sm"
                                         onClick={onCloseFactura}
-                                        className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
+                                        className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                                     >
                                         <ShoppingCart className="mr-2 h-4 w-4" />
                                         Cerrar Factura
@@ -155,7 +155,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                 variant="outline"
                                 size="sm"
                                 onClick={() => onPrint('factura')}
-                                className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
+                                className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                             >
                                 <Printer className="mr-2 h-4 w-4" />
                                 Imprimir Factura
@@ -163,8 +163,8 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                         )}
                     </div>
                     <div className="text-right">
-                        <span className="mb-1 block text-[10px] font-bold text-slate-400 uppercase">Total Factura</span>
-                        <span className="text-2xl font-bold text-slate-900">
+                        <span className="mb-1 block text-[10px] font-bold text-slate-400 uppercase dark:text-slate-500">Total Factura</span>
+                        <span className="text-2xl font-bold text-slate-900 dark:text-white">
                             ${Number(factura.detalles?.reduce((acc: number, d: any) => acc + Number(d.subtotal), 0) || 0).toLocaleString()}
                         </span>
                     </div>

@@ -192,7 +192,7 @@ export default function Index({ filters: initialFilters, estados, cuentas }: any
             </div>
 
             <div className="p-4">
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}

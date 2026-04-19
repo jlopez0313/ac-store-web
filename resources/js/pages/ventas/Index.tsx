@@ -4,11 +4,11 @@ import { Card } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { confirmDialog, showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
+import { printReceipts } from '@/utils/printReceipt';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Plus, ShoppingCart } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { printReceipts } from '@/utils/printReceipt';
 import { AddDetailModal } from './AddDetailModal';
 import { CreateModal } from './CreateModal';
 
@@ -286,14 +286,14 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                 />
                             </>
                         ) : (
-                            <Card className="flex h-[calc(100vh-22rem)] items-center justify-center rounded-3xl border-2 border-dashed border-slate-100 bg-slate-50/50 shadow-none">
+                            <Card className="flex h-[calc(100vh-22rem)] items-center justify-center rounded-3xl border-2 border-dashed border-slate-100 bg-slate-50/50 shadow-none dark:border-slate-700 dark:bg-slate-800/30">
                                 <div className="mx-auto max-w-sm space-y-4 text-center">
-                                    <div className="mx-auto flex h-24 w-24 rotate-3 items-center justify-center rounded-3xl bg-white shadow-xl shadow-slate-200/50">
-                                        <ShoppingCart className="h-10 w-10 text-slate-200" />
+                                    <div className="mx-auto flex h-24 w-24 rotate-3 items-center justify-center rounded-3xl bg-white shadow-xl shadow-slate-200/50 dark:bg-slate-800 dark:shadow-black/30">
+                                        <ShoppingCart className="h-10 w-10 text-slate-200 dark:text-slate-600" />
                                     </div>
                                     <div>
-                                        <p className="mb-2 text-xs font-black tracking-[0.2em] text-slate-400 uppercase">Comienza ahora</p>
-                                        <p className="text-lg leading-tight font-bold text-slate-900">
+                                        <p className="mb-2 text-xs font-black tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500">Comienza ahora</p>
+                                        <p className="text-lg leading-tight font-bold text-slate-900 dark:text-white">
                                             Selecciona una factura de la lista para ver sus detalles o crear una nueva.
                                         </p>
                                     </div>

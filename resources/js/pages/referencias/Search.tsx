@@ -160,7 +160,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                                     placeholder="Ej: Nike"
                                     value={marca}
                                     onChange={(e) => setMarca(e.target.value)}
-                                    className="h-10 bg-white"
+                                    className="h-10 bg-white dark:bg-slate-800"
                                 />
                             </div>
 
@@ -171,7 +171,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                                     placeholder="Ej: 12345"
                                     value={codigo}
                                     onChange={(e) => setCodigo(e.target.value)}
-                                    className="h-10 bg-white"
+                                    className="h-10 bg-white dark:bg-slate-800"
                                 />
                             </div>
 
@@ -182,7 +182,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                                     placeholder="Ej: Tenis Runner"
                                     value={referencia}
                                     onChange={(e) => setReferencia(e.target.value)}
-                                    className="h-10 bg-white"
+                                    className="h-10 bg-white dark:bg-slate-800"
                                 />
                             </div>
 
@@ -193,7 +193,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                                     placeholder="Ej: 38"
                                     value={talla}
                                     onChange={(e) => setTalla(e.target.value)}
-                                    className="h-10 bg-white"
+                                    className="h-10 bg-white dark:bg-slate-800"
                                 />
                             </div>
 

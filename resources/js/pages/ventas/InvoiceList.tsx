@@ -23,7 +23,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
     onSearch
 }) => {
     return (
-        <Card className="lg:col-span-1 flex flex-col h-[calc(100vh-16rem)] border-slate-200 shadow-sm overflow-hidden">
+        <Card className="lg:col-span-1 flex flex-col h-[calc(100vh-16rem)] border-slate-200 shadow-sm overflow-hidden dark:border-slate-700">
             <CardHeader className="pb-2 pt-4 px-4">
                 <CardTitle className="text-sm">Facturas de Venta</CardTitle>
             </CardHeader>
@@ -36,7 +36,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                             type="text"
                             defaultValue={filters.search}
                             placeholder="Buscar factura, local..."
-                            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+                            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-slate-500"
                             onBlur={(e) => onSearch(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') onSearch(e.currentTarget.value);
@@ -57,8 +57,8 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({
                                 key={factura.id}
                                 onClick={() => onSelectInvoice(factura)}
                                 className={`w-full text-left px-3 py-3 rounded-xl mb-1 transition-all ${isSelected
-                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-slate-200 scale-[1.02]'
-                                    : 'hover:bg-slate-50 text-slate-700'
+                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-slate-200 scale-[1.02] dark:shadow-black/30'
+                                    : 'hover:bg-slate-50 text-slate-700 dark:hover:bg-slate-800 dark:text-slate-300'
                                     }`}
                             >
                                 <div className="flex items-center justify-between pointer-events-none">

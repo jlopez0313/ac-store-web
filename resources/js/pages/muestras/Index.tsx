@@ -113,9 +113,9 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
         {
             name: 'Ubicación Original',
             cell: (row: any) => (
-                <div className="text-[10px] leading-tight text-slate-600">
+                <div className="text-[10px] leading-tight text-slate-600 dark:text-slate-400">
                     <div>{row.bodega_original}</div>
-                    <div className="text-slate-400">Estante: {row.estante_original}</div>
+                    <div className="text-slate-400 dark:text-slate-500">Estante: {row.estante_original}</div>
                 </div>
             ),
             sortable: true,
@@ -215,7 +215,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
             </div>
 
             <div className="p-4">
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}

@@ -35,16 +35,16 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
         const baseConDescuento = sugerido - descuento;
 
         if (unitario === sugerido) return '';
-        if (unitario === baseConDescuento) return 'bg-amber-50 text-amber-700 border-amber-200';
-        if (unitario < baseConDescuento) return 'bg-red-50 text-red-700 border-red-200';
+        if (unitario === baseConDescuento) return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800';
+        if (unitario < baseConDescuento) return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800';
         return '';
     };
 
     return (
-        <Card className="border-slate-200 shadow-sm overflow-hidden flex flex-col min-w-0">
+        <Card className="border-slate-200 shadow-sm overflow-hidden flex flex-col min-w-0 dark:border-slate-700">
             <CardContent className="p-0 overflow-x-auto overflow-y-auto w-full max-w-full flex-1 min-w-0 max-h-[calc(100vh-25rem)] custom-scrollbar">
                 <Table>
-                    <TableHeader className="bg-slate-50/50 sticky top-0 z-10 backdrop-blur-sm">
+                    <TableHeader className="bg-slate-50/50 sticky top-0 z-10 backdrop-blur-sm dark:bg-slate-800/50">
                         <TableRow>
                             <TableHead className="w-12 px-4 py-3">
                                 {isAdmin && factura.estado === 'abierta' && (
@@ -54,18 +54,18 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                     />
                                 )}
                             </TableHead>
-                            <TableHead className="w-32 font-bold text-slate-700">Ref</TableHead>
-                            <TableHead className="font-bold text-slate-700">Producto</TableHead>
-                            <TableHead className="w-56 font-bold text-slate-700">Ubicación</TableHead>
-                            <TableHead className="w-20 font-bold text-slate-700">Cant.</TableHead>
-                            <TableHead className="w-48 font-bold text-slate-700">Precio</TableHead>
-                            <TableHead className="w-32 font-bold text-slate-700">Subtotal</TableHead>
+                            <TableHead className="w-32 font-bold text-slate-700 dark:text-slate-300">Ref</TableHead>
+                            <TableHead className="font-bold text-slate-700 dark:text-slate-300">Producto</TableHead>
+                            <TableHead className="w-56 font-bold text-slate-700 dark:text-slate-300">Ubicación</TableHead>
+                            <TableHead className="w-20 font-bold text-slate-700 dark:text-slate-300">Cant.</TableHead>
+                            <TableHead className="w-48 font-bold text-slate-700 dark:text-slate-300">Precio</TableHead>
+                            <TableHead className="w-32 font-bold text-slate-700 dark:text-slate-300">Subtotal</TableHead>
                             <TableHead className="w-12"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {factura.detalles?.map((detalle: any) => (
-                            <TableRow key={detalle.id} className="group hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0">
+                            <TableRow key={detalle.id} className="group hover:bg-slate-50/30 transition-colors border-b border-slate-100 last:border-0 dark:hover:bg-slate-800/30 dark:border-slate-800">
                                 <TableCell className="px-4 py-4">
                                     {isAdmin && factura.estado === 'abierta' && (
                                         <Checkbox
@@ -75,14 +75,14 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    <span className="font-mono font-black text-indigo-600 text-sm bg-indigo-50 px-2 py-1 rounded-md border border-indigo-100">
+                                    <span className="font-mono font-black text-indigo-600 text-sm bg-indigo-50 px-2 py-1 rounded-md border border-indigo-100 dark:text-indigo-400 dark:bg-indigo-950 dark:border-indigo-800">
                                         {detalle.producto?.codigo}
                                     </span>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex flex-col gap-1">
-                                        <div className="text-sm font-medium text-slate-900 leading-tight">{detalle.producto?.descripcion}</div>
-                                        <div className="text-[10px] text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                        <div className="text-sm font-medium text-slate-900 leading-tight dark:text-slate-100">{detalle.producto?.descripcion}</div>
+                                        <div className="text-[10px] text-slate-400 uppercase tracking-widest flex items-center gap-1.5 dark:text-slate-500">
                                             <Tag className="h-2.5 w-2.5" />
                                             {typeof detalle.producto?.marca === 'object' ? detalle.producto.marca.nombre : (detalle.producto?.marca || 'N/A')} · Talla {detalle.talla}
                                         </div>
@@ -90,7 +90,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex flex-col gap-1">
-                                        <div className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                                        <div className="text-sm font-medium text-slate-700 flex items-center gap-2 dark:text-slate-300">
                                             <Warehouse className="h-3.5 w-3.5 text-slate-400" />
                                             {bodegas?.find((b: any) => b.id == detalle.bodega_id)?.nombre || '-'}
                                         </div>
@@ -102,17 +102,17 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <span className="text-sm font-medium text-slate-900">{detalle.cantidad}</span>
+                                    <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{detalle.cantidad}</span>
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-1.5">
-                                        <span className={`px-2 py-1 rounded-lg border text-sm font-medium transition-all shadow-sm ${getPriceHighlight(detalle) || 'bg-white border-slate-100 text-slate-700'}`}>
+                                        <span className={`px-2 py-1 rounded-lg border text-sm font-medium transition-all shadow-sm ${getPriceHighlight(detalle) || 'bg-white border-slate-100 text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'}`}>
                                             ${Number(detalle.precio_unitario || 0).toLocaleString()}
                                         </span>
                                         {factura.estado === 'abierta' && isAdmin && (
                                             <button
                                                 onClick={() => onUpdatePrice(detalle)}
-                                                className="p-1.5 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                                className="p-1.5 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all dark:text-slate-600 dark:hover:text-indigo-400 dark:hover:bg-indigo-950"
                                             >
                                                 <Edit className="w-3.5 h-3.5" />
                                             </button>
@@ -120,7 +120,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                     </div>
                                 </TableCell>
                                 <TableCell className="pr-6">
-                                    <span className="text-sm font-bold text-slate-900">${Number(detalle.subtotal || 0).toLocaleString()}</span>
+                                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100">${Number(detalle.subtotal || 0).toLocaleString()}</span>
                                 </TableCell>
                                 <TableCell className="p-0">
                                     <div className="flex items-center justify-end px-4 gap-2">
@@ -138,7 +138,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                                     align="end"
                                                     side="top"
                                                     sideOffset={12}
-                                                    className="w-72 p-4 bg-slate-900 text-white rounded-2xl shadow-2xl border-slate-800"
+                                                    className="w-72 p-4 bg-slate-900 text-white rounded-2xl shadow-2xl border-slate-800 dark:bg-slate-950 dark:border-slate-700"
                                                 >
                                                     <div className="flex items-center justify-between mb-3">
                                                         <div className="flex flex-col">
@@ -175,7 +175,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                         {factura.estado === 'abierta' && isAdmin && (
                                             <button
                                                 onClick={() => onDeleteDetail(detalle.id)}
-                                                className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 dark:text-slate-600 dark:hover:text-red-400 dark:hover:bg-red-950"
                                             >
                                                 <Trash className="w-4 h-4" />
                                             </button>
@@ -188,12 +188,12 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                             <TableRow>
                                 <TableCell colSpan={8} className="py-24 text-center">
                                     <div className="flex flex-col items-center gap-3">
-                                        <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100">
+                                        <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 dark:bg-slate-800 dark:border-slate-700">
                                             <Package className="h-8 w-8 text-slate-200" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin productos</p>
-                                            <p className="text-xs text-slate-300">No hay productos registrados en esta factura.</p>
+                                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest dark:text-slate-500">Sin productos</p>
+                                            <p className="text-xs text-slate-300 dark:text-slate-600">No hay productos registrados en esta factura.</p>
                                         </div>
                                     </div>
                                 </TableCell>

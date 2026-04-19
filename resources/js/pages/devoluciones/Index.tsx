@@ -80,8 +80,8 @@ export default function Index({ locals, filters: initialFilters }: any) {
             width: '180px',
             cell: (row: any) => (
                 <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-900">{new Date(row.fecha_devolucion).toLocaleDateString()}</span>
-                    <span className="text-[10px] text-slate-400">{new Date(row.fecha_devolucion).toLocaleTimeString()}</span>
+                    <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{new Date(row.fecha_devolucion).toLocaleDateString()}</span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500">{new Date(row.fecha_devolucion).toLocaleTimeString()}</span>
                 </div>
             ),
         },
@@ -101,7 +101,7 @@ export default function Index({ locals, filters: initialFilters }: any) {
             name: 'Local',
             selector: (row: any) => row.venta?.local?.name,
             sortable: true,
-            cell: (row: any) => <span className="text-sm font-medium text-slate-700">{row.venta?.local?.name || 'N/A'}</span>,
+            cell: (row: any) => <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{row.venta?.local?.name || 'N/A'}</span>,
         },
         {
             name: 'Producto',
@@ -117,8 +117,8 @@ export default function Index({ locals, filters: initialFilters }: any) {
             name: 'Ubicación',
             cell: (row: any) => (
                 <div className="flex flex-col py-2">
-                    <span className="text-sm font-semibold text-slate-900">{row.bodega?.nombre}</span>
-                    <span className="text-[11px] font-bold text-slate-400 uppercase">{row.estanteria?.nombre}</span>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{row.bodega?.nombre}</span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase dark:text-slate-500">{row.estanteria?.nombre}</span>
                 </div>
             ),
         },
@@ -127,17 +127,17 @@ export default function Index({ locals, filters: initialFilters }: any) {
             width: '100px',
             cell: (row: any) => (
                 <div className="flex flex-col items-center">
-                    <Badge variant="outline" className="mb-1 bg-white text-[11px]">
+                    <Badge variant="outline" className="mb-1 bg-white text-[11px] dark:bg-slate-800">
                         Talla {row.talla}
                     </Badge>
-                    <span className="text-xs font-bold text-slate-600">{row.cantidad} ud</span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{row.cantidad} ud</span>
                 </div>
             ),
         },
         {
             name: 'Monto',
             width: '120px',
-            cell: (row: any) => <span className="font-medium text-slate-900">${Number(row.subtotal).toLocaleString()}</span>,
+            cell: (row: any) => <span className="font-medium text-slate-900 dark:text-slate-100">${Number(row.subtotal).toLocaleString()}</span>,
         },
         {
             name: 'Observación',
@@ -150,7 +150,7 @@ export default function Index({ locals, filters: initialFilters }: any) {
             cell: (row: any) => (
                 <div className="flex items-center gap-2">
                     <UserIcon className="h-3 w-3 text-slate-400" />
-                    <span className="truncate text-xs text-slate-600">{row.eliminador?.name || 'Sistema'}</span>
+                    <span className="truncate text-xs text-slate-600 dark:text-slate-400">{row.eliminador?.name || 'Sistema'}</span>
                 </div>
             ),
         },
@@ -166,7 +166,7 @@ export default function Index({ locals, filters: initialFilters }: any) {
                     description="Registro detallado de productos eliminados de ventas y reintegrados al inventario."
                 />
 
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <div className="flex flex-wrap items-end gap-4">
                         <div className="min-w-[200px] flex-1">
                             <div className="relative">
@@ -232,7 +232,7 @@ export default function Index({ locals, filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}

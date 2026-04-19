@@ -77,7 +77,7 @@ export default function Index({ filters: initialFilters }: any) {
         },
         {
             name: 'Entradas',
-            cell: (row: any) => <span className="text-xs font-bold text-slate-900">{row.entradas.toLocaleString()}</span>,
+            cell: (row: any) => <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{row.entradas.toLocaleString()}</span>,
         },
         {
             name: 'Ventas',
@@ -87,7 +87,7 @@ export default function Index({ filters: initialFilters }: any) {
             name: 'Bodega',
             cell: (row: any) => (
                 <Badge
-                    className={`flex w-14 justify-center px-2 text-xs font-bold tracking-tighter ${row.bodega > 0 ? 'bg-indigo-600 text-white' : 'border-red-200 bg-red-50 text-red-500'}`}
+                    className={`flex w-14 justify-center px-2 text-xs font-bold tracking-tighter ${row.bodega > 0 ? 'bg-indigo-600 text-white' : 'border-red-200 bg-red-50 text-red-500 dark:border-red-800 dark:bg-red-950 dark:text-red-400'}`}
                     variant={row.bodega > 0 ? 'default' : 'outline'}
                 >
                     {row.bodega.toLocaleString()}
@@ -98,7 +98,7 @@ export default function Index({ filters: initialFilters }: any) {
             name: 'Días',
             cell: (row: any) => (
                 <div
-                    className={`flex items-center justify-center rounded border-2 p-1 text-[10px] font-bold ${row.dias > 30 ? 'border-red-200 bg-red-50 text-red-600' : 'border-slate-200 bg-slate-50 text-slate-600'}`}
+                    className={`flex items-center justify-center rounded border-2 p-1 text-[10px] font-bold ${row.dias > 30 ? 'border-red-200 bg-red-50 text-red-600 dark:border-red-800 dark:bg-red-950 dark:text-red-400' : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'}`}
                 >
                     {row.dias}
                 </div>
@@ -110,7 +110,7 @@ export default function Index({ filters: initialFilters }: any) {
         },
         {
             name: 'Precio de Venta',
-            cell: (row: any) => <span className="text-xs font-bold text-slate-900">${row.p_venta.toLocaleString()}</span>,
+            cell: (row: any) => <span className="text-xs font-bold text-slate-900 dark:text-slate-100">${row.p_venta.toLocaleString()}</span>,
         },
     ];
 
@@ -132,7 +132,7 @@ export default function Index({ filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs md:flex-row md:items-center">
+                <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs md:flex-row md:items-center dark:border-slate-700 dark:bg-slate-900">
                     <div className="max-w-sm flex-1">
                         <div className="relative">
                             <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -146,12 +146,12 @@ export default function Index({ filters: initialFilters }: any) {
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-1.5 rounded-xl bg-slate-100 p-1">
+                    <div className="flex flex-wrap gap-1.5 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
                         {tabs.map((t) => (
                             <button
                                 key={t}
                                 onClick={() => handleTabChange(t)}
-                                className={`rounded-lg px-4 py-2 text-[10px] font-bold tracking-widest uppercase transition-all ${filters.tab === t ? 'border border-slate-200 bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                className={`rounded-lg px-4 py-2 text-[10px] font-bold tracking-widest uppercase transition-all ${filters.tab === t ? 'border border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-600 dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
                             >
                                 {t === 'Todo' ? 'Ver Todo' : t}
                             </button>
@@ -159,7 +159,7 @@ export default function Index({ filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}
@@ -187,13 +187,13 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     };
 
     return (
-        <div className="flex min-w-44 items-center gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-xs transition-all hover:shadow-md">
+        <div className="flex min-w-44 items-center gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-xs transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
             <div className={`flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-lg ${colors[color].split(' ')[0]}`}>
                 <Icon className="h-5 w-5" />
             </div>
             <div>
-                <p className="mb-1.5 text-[9px] leading-none font-bold tracking-widest text-slate-400 uppercase">{label}</p>
-                <p className="text-lg leading-none font-bold tracking-tighter text-slate-900">{value.toLocaleString()}</p>
+                <p className="mb-1.5 text-[9px] leading-none font-bold tracking-widest text-slate-400 uppercase dark:text-slate-500">{label}</p>
+                <p className="text-lg leading-none font-bold tracking-tighter text-slate-900 dark:text-white">{value.toLocaleString()}</p>
             </div>
         </div>
     );
