@@ -72,7 +72,11 @@ export default function Index({ filters: initialFilters }: any) {
         {
             name: 'Saldo',
             cell: (row: any) => (
-                <span className={`text-sm font-medium ${row.saldo > 0 ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`}>${row.saldo.toLocaleString()}</span>
+                <span
+                    className={`text-sm font-medium ${row.saldo > 0 ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`}
+                >
+                    ${row.saldo.toLocaleString()}
+                </span>
             ),
             sortable: true,
             sortField: 'saldo',
@@ -80,7 +84,10 @@ export default function Index({ filters: initialFilters }: any) {
         {
             name: 'Ciudad',
             cell: (row: any) => (
-                <Badge variant="outline" className="border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium tracking-tighter text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                <Badge
+                    variant="outline"
+                    className="border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium tracking-tighter text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+                >
                     {row.ciudad}
                 </Badge>
             ),
@@ -116,7 +123,9 @@ export default function Index({ filters: initialFilters }: any) {
                             <DollarSign className="h-4 w-4" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="mb-1 text-[10px] leading-none font-medium text-slate-400 uppercase dark:text-slate-500">Saldo Total</span>
+                            <span className="mb-1 text-[10px] leading-none font-medium text-slate-400 uppercase dark:text-slate-500">
+                                Saldo Total
+                            </span>
                             <span className="text-lg leading-none font-medium tracking-tighter text-slate-900 dark:text-white">
                                 ${meta.stats.saldo_total.toLocaleString()}
                             </span>

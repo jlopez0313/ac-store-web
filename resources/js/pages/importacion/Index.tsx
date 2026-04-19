@@ -274,7 +274,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             disabled={estaActivo}
                             lista={cuentas}
                             item={{ idx: 'id', value: 'nombre' }}
-                            error={""}
+                            error={''}
                         />
                     </div>
 
@@ -310,7 +310,9 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             />
                             <div>
                                 <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200">1. Datos maestros</h2>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">Excel con categorías, marcas, proveedores, bodegas y referencias</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    Excel con categorías, marcas, proveedores, bodegas y referencias
+                                </p>
                             </div>
                         </div>
 
@@ -493,7 +495,9 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
 
                         {secInventario && !csvFile && (
                             <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/30">
-                                <p className="text-xs text-amber-700 dark:text-amber-400">Si no subes CSV, el inventario se generará desde el Excel (más lento).</p>
+                                <p className="text-xs text-amber-700 dark:text-amber-400">
+                                    Si no subes CSV, el inventario se generará desde el Excel (más lento).
+                                </p>
                             </div>
                         )}
                     </div>
@@ -516,7 +520,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             </div>
                         </div>
 
-                        <div className="rounded-lg border-2 border-dashed bg-gray-50 p-4 text-center dark:bg-gray-800 dark:border-gray-600">
+                        <div className="rounded-lg border-2 border-dashed bg-gray-50 p-4 text-center dark:border-gray-600 dark:bg-gray-800">
                             {excelFile ? (
                                 <>
                                     <div className="mb-1 text-xl">📂</div>
