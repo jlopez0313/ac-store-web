@@ -1,38 +1,74 @@
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
-import { DataGrid } from '@/components/ui/DataTable';
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
-import { Filter, User as UserIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DataGrid } from '@/components/ui/DataTable';
 import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
+import { Input } from '@/components/ui/input';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
+import { Head, Link } from '@inertiajs/react';
+import axios from 'axios';
+import { Search as SearchIcon, User as UserIcon, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Panel principal', href: route('dashboard') },
     { title: 'Devoluciones', href: route('devoluciones.index') },
 ];
 
-export default function Index({ devoluciones, locals, filters }: any) {
-    const {
-        data: items,
-        meta: { total, current_page, per_page },
-    } = devoluciones;
+export default function Index({ locals, filters: initialFilters }: any) {
+    const [items, setItems] = useState<any[]>([]);
+    const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
+    const [loading, setLoading] = useState(true);
 
-    const handleFilter = (key: string, value: any) => {
-        const newFilters = { ...filters, [key]: value };
-        router.visit(route('devoluciones.index', newFilters), {
-            preserveState: true,
-            preserveScroll: true,
-            replace: true
-        });
+    const [filters, setFilters] = useState({
+        local_id: initialFilters?.local_id || '',
+        from: initialFilters?.from || '',
+        to: initialFilters?.to || '',
+        search: initialFilters?.search || '',
+        per_page: initialFilters?.per_page || 25,
+        page: initialFilters?.page || 1,
+    });
+
+    const fetchData = useCallback(
+        async (newParams = {}) => {
+            setLoading(true);
+            const params = { ...filters, ...newParams };
+            try {
+                const response = await axios.get(route('api.devoluciones.index'), { params });
+                setItems(response.data.data);
+                setMeta(response.data.meta);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [filters],
+    );
+
+    useEffect(() => {
+        fetchData();
+    }, [filters.page, filters.per_page, filters.local_id, filters.from, filters.to]);
+
+    const handleFilterChange = (key: string, value: any) => {
+        setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
+    };
+
+    const handleSearch = (search: string) => {
+        setFilters((prev) => ({ ...prev, search, page: 1 }));
+        fetchData({ search, page: 1 });
     };
 
     const clearFilters = () => {
-        router.visit(route('devoluciones.index'), {
-            preserveState: true,
-            preserveScroll: true
+        setFilters({
+            local_id: '',
+            from: '',
+            to: '',
+            search: '',
+            per_page: 25,
+            page: 1,
         });
     };
 
@@ -44,12 +80,8 @@ export default function Index({ devoluciones, locals, filters }: any) {
             width: '180px',
             cell: (row: any) => (
                 <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-900">
-                        {new Date(row.fecha_devolucion).toLocaleDateString()}
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                        {new Date(row.fecha_devolucion).toLocaleTimeString()}
-                    </span>
+                    <span className="text-sm font-medium text-slate-900">{new Date(row.fecha_devolucion).toLocaleDateString()}</span>
+                    <span className="text-[10px] text-slate-400">{new Date(row.fecha_devolucion).toLocaleTimeString()}</span>
                 </div>
             ),
         },
@@ -58,11 +90,8 @@ export default function Index({ devoluciones, locals, filters }: any) {
             selector: (row: any) => row.venta_id,
             width: '160px',
             cell: (row: any) => (
-                <Link
-                    href={route('ventas.index', { search: row.venta_id })}
-                    className="group flex items-center"
-                >
-                    <Badge variant="secondary" className="font-bold cursor-pointer hover:bg-slate-200 transition-colors">
+                <Link href={route('ventas.index', { search: row.venta_id })} className="group flex items-center">
+                    <Badge variant="secondary" className="cursor-pointer font-bold transition-colors hover:bg-slate-200">
                         #{row.venta_id}
                     </Badge>
                 </Link>
@@ -72,15 +101,15 @@ export default function Index({ devoluciones, locals, filters }: any) {
             name: 'Local',
             selector: (row: any) => row.venta?.local?.name,
             sortable: true,
-            cell: (row: any) => <span className="text-sm text-slate-700 font-medium">{row.venta?.local?.name || 'N/A'}</span>,
+            cell: (row: any) => <span className="text-sm font-medium text-slate-700">{row.venta?.local?.name || 'N/A'}</span>,
         },
         {
             name: 'Producto',
             grow: 1.5,
             cell: (row: any) => (
                 <div className="flex flex-col py-2">
-                    <span className="font-bold text-primary">{row.producto?.codigo}</span>
-                    <span className="text-xs text-slate-500 truncate max-w-[200px]">{row.producto?.descripcion}</span>
+                    <span className="text-primary font-bold">{row.producto?.codigo}</span>
+                    <span className="max-w-[200px] truncate text-xs text-slate-500">{row.producto?.descripcion}</span>
                 </div>
             ),
         },
@@ -89,7 +118,7 @@ export default function Index({ devoluciones, locals, filters }: any) {
             cell: (row: any) => (
                 <div className="flex flex-col py-2">
                     <span className="text-sm font-semibold text-slate-900">{row.bodega?.nombre}</span>
-                    <span className="text-[11px] text-slate-400 uppercase font-bold">{row.estanteria?.nombre}</span>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase">{row.estanteria?.nombre}</span>
                 </div>
             ),
         },
@@ -98,15 +127,22 @@ export default function Index({ devoluciones, locals, filters }: any) {
             width: '100px',
             cell: (row: any) => (
                 <div className="flex flex-col items-center">
-                    <Badge variant="outline" className="text-[11px] mb-1 bg-white">Talla {row.talla}</Badge>
+                    <Badge variant="outline" className="mb-1 bg-white text-[11px]">
+                        Talla {row.talla}
+                    </Badge>
                     <span className="text-xs font-bold text-slate-600">{row.cantidad} ud</span>
                 </div>
             ),
         },
         {
             name: 'Monto',
-            width: '150px',
+            width: '120px',
             cell: (row: any) => <span className="font-medium text-slate-900">${Number(row.subtotal).toLocaleString()}</span>,
+        },
+        {
+            name: 'Observación',
+            grow: 1,
+            cell: (row: any) => <span className="text-xs leading-tight text-slate-500 italic">{row.observacion || 'Sin observación'}</span>,
         },
         {
             name: 'Usuario',
@@ -114,7 +150,7 @@ export default function Index({ devoluciones, locals, filters }: any) {
             cell: (row: any) => (
                 <div className="flex items-center gap-2">
                     <UserIcon className="h-3 w-3 text-slate-400" />
-                    <span className="text-xs text-slate-600 truncate">{row.creator?.name || 'Sistema'}</span>
+                    <span className="truncate text-xs text-slate-600">{row.eliminador?.name || 'Sistema'}</span>
                 </div>
             ),
         },
@@ -124,58 +160,65 @@ export default function Index({ devoluciones, locals, filters }: any) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Historial de Devoluciones" />
 
-            <div className="p-4 space-y-6">
+            <div className="space-y-6 p-4">
                 <PageHeader
                     title="Historial de Devoluciones"
                     description="Registro detallado de productos eliminados de ventas y reintegrados al inventario."
                 />
 
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="flex flex-wrap items-end gap-4">
-                        <div className="min-w-[240px]">
+                        <div className="min-w-[200px] flex-1">
+                            <div className="relative">
+                                <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                <Input
+                                    placeholder="Buscar por código, observación..."
+                                    className="pl-9"
+                                    value={filters.search}
+                                    onChange={(e) => handleSearch(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="min-w-[200px]">
                             <SelectField
                                 title="Filtrar por Local"
                                 name="local_id"
                                 item={{ idx: 'id', value: 'name' }}
                                 lista={locals}
                                 value={filters.local_id || ''}
-                                onChange={(val) => handleFilter('local_id', val || null)}
+                                onChange={(val) => handleFilterChange('local_id', val || null)}
                                 error={undefined}
                                 placeholder="Todos los locales"
                             />
                         </div>
 
-                        <div className="w-44">
+                        <div className="w-40">
                             <InputField
                                 title="Desde"
                                 name="from"
                                 type="date"
                                 value={filters.from || ''}
-                                onChange={(val) => handleFilter('from', val)}
+                                onChange={(val) => handleFilterChange('from', val)}
                                 error={undefined}
                             />
                         </div>
 
-                        <div className="w-44">
+                        <div className="w-40">
                             <InputField
                                 title="Hasta"
                                 name="to"
                                 type="date"
                                 value={filters.to || ''}
-                                onChange={(val) => handleFilter('to', val)}
+                                onChange={(val) => handleFilterChange('to', val)}
                                 error={undefined}
                             />
                         </div>
 
                         <div className="pb-1">
-                            {(filters.local_id || filters.from || filters.to) && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={clearFilters}
-                                    className="h-9 text-slate-500 hover:text-red-600"
-                                >
-                                    <X className="h-4 w-4 mr-2" />
+                            {(filters.local_id || filters.from || filters.to || filters.search) && (
+                                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-slate-500 hover:text-red-600">
+                                    <X className="mr-2 h-4 w-4" />
                                     Limpiar
                                 </Button>
                             )}
@@ -183,24 +226,25 @@ export default function Index({ devoluciones, locals, filters }: any) {
 
                         <div className="ml-auto pb-2">
                             <Badge variant="secondary" className="px-3 py-1 font-semibold text-slate-600">
-                                {total} Registros encontrados
+                                {meta.total} Registros encontrados
                             </Badge>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     <DataGrid
                         data={items}
                         columns={columns}
-                        total={total}
-                        currentPage={current_page}
-                        paginationPerPage={per_page}
+                        total={meta.total}
+                        loading={loading}
+                        currentPage={meta.current_page}
+                        paginationPerPage={meta.per_page}
                         serverSide={true}
                         paginationServer={true}
-                        fetchPage={(page) => router.visit(route('devoluciones.index', { page }), { preserveState: true, preserveScroll: true })}
-                        setPageSize={() => { }}
-                        onSort={() => { }}
+                        fetchPage={(page) => setFilters((prev) => ({ ...prev, page }))}
+                        setPageSize={(size) => setFilters((prev) => ({ ...prev, per_page: size, page: 1 }))}
+                        onSort={() => {}}
                     />
                 </div>
             </div>

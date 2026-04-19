@@ -6,14 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useAuth } from '@/hooks/use-auth';
 import { useCrudPage } from '@/hooks/useCrudPage';
 import AppLayout from '@/layouts/app-layout';
 import { confirmDialog, showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import { Edit, Layers, Package, Plus, Search, ShoppingCart, Trash } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { AddDetailModal } from './AddDetailModal';
 import { Form } from './Form';
 
@@ -22,23 +23,52 @@ const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Compras', href: route('compras.index') },
 ];
 
-export default function Index({ filters, lista, cuentas, proveedores, referencias, bodegas, next_id }: any) {
-	const {
-		data: facturas,
-		meta: { total, current_page, per_page },
-	} = lista;
+export default function Index({ filters: initialFilters, cuentas, proveedores, referencias, bodegas, next_id }: any) {
+	const { isBodega } = useAuth();
+	
+	const [facturas, setFacturas] = useState<any[]>([]);
+	const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
+	const [loading, setLoading] = useState(true);
+	
+	const [filters, setFilters] = useState({
+		search: initialFilters?.search || '',
+		per_page: initialFilters?.per_page || 25,
+		page: initialFilters?.page || 1,
+	});
 
 	const [selectedFactura, setSelectedFactura] = useState<any>(null);
 	const [refSearch, setRefSearch] = useState('');
 	const [detailModalOpen, setDetailModalOpen] = useState(false);
 	const [selectedRef, setSelectedRef] = useState<any>(null);
 
+	const fetchData = useCallback(async (newParams = {}) => {
+		setLoading(true);
+		const params = { ...filters, ...newParams };
+		try {
+			const response = await axios.get(route('api.compras.index'), { params });
+			setFacturas(response.data.data);
+			setMeta(response.data.meta);
+		} catch (error) {
+			console.error('Error fetching invoices:', error);
+		} finally {
+			setLoading(false);
+		}
+	}, [filters]);
+
+	useEffect(() => {
+		fetchData();
+	}, [filters.page, filters.per_page]);
+
+	const handleSearch = (search: string) => {
+		setFilters(prev => ({ ...prev, search, page: 1 }));
+		fetchData({ search, page: 1 });
+	};
+
 	const openAdd = (ref: any) => {
 		setSelectedRef(ref);
 		setDetailModalOpen(true);
 	};
 
-	// Filtra las referencias por la cuenta de la factura, y luego por el string de búsqueda
 	const handleDeleteDetail = async (detalleId: number) => {
 		const result = await confirmDialog({
 			title: '¿Estás seguro?',
@@ -61,16 +91,15 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 		}
 	};
 
-	// Filtra las referencias por la cuenta de la factura, y luego por el string de búsqueda
 	const availableRefs = (referencias || []).filter((r: any) => selectedFactura && r.cuenta_id === selectedFactura.cuenta_id);
 	const refResults = availableRefs.filter((r: any) =>
 		r.codigo.toLowerCase().includes(refSearch.toLowerCase()) ||
 		r.descripcion.toLowerCase().includes(refSearch.toLowerCase())
 	);
 
-	const { id, show, processing, onToggleModal, onReload, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(
-		lista,
-		(params: any) => ({ url: route('compras.destroy', { compra: params.id }) })
+	const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(
+		null,
+		(params: any) => ({ url: route('api.compras.destroy', params.id) })
 	);
 
 	return (
@@ -100,40 +129,31 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 							<CardTitle className="text-sm">Facturas</CardTitle>
 						</CardHeader>
 
-						<CardContent className="p-2">
-							<div className="space-y-1">
-								<div className="relative mb-2">
-									<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-									<input
-										type="text"
-										defaultValue={filters.search}
-										placeholder="Buscar factura, proveedor..."
-										className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
-										onBlur={(e) => {
-											if (e.target.value !== filters.search) {
-												router.visit(route('compras.index', { search: e.target.value }), { preserveScroll: true });
-											}
-										}}
-										onKeyDown={(e) => {
-											if (e.key === 'Enter') {
-												router.visit(route('compras.index', { search: e.currentTarget.value }), { preserveScroll: true });
-											}
-										}}
-									/>
-								</div>
-								{facturas.length === 0 && (
-									<div className="text-center py-6 text-slate-500 text-sm">
-										No hay facturas registradas.
-									</div>
-								)}
+						<CardContent className="p-2 flex-1 flex flex-col overflow-hidden">
+							<div className="relative mb-2 shrink-0">
+								<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+								<input
+									type="text"
+									defaultValue={filters.search}
+									placeholder="Buscar factura, proveedor..."
+									className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+									onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+									onBlur={(e) => handleSearch(e.target.value)}
+								/>
+							</div>
+							<div className="space-y-1 overflow-y-auto flex-1 pr-1">
+								{loading && facturas.length === 0 ? (
+									<div className="text-center py-6 text-slate-500 text-sm">Cargando...</div>
+								) : facturas.length === 0 ? (
+									<div className="text-center py-6 text-slate-500 text-sm">No hay facturas registradas.</div>
+								) : null}
 								{facturas.map((factura: any) => {
 									const isSelected = selectedFactura?.id === factura.id;
 									return (
 										<button
 											key={factura.id}
 											onClick={() => setSelectedFactura(factura)}
-											className={`w-full text-left px-3 py-2.5 rounded-lg mb-1 transition-colors ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-												}`}
+											className={`w-full text-left px-3 py-2.5 rounded-lg mb-1 transition-colors ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
 										>
 											<div className="flex items-center justify-between">
 												<span className="font-semibold text-sm">Factura #{factura.id}</span>
@@ -151,12 +171,27 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 									)
 								})}
 							</div>
+							
+							{/* Pagination Controls */}
+							<div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between px-2 shrink-0">
+								<Button 
+									variant="ghost" 
+									size="sm" 
+									disabled={filters.page === 1}
+									onClick={() => setFilters(f => ({ ...f, page: f.page - 1 }))}
+								>Anterior</Button>
+								<span className="text-xs text-muted-foreground">Pág. {meta.current_page} de {Math.max(1, Math.ceil(meta.total / meta.per_page))}</span>
+								<Button 
+									variant="ghost" 
+									size="sm" 
+									disabled={filters.page >= Math.ceil(meta.total / meta.per_page)}
+									onClick={() => setFilters(f => ({ ...f, page: f.page + 1 }))}
+								>Siguiente</Button>
+							</div>
 						</CardContent>
 					</Card>
 
 					<div className="lg:col-span-2 space-y-3">
-
-						{/* Right Panel: Placeholder o Detalles */}
 						{selectedFactura ? (
 							<>
 								<Card>
@@ -178,10 +213,12 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 												<Label className="text-xs">Proveedor</Label>
 												<div className="text-sm font-medium">{selectedFactura.proveedor?.nombre}</div>
 											</div>
-											<div>
-												<Label className="text-xs">Valor del Flete</Label>
-												<div className="text-sm font-bold text-indigo-600">${Number(selectedFactura.flete || 0).toLocaleString()}</div>
-											</div>
+											{!isBodega && (
+												<div>
+													<Label className="text-xs">Valor del Flete</Label>
+													<div className="text-sm font-bold text-indigo-600">${Number(selectedFactura.flete || 0).toLocaleString()}</div>
+												</div>
+											)}
 											<div className="col-span-2">
 												<Label className="text-xs">Observaciones</Label>
 												<div className="text-sm font-medium text-muted-foreground border border-slate-200 rounded-md p-2">{selectedFactura.observaciones ?? 'Sin observaciones'}</div>
@@ -189,7 +226,7 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 										</div>
 										<div className="flex justify-end">
 											<Button size="sm" onClick={() => onSetItem(selectedFactura.id)}>
-												<Edit />
+												<Edit className="w-4 h-4 mr-2" />
 												Editar Factura
 											</Button>
 										</div>
@@ -230,7 +267,7 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 								)}
 
 								<Card>
-									<CardContent className="p-0">
+									<CardContent className="p-0 overflow-x-auto">
 										<Table>
 											<TableHeader>
 												<TableRow>
@@ -238,7 +275,7 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 													<TableHead>Descripción</TableHead>
 													<TableHead className="w-36">Bodega destino</TableHead>
 													<TableHead className="w-20 text-center">Modo</TableHead>
-													<TableHead className="w-36 text-right">Cantidad de unidades</TableHead>
+													<TableHead className="w-36 text-right">Cantidad</TableHead>
 													<TableHead className="w-24 text-right">Costo unit.</TableHead>
 													<TableHead className="w-24 text-right">Precio venta</TableHead>
 													<TableHead className="w-24 text-right">Subtotal</TableHead>
@@ -308,11 +345,17 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 					processing={processing}
 					next_id={next_id}
 					onClose={() => onToggleModal(false)}
-					onStore={onStore}
-					onGetItem={onGetItem}
-					onReload={onReload}
+					onStore={(storeFn: any, updateFn: any, data: any) => 
+						onStore(storeFn, updateFn, data, false).then(() => {
+							onToggleModal(false);
+							fetchData();
+						})
+					}
+					onGetItem={(params: any) => onGetItem(() => ({ url: route('api.compras.show', params.id) }), {})}
+					onReload={fetchData}
 					onSuccess={(factura: any) => {
 						setSelectedFactura(factura);
+						fetchData();
 					}}
 				/>
 			</Modal>
@@ -324,12 +367,11 @@ export default function Index({ filters, lista, cuentas, proveedores, referencia
 				factura={selectedFactura}
 				bodegas={bodegas}
 				onAdded={(nuevoDetalle: any) => {
-					// Update Local UI instantly for UX, later replace with real API fetch
 					const updatedFactura = { ...selectedFactura };
 					if (!updatedFactura.detalles) updatedFactura.detalles = [];
 					updatedFactura.detalles.push(nuevoDetalle);
 					setSelectedFactura(updatedFactura);
-					setRefSearch(''); // Clear search after adding
+					setRefSearch('');
 				}}
 			/>
 		</AppLayout >

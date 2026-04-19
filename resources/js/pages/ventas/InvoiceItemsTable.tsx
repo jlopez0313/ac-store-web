@@ -1,9 +1,8 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit2, ExternalLink, Package, RefreshCcw, Tag, Trash, Warehouse, X } from 'lucide-react';
-import { showAlert } from '@/plugins/sweetalert';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Edit, ExternalLink, Package, RefreshCcw, Tag, Trash, Warehouse } from 'lucide-react';
 import React from 'react';
 
 interface InvoiceItemsTableProps {
@@ -115,7 +114,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                                 onClick={() => onUpdatePrice(detalle)}
                                                 className="p-1.5 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                                             >
-                                                <Edit2 className="w-3.5 h-3.5" />
+                                                <Edit className="w-3.5 h-3.5" />
                                             </button>
                                         )}
                                     </div>
@@ -135,9 +134,9 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                                         <RefreshCcw className="w-4 h-4" />
                                                     </button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent 
-                                                    align="end" 
-                                                    side="top" 
+                                                <DropdownMenuContent
+                                                    align="end"
+                                                    side="top"
                                                     sideOffset={12}
                                                     className="w-72 p-4 bg-slate-900 text-white rounded-2xl shadow-2xl border-slate-800"
                                                 >
@@ -147,15 +146,15 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                                             <span className="text-[10px] text-slate-400 font-bold uppercase">{detalle.cambio.usuario}</span>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <div className="bg-white/5 rounded-xl p-3 border border-white/5 mb-4">
                                                         <p className="text-[12px] leading-relaxed text-slate-200 font-medium italic">
                                                             "{detalle.cambio.observacion || 'Sin observaciones'}"
                                                         </p>
                                                     </div>
-                                                    
+
                                                     {detalle.cambio.nueva_venta_id && (
-                                                        <button 
+                                                        <button
                                                             onClick={(e) => {
                                                                 e.preventDefault();
                                                                 onViewInvoice?.(detalle.cambio.nueva_venta_id);

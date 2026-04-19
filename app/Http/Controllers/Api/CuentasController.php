@@ -9,6 +9,32 @@ use Illuminate\Http\Request;
 
 class CuentasController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole('superadmin')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $sortField = $request->input('sort_field', 'id');
+        $sortOrder = $request->input('sort_order', 'desc');
+
+        $query = Cuenta::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('nombre', 'like', "%{$search}%");
+        }
+
+        $paginated = $query->orderBy($sortField, $sortOrder)
+            ->paginate($request->input('per_page', 25));
+
+        return CuentasResource::collection($paginated);
+    }
+
     public function show(Cuenta $cuenta)
     {
         return response()->json(['data' => new CuentasResource($cuenta)]);
@@ -19,9 +45,13 @@ class CuentasController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'estado' => 'required|boolean',
+            'precio_suscripcion' => 'nullable|numeric',
+            'fecha_vencimiento' => 'nullable|date',
         ]);
 
-        $cuenta = Cuenta::create($validated);
+        $cuenta = Cuenta::create(array_merge($validated, [
+            'precio_suscripcion' => $validated['precio_suscripcion'] ?? config('constants.suscripciones.default_account_price')
+        ]));
 
         return response()->json(['data' => new CuentasResource($cuenta)], 201);
     }
@@ -31,6 +61,8 @@ class CuentasController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'estado' => 'required|boolean',
+            'precio_suscripcion' => 'nullable|numeric',
+            'fecha_vencimiento' => 'nullable|date',
         ]);
 
         $cuenta->update($validated);

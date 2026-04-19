@@ -11,6 +11,61 @@ use Illuminate\Support\Facades\Storage;
 
 class ReferenciasController extends Controller
 {
+    public function getNextCode()
+    {
+        $lastCode = Referencia::orderByRaw('CAST(codigo AS UNSIGNED) DESC')->first();
+        
+        if (!$lastCode) {
+            return response()->json(['next_code' => '000001']);
+        }
+
+        $nextNumber = intval($lastCode->codigo) + 1;
+        $nextCode = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+
+        return response()->json(['next_code' => $nextCode]);
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $isSuper = $user->role === 'superadmin';
+
+        $sortField = $request->input('sort_field', 'codigo');
+        $sortOrder = $request->input('sort_order', 'desc');
+
+        $query = Referencia::with(['categoria', 'marca', 'cuenta']);
+
+        if (!$isSuper) {
+            $query->where('cuenta_id', $user->cuenta_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('codigo', 'like', "%{$search}%")
+                    ->orWhere('descripcion', 'like', "%{$search}%")
+                    ->orWhereHas('marca', function ($mq) use ($search) {
+                        $mq->where('nombre', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($sortField === 'marca') {
+            $query->join('marcas', 'referencias.marca_id', '=', 'marcas.id')
+                ->select('referencias.*')
+                ->orderBy('marcas.nombre', $sortOrder);
+        } else {
+            $query->orderBy($sortField, $sortOrder);
+        }
+
+        $paginated = $query->paginate($request->input('per_page', 25));
+
+        return ReferenciaResource::collection($paginated);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -54,9 +109,6 @@ class ReferenciasController extends Controller
 
     /**
      * Update the specified resource in storage.
-     * Using POST for updates when handling file uploads in PHP/Laravel (method spoofing)
-     * The route should be defined as Route::post('referencias/{referencia}', ...);
-     * Or we handle '_method=PUT' in the request automatically via Laravel.
      */
     public function update(Request $request, Referencia $referencia)
     {

@@ -9,6 +9,29 @@ use Illuminate\Http\Request;
 
 class BodegasController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $sortField = $request->input('sort_field', 'nombre');
+        $sortOrder = $request->input('sort_order', 'asc');
+
+        $query = Bodega::with('cuenta');
+
+        if (!$user->hasRole('superadmin')) {
+            $query->where('cuenta_id', $user->cuenta_id);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('nombre', 'like', "%{$request->search}%");
+        }
+
+        $query->orderBy($sortField, $sortOrder);
+
+        return BodegaResource::collection(
+            $query->paginate($request->input('per_page', 25))
+        );
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -56,12 +79,42 @@ class BodegasController extends Controller
         return new BodegaResource($bodega);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Bodega $bodega)
     {
         $bodega->delete();
         return response()->json(['message' => 'Bodega eliminada correctamente']);
+    }
+
+    public function getAccesos(Request $request, Bodega $bodega)
+    {
+        $user = auth()->user();
+        $query = \App\Models\User::role('local');
+
+        if (!$user->hasRole('superadmin')) {
+            $query->where('cuenta_id', $user->cuenta_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $accesos = $query->get()->map(function ($local) use ($bodega) {
+            $acceso = \App\Models\BodegaAcceso::where('bodega_id', $bodega->id)
+                ->where('user_id', $local->id)
+                ->first();
+
+            return [
+                'id' => $local->id,
+                'nombre' => $local->name,
+                'username' => $local->username,
+                'email' => $local->email,
+                'can_view' => $acceso ? (bool)$acceso->can_view : false,
+                'can_order' => $acceso ? (bool)$acceso->can_order : false,
+                'descuento' => $acceso ? $acceso->descuento : 0,
+            ];
+        });
+
+        return response()->json(['data' => $accesos]);
     }
 }

@@ -42,13 +42,52 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         $loginField = filter_var($this->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        
+        // Find user first to check status and provide specific error message
+        $user = \App\Models\User::where($loginField, $this->email)->first();
 
-        if (! Auth::attempt([$loginField => $this->email, 'password' => $this->password], $this->boolean('remember'))) {
+        if ($user && !$user->estado) {
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'email' => 'Su usuario se encuentra inactivo. Por favor contacte al administrador.',
+            ]);
+        }
+
+        if (! Auth::attempt([$loginField => $this->email, 'password' => $this->password, 'estado' => true], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
+        }
+
+        // Check account status if applicable
+        $user = Auth::user();
+
+        // Check if user subscription is expired
+        if ($user->fecha_vencimiento && \Illuminate\Support\Carbon::parse($user->fecha_vencimiento)->isPast()) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => 'Su suscripción de usuario ha vencido. Por favor contacte al administrador.',
+            ]);
+        }
+
+        if ($user->cuenta_id) {
+            // Check account status
+            if (!$user->cuenta->estado) {
+                Auth::logout();
+                throw ValidationException::withMessages([
+                    'email' => 'Su cuenta se encuentra inactiva. Por favor contacte al soporte.',
+                ]);
+            }
+
+            // Check if account subscription is expired
+            if ($user->cuenta->fecha_vencimiento && \Illuminate\Support\Carbon::parse($user->cuenta->fecha_vencimiento)->isPast()) {
+                Auth::logout();
+                throw ValidationException::withMessages([
+                    'email' => 'La suscripción de su cuenta ha vencido. Por favor contacte al administrador.',
+                ]);
+            }
         }
 
         RateLimiter::clear($this->throttleKey());

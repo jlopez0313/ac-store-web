@@ -30,4 +30,9 @@ class Bodega extends Model
     {
         return $this->hasMany(Estanteria::class);
     }
+
+    public function bodegaAccesos()
+    {
+        return $this->hasMany(BodegaAcceso::class, 'bodega_id');
+    }
 }

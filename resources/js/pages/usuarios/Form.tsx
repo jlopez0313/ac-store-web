@@ -10,6 +10,7 @@ import { FormEventHandler, useEffect, useState } from 'react';
 type ThisForm = {
 	name: string;
 	username: string;
+	documento: string;
 	email: string;
 	password: string;
 	role: string;
@@ -18,13 +19,16 @@ type ThisForm = {
 	country_id: string;
 	state_id: string;
 	ciudad_id: string;
+	precio_suscripcion: string;
+	fecha_vencimiento: string;
 };
 
-export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore, onGetItem, onReload }: any) => {
+export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore, onGetItem, onReload, default_user_price }: any) => {
 	const { isSuperAdmin } = useAuth();
 	const { data, setData, errors, reset, setError } = useForm<ThisForm>({
 		name: '',
 		username: '',
+		documento: '',
 		email: '',
 		password: '',
 		role: '',
@@ -33,6 +37,8 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 		country_id: '',
 		state_id: '',
 		ciudad_id: '',
+		precio_suscripcion: '',
+		fecha_vencimiento: '',
 	});
 
 	const [countries, setCountries] = useState<any[]>([]);
@@ -111,6 +117,9 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 			reset();
 			setStates([]);
 			setCities([]);
+			if (default_user_price) {
+				setData('precio_suscripcion', default_user_price.toString());
+			}
 			return;
 		}
 		const getItem = async () => {
@@ -127,6 +136,7 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 				setData({
 					name: item.name,
 					username: item.username,
+					documento: item.documento || '',
 					email: item.email,
 					password: '', // Empty password on edit
 					role: item.role || '',
@@ -135,6 +145,8 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 					country_id: countryId,
 					state_id: stateId,
 					ciudad_id: ciudadId,
+					precio_suscripcion: item.precio_suscripcion?.toString() || '',
+					fecha_vencimiento: item.fecha_vencimiento || '',
 				});
 			}
 		};
@@ -162,6 +174,14 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 							value={data.username}
 							onChange={(value) => setData('username', value as any)}
 							error={errors.username}
+						/>
+
+						<InputField
+							name="documento"
+							title="Documento / ID"
+							value={data.documento}
+							onChange={(value) => setData('documento', value as any)}
+							error={errors.documento}
 						/>
 
 						<InputField
@@ -196,15 +216,17 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 							error={errors.role}
 						/>
 
-						<SelectField
-							name="cuenta_id"
-							title="Cuenta / Empresa"
-							value={data.cuenta_id}
-							onChange={(value) => setData('cuenta_id', value as string)}
-							lista={cuentas}
-							item={{ idx: 'id', value: 'name' }}
-							error={errors.cuenta_id}
-						/>
+						{!['local', 'superadmin'].includes(data.role) && (
+							<SelectField
+								name="cuenta_id"
+								title="Cuenta / Empresa"
+								value={data.cuenta_id}
+								onChange={(value) => setData('cuenta_id', value as string)}
+								lista={cuentas}
+								item={{ idx: 'id', value: 'name' }}
+								error={errors.cuenta_id}
+							/>
+						)}
 
 						<SelectField
 							name="country_id"
@@ -251,6 +273,24 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
 							lista={estados}
 							item={{ idx: 'id', value: 'name' }}
 							error={errors.estado}
+						/>
+
+						<InputField
+							name="precio_suscripcion"
+							title="Precio Suscripción"
+							type="number"
+							value={data.precio_suscripcion}
+							onChange={(value) => setData('precio_suscripcion', value as any)}
+							error={(errors as any).precio_suscripcion}
+						/>
+
+						<InputField
+							name="fecha_vencimiento"
+							title="Fecha de Vencimiento"
+							type="date"
+							value={data.fecha_vencimiento}
+							onChange={(value) => setData('fecha_vencimiento', value as any)}
+							error={(errors as any).fecha_vencimiento}
 						/>
 					</div>
 

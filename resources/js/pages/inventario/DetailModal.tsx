@@ -1,195 +1,286 @@
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import axios from 'axios';
-import { Info, Package, Tag, Warehouse } from 'lucide-react';
+import { Barcode, Edit, Info, Package, Tag, Warehouse } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { AdjustmentModal } from './AdjustmentModal';
 
 interface DetailModalProps {
-	isOpen: boolean;
-	onClose: () => void;
-	referencia: any;
+    isOpen: boolean;
+    onClose: () => void;
+    referencia: any;
+    onAdjust?: (shelf: any, details: any[]) => void;
 }
 
-export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, referencia }) => {
-	const [details, setDetails] = useState<any[]>([]);
-	const [loading, setLoading] = useState(false);
+export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, referencia, onAdjust }) => {
+    const [details, setDetails] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [adjustmentOpen, setAdjustmentOpen] = useState(false);
+    const [selectedShelf, setSelectedShelf] = useState<any>(null);
 
-	useEffect(() => {
-		if (isOpen && referencia) {
-			fetchDetails();
-		}
-	}, [isOpen, referencia]);
+    useEffect(() => {
+        if (isOpen && referencia) {
+            fetchDetails();
+        }
+    }, [isOpen, referencia]);
 
-	const fetchDetails = async () => {
-		setLoading(true);
-		try {
-			const response = await axios.get(route('api.inventario.detail', referencia.id));
-			setDetails(response.data.data);
-		} catch (error) {
-			console.error('Error fetching inventory details:', error);
-		} finally {
-			setLoading(false);
-		}
-	};
+    const fetchDetails = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get(route('api.inventario.detail', referencia.id));
+            setDetails(response.data.data);
+        } catch (error) {
+            console.error('Error fetching inventory details:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-	if (!referencia) return null;
+    const handleAdjust = (item: any) => {
+        const shelf = {
+            id: item.estanteria_id,
+            nombre: item.estanteria_nombre,
+            bodega_nombre: item.bodega_nombre,
+        };
+        const itemsForAdjustment = details.filter((d) => d.estanteria_id === item.estanteria_id);
 
-	const warehouseTotals = details.reduce((acc: any, item: any) => {
-		const key = item.bodega_nombre;
-		if (!acc[key]) acc[key] = 0;
-		acc[key] += Number(item.stock);
-		return acc;
-	}, {});
+        if (onAdjust) {
+            onAdjust(shelf, itemsForAdjustment);
+        } else {
+            setSelectedShelf(shelf);
+            setAdjustmentOpen(true);
+        }
+    };
 
-	return (
-		<Modal
-			show={isOpen}
-			onClose={onClose}
-			title={`Detalle de Inventario: ${referencia.codigo}`}
-			maxWidth="4xl"
-			closeable={true}
-		>
-			<div className="max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-background">
-				<div className="p-6 space-y-8">
-					{/* Header Info */}
-					<div className="bg-muted/30 border border-border rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-						{referencia.foto && (
-							<div className="w-24 h-24 rounded-2xl overflow-hidden border border-border bg-background flex-shrink-0 shadow-sm transition-transform hover:scale-105 duration-300">
-								<img
-									src={referencia.foto}
-									alt={referencia.codigo}
-									className="w-full h-full object-cover"
-									onError={(e) => {
-										// Fallback if image fails to load
-										(e.target as HTMLImageElement).src = '/images/placeholder-product.png';
-									}}
-								/>
-							</div>
-						)}
+    const handleDownloadLabel = async (item: any) => {
+        try {
+            // Usamos ruta absoluta manual para evitar problemas de caché con Ziggy
+            const response = await axios.get(`/descargar-etiqueta/${item.id}`, {
+                responseType: 'blob',
+            });
 
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 w-full">
-							<div className="flex items-center gap-4">
-								<div className="h-10 w-10 flex items-center justify-center bg-background rounded-xl text-muted-foreground border border-border/50 flex-shrink-0">
-									<Package className="h-5 w-5" />
-								</div>
-								<div className="flex flex-col">
-									<span className="text-[10px] font-medium text-muted-foreground uppercase leading-none mb-1">Producto</span>
-									<span className="text-sm font-medium text-foreground line-clamp-2 md:line-clamp-1">{referencia.descripcion}</span>
-								</div>
-							</div>
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
 
-							<div className="flex items-center gap-4">
-								<div className="h-10 w-10 flex items-center justify-center bg-background rounded-xl text-muted-foreground border border-border/50 flex-shrink-0">
-									<Tag className="h-5 w-5" />
-								</div>
-								<div className="flex flex-col">
-									<span className="text-[10px] font-medium text-muted-foreground uppercase leading-none mb-1">Marca</span>
-									<span className="text-sm font-medium text-foreground">{typeof referencia.marca === 'object' ? referencia.marca.nombre : (referencia.marca || 'N/A')}</span>
-								</div>
-							</div>
+            // Extract filename from header if possible, or use default
+            const contentDisposition = response.headers['content-disposition'];
+            let fileName = `etiqueta_${item.id}.csv`;
+            if (contentDisposition) {
+                const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (fileNameMatch && fileNameMatch.length > 1) {
+                    fileName = fileNameMatch[1];
+                }
+            }
 
-							<div className="flex items-center gap-4">
-								<div className="h-10 w-10 flex items-center justify-center bg-background rounded-xl text-muted-foreground border border-border/50 flex-shrink-0">
-									<Info className="h-5 w-5" />
-								</div>
-								<div className="flex flex-col">
-									<span className="text-[10px] font-medium text-muted-foreground uppercase leading-none mb-1">Stock Total</span>
-									<span className={`text-sm font-medium ${Number(referencia.total_stock) <= 0 ? 'text-red-500' : 'text-foreground'}`}>
-										{referencia.total_stock} unidades
-									</span>
-								</div>
-							</div>
-						</div>
-					</div>
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error descargando etiqueta:', error);
+            // Si falla axios, intentamos el método directo como último recurso
+            window.open(`/descargar-etiqueta/${item.id}`, '_blank');
+        }
+    };
 
-					{/* Totals by Warehouse Summary */}
-					{!loading && details.length > 0 && (
-						<div className="space-y-4">
-							<h3 className="text-sm font-medium text-foreground uppercase flex items-center gap-2">
-								Resumen por Bodega
-							</h3>
-							<div className="flex flex-wrap gap-3">
-								{Object.entries(warehouseTotals).map(([bodega, total]: any) => (
-									<div key={bodega} className="bg-background border border-border px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-3">
-										<div className="p-1.5 bg-primary/10 rounded-lg">
-											<Warehouse className="h-3.5 w-3.5 text-primary" />
-										</div>
-										<div className="flex flex-col">
-											<span className="text-[10px] font-medium text-muted-foreground uppercase leading-none mb-1">{bodega}</span>
-											<span className="text-xs font-medium text-foreground leading-none">{total} <span className="text-[10px] text-muted-foreground font-medium">unidades</span></span>
-										</div>
-									</div>
-								))}
-							</div>
-						</div>
-					)}
+    if (!referencia) return null;
 
-					{/* Table Details */}
-					<div className="space-y-4">
-						<h3 className="text-sm font-medium text-foreground uppercase flex items-center gap-2">
-							Distribución por Bodega y Talla
-						</h3>
+    const warehouseTotals = details.reduce((acc: any, item: any) => {
+        const key = item.bodega_nombre;
+        if (!acc[key]) acc[key] = 0;
+        acc[key] += Number(item.stock);
+        return acc;
+    }, {});
 
-						{loading ? (
-							<div className="flex items-center justify-center py-12">
-								<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-							</div>
-						) : details.length === 0 ? (
-							<div className="text-center py-12 bg-muted/30 rounded-2xl border border-dashed border-border text-muted-foreground">
-								No se encontraron registros detallados de inventario.
-							</div>
-						) : (
-							<div className="bg-background rounded-2xl border border-border overflow-hidden shadow-sm">
-								<Table>
-									<TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
-										<TableRow>
-											<TableHead className="font-bold text-foreground h-12 bg-muted/50">Bodega / Estantería</TableHead>
-											<TableHead className="text-center font-bold text-foreground h-12 bg-muted/50">Talla</TableHead>
-											<TableHead className="text-center font-bold text-foreground h-12 bg-muted/50">Stock</TableHead>
-											<TableHead className="text-right font-bold text-foreground h-12 bg-muted/50">Precio Costo</TableHead>
-											<TableHead className="text-right font-bold text-foreground h-12 bg-muted/50 pr-6">Precio Venta</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{details.map((item: any) => (
-											<TableRow key={item.id} className="hover:bg-muted/20 transition-colors border-border/50">
-												<TableCell>
-													<div className="flex items-center gap-3">
-														<div className="p-2 bg-muted rounded-lg text-muted-foreground">
-															<Warehouse className="h-4 w-4" />
-														</div>
-														<div className="flex flex-col">
-															<span className="font-medium text-foreground text-sm">{item.bodega_nombre}</span>
-															<span className="text-[10px] text-muted-foreground uppercase">{item.estanteria_nombre}</span>
-														</div>
-													</div>
-												</TableCell>
-												<TableCell className="text-center">
-													<Badge variant="outline" className="bg-background border-border font-mono">
-														{item.talla}
-													</Badge>
-												</TableCell>
-												<TableCell className="text-center">
-													<span className={`font-bold ${item.stock <= 0 ? 'text-red-500' : 'text-foreground'}`}>
-														{item.stock}
-													</span>
-												</TableCell>
-												<TableCell className="text-right text-muted-foreground font-medium">
-													${Number(item.precio_compra).toLocaleString()}
-												</TableCell>
-												<TableCell className="text-right font-medium text-foreground pr-6">
-													${Number(item.precio_venta).toLocaleString()}
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							</div>
-						)}
-					</div>
-				</div>
-			</div>
-		</Modal>
-	);
+    return (
+        <>
+            <Modal show={isOpen} onClose={onClose} title={`Detalle de Inventario: ${referencia.codigo}`} maxWidth="5xl" closeable={true}>
+                <div className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-background max-h-[85vh] overflow-y-auto">
+                    <div className="space-y-8 p-6">
+                        <div className="bg-muted/30 border-border flex flex-col items-center gap-8 rounded-2xl border p-6 text-center shadow-sm md:flex-row md:items-start md:text-left">
+                            {referencia.foto && (
+                                <div className="border-border bg-background h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl border shadow-sm transition-transform duration-300 hover:scale-105">
+                                    <img
+                                        src={referencia.foto}
+                                        alt={referencia.codigo}
+                                        className="h-full w-full object-cover"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = '/images/placeholder-product.png';
+                                        }}
+                                    />
+                                </div>
+                            )}
+
+                            <div className="grid w-full flex-1 grid-cols-1 gap-6 md:grid-cols-3">
+                                <div className="flex items-center gap-4">
+                                    <div className="bg-background text-muted-foreground border-border/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+                                        <Package className="h-5 w-5" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-muted-foreground mb-1 text-[10px] leading-none font-medium uppercase">Producto</span>
+                                        <span className="text-foreground line-clamp-2 text-sm font-medium md:line-clamp-1">
+                                            {referencia.descripcion}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <div className="bg-background text-muted-foreground border-border/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+                                        <Tag className="h-5 w-5" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-muted-foreground mb-1 text-[10px] leading-none font-medium uppercase">Marca</span>
+                                        <span className="text-foreground text-sm font-medium">
+                                            {typeof referencia.marca === 'object' ? referencia.marca.nombre : referencia.marca || 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <div className="bg-background text-muted-foreground border-border/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+                                        <Info className="h-5 w-5" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-muted-foreground mb-1 text-[10px] leading-none font-medium uppercase">Stock Total</span>
+                                        <span
+                                            className={`text-sm font-medium ${Number(referencia.total_stock) <= 0 ? 'text-red-500' : 'text-foreground'}`}
+                                        >
+                                            {referencia.total_stock} unidades
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {!loading && details.length > 0 && (
+                            <div className="space-y-4">
+                                <h3 className="text-foreground flex items-center gap-2 text-sm font-medium uppercase">Resumen por Bodega</h3>
+                                <div className="flex flex-wrap gap-3">
+                                    {Object.entries(warehouseTotals).map(([bodega, total]: any) => (
+                                        <div
+                                            key={bodega}
+                                            className="bg-background border-border flex items-center gap-3 rounded-xl border px-4 py-2.5 shadow-xs"
+                                        >
+                                            <div className="bg-primary/10 rounded-lg p-1.5">
+                                                <Warehouse className="text-primary h-3.5 w-3.5" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-muted-foreground mb-1 text-[10px] leading-none font-medium uppercase">
+                                                    {bodega}
+                                                </span>
+                                                <span className="text-foreground text-xs leading-none font-medium">
+                                                    {total} <span className="text-muted-foreground text-[10px] font-medium">unidades</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="space-y-4">
+                            <h3 className="text-foreground flex items-center gap-2 text-sm font-medium uppercase">Distribución por Bodega y Talla</h3>
+
+                            {loading ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-600"></div>
+                                </div>
+                            ) : details.length === 0 ? (
+                                <div className="bg-muted/30 border-border text-muted-foreground rounded-2xl border border-dashed py-12 text-center">
+                                    No se encontraron registros detallados de inventario.
+                                </div>
+                            ) : (
+                                <div className="bg-background border-border overflow-hidden rounded-2xl border shadow-sm">
+                                    <Table>
+                                        <TableHeader className="sticky top-0 z-10 bg-slate-50 shadow-sm">
+                                            <TableRow>
+                                                <TableHead className="text-foreground bg-muted/50 h-12 font-bold">Bodega / Estantería</TableHead>
+                                                <TableHead className="text-foreground bg-muted/50 h-12 text-center font-bold">Talla</TableHead>
+                                                <TableHead className="text-foreground bg-muted/50 h-12 text-center font-bold">Stock</TableHead>
+                                                <TableHead className="text-foreground bg-muted/50 h-12 text-right font-bold">Precio Costo</TableHead>
+                                                <TableHead className="text-foreground bg-muted/50 h-12 text-right font-bold">Precio Venta</TableHead>
+                                                <TableHead className="text-foreground bg-muted/50 h-12 pr-6 text-right font-bold">Acciones</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {details.map((item: any) => (
+                                                <TableRow key={item.id} className="hover:bg-muted/20 border-border/50 transition-colors">
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="bg-muted text-muted-foreground rounded-lg p-2">
+                                                                <Warehouse className="h-4 w-4" />
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-foreground text-sm font-medium">{item.bodega_nombre}</span>
+                                                                <span className="text-muted-foreground text-[10px] uppercase">
+                                                                    {item.estanteria_nombre}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
+                                                        <Badge variant="outline" className="bg-background border-border font-mono">
+                                                            {item.talla}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
+                                                        <span className={`font-bold ${item.stock <= 0 ? 'text-red-500' : 'text-foreground'}`}>
+                                                            {item.stock}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground text-right font-medium">
+                                                        ${Number(item.precio_compra).toLocaleString()}
+                                                    </TableCell>
+                                                    <TableCell className="text-foreground text-right font-medium">
+                                                        ${Number(item.precio_venta).toLocaleString()}
+                                                    </TableCell>
+                                                    <TableCell className="pr-6 text-right">
+                                                        <div className="flex items-center justify-end gap-1">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="hover:bg-primary/10 h-8 w-8 cursor-pointer p-0"
+                                                                onClick={() => handleDownloadLabel(item)}
+                                                                title="Descargar Etiqueta"
+                                                            >
+                                                                <Barcode className="h-4 w-4 text-emerald-600" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="hover:bg-primary/10 h-8 w-8 cursor-pointer p-0"
+                                                                onClick={() => handleAdjust(item)}
+                                                                title="Ajustar"
+                                                            >
+                                                                <Edit className="text-primary h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </Modal>
+
+            {!onAdjust && selectedShelf && (
+                <AdjustmentModal
+                    isOpen={adjustmentOpen}
+                    onClose={() => setAdjustmentOpen(false)}
+                    onSuccess={fetchDetails}
+                    referencia={referencia}
+                    estanteria={selectedShelf}
+                    items={details.filter((d) => d.estanteria_id === selectedShelf.id)}
+                />
+            )}
+        </>
+    );
 };

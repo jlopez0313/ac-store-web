@@ -53,6 +53,25 @@ class HandleInertiaRequests extends Middleware
                     'is_local'      => $user->isLocal(),
                 ] : null,
             ],
+            'constants' => [
+                'ventas' => (function() use ($user) {
+                    $cuenta = $user?->cuenta;
+                    return [
+                        'horarios_locales' => $cuenta ? $cuenta->getHorariosVentasOrDefault() : config('constants.ventas.horarios_locales'),
+                        'bloquear_festivos' => $cuenta ? $cuenta->bloquear_festivos : config('constants.ventas.bloquear_festivos', true),
+                    ];
+                })(),
+            ],
+            'time_restriction' => (function() use ($user) {
+                $service = new \App\Services\TimeRestrictionService();
+                $now = now();
+                $cuenta = $user?->cuenta;
+                return [
+                    'can_operate' => $service->canUserOperate($user, $now),
+                    'is_holiday' => $service->isColombianHoliday($now),
+                    'schedule_today' => $service->getTodaySchedule($now, $cuenta),
+                ];
+            })(),
         ]);
     }
 }

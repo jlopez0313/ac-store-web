@@ -1,0 +1,46 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        DB::statement("
+            CREATE OR REPLACE VIEW vista_etiquetas AS
+            SELECT
+                i.id AS inventario_id,
+                c.id AS cuenta_id,
+                c.nombre AS Cuenta,
+                COALESCE(m.nombre, 'N/A') AS Marca,
+                COALESCE(r.descripcion, '') AS Descripcion,
+                i.talla AS Talla,
+                CASE
+                    WHEN r.sistema_viejo = 1 THEN r.codigo
+                    ELSE CONCAT(r.codigo, '-', i.talla)
+                END AS CodigoBarras,
+                COALESCE(b.nombre, '') AS Bodega,
+                COALESCE(e.nombre, '') AS Estanteria,
+                i.stock AS Stock
+            FROM inventarios i
+            INNER JOIN referencias r ON r.id = i.referencia_id
+            LEFT JOIN marcas m ON m.id = r.marca_id
+            LEFT JOIN estanterias e ON e.id = i.estanteria_id
+            LEFT JOIN bodegas b ON b.id = e.bodega_id
+            LEFT JOIN cuentas c ON c.id = i.cuenta_id
+            WHERE i.stock > 0
+        ");
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        DB::statement('DROP VIEW IF EXISTS vista_etiquetas');
+    }
+};

@@ -18,7 +18,7 @@ type ThisForm = {
 };
 
 export const Form = ({ id, proveedores, cuentas, onClose, processing, onStore, onGetItem, onReload, next_id, onSuccess }: any) => {
-	const { isSuperAdmin } = useAuth();
+	const { isSuperAdmin, isBodega } = useAuth();
 
 	const { data, setData, errors, reset, setError } = useForm<ThisForm>({
 		proveedor_id: '',
@@ -151,17 +151,19 @@ export const Form = ({ id, proveedores, cuentas, onClose, processing, onStore, o
 							error={errors.fecha_apertura}
 						/>
 
-						<div className="col-span-1 md:col-span-2">
-							<InputField
-								name="flete"
-								title="Valor del Flete"
-								type="number"
-								required
-								value={data.flete}
-								onChange={(val) => setData('flete', val as string)}
-								error={errors.flete}
-							/>
-						</div>
+						{!isBodega && (
+							<div className="col-span-1 md:col-span-2">
+								<InputField
+									name="flete"
+									title="Valor del Flete"
+									type="number"
+									required
+									value={data.flete}
+									onChange={(val) => setData('flete', val as string)}
+									error={errors.flete}
+								/>
+							</div>
+						)}
 
 						<div className="col-span-1 md:col-span-2 hidden">
 							<InputField

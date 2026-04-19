@@ -1,8 +1,7 @@
 import { PageHeader } from '@/components/page-header';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { DataGrid } from '@/components/ui/DataTable';
+import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -46,8 +45,7 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
 		},
 		{
 			name: 'Talla',
-			center: true,
-			width: '80px',
+			width: '100px',
 			selector: (row: any) => row.talla,
 			sortable: true,
 		},
@@ -77,9 +75,8 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
 		},
 		{
 			name: 'Cant.',
-			right: true,
-			width: '80px',
-			cell: (row: any) => <span className="text-lg font-bold text-slate-900">{row.cantidad}</span>,
+			width: '100px',
+			cell: (row: any) => <span className="font-bold text-slate-900">{row.cantidad}</span>,
 			sortable: true,
 		},
 		{
@@ -89,7 +86,6 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
 		},
 		{
 			name: 'Fecha',
-			right: true,
 			width: '120px',
 			selector: (row: any) => row.fecha,
 			sortable: true,
@@ -140,12 +136,12 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
 						paginationServer={true}
 						fetchPage={(page) => handleSearch(undefined, page)}
 						setPageSize={(size) => handleSearch(undefined, 1, size)}
-						onSort={() => {}}
+						onSort={() => { }}
 					/>
 				</div>
 			</div>
 
-			<TransferModal 
+			<TransferModal
 				isOpen={isModalOpen}
 				onClose={() => setIsModalOpen(false)}
 				cuentas={cuentas}

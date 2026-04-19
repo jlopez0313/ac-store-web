@@ -9,6 +9,24 @@ use Illuminate\Http\Request;
 
 class CategoriasController extends Controller
 {
+    public function index(Request $request)
+    {
+        $sortField = $request->input('sort_field', 'nombre');
+        $sortOrder = $request->input('sort_order', 'asc');
+
+        $query = Categoria::query();
+
+        if ($request->filled('search')) {
+            $query->where('nombre', 'like', "%{$request->search}%");
+        }
+
+        $query->orderBy($sortField, $sortOrder);
+
+        return CategoriaResource::collection(
+            $query->paginate($request->input('per_page', 25))
+        );
+    }
+
     /**
      * Store a newly created resource in storage.
      */

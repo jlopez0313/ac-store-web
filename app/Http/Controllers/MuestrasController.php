@@ -78,6 +78,7 @@ class MuestrasController extends Controller
             ->map(function ($item) {
                 return [
                     'id' => $item->id,
+                    'bodega_id' => $item->estanteria->bodega->id,
                     'bodega_nombre' => $item->estanteria->bodega->nombre,
                     'estanteria_nombre' => $item->estanteria->nombre,
                     'talla' => $item->talla,

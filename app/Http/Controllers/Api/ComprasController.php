@@ -11,6 +11,33 @@ use Illuminate\Validation\Rule;
 class ComprasController extends Controller
 {
     /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $sortField = $request->input('sort_field', 'fecha_apertura');
+        $sortOrder = $request->input('sort_order', 'desc');
+
+        $query = Compra::with(['cuenta', 'proveedor']);
+
+        if (!auth()->user()->hasRole('superadmin')) {
+            $query->where('cuenta_id', auth()->user()->cuenta_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('proveedor', function ($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%");
+            });
+        }
+
+        return CompraResource::collection(
+            $query->orderBy($sortField, $sortOrder)
+                  ->paginate($request->input('per_page', 25))
+        );
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)

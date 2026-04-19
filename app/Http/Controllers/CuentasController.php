@@ -24,6 +24,7 @@ class CuentasController extends Controller
             'lista'    => CuentasResource::collection(
                 $query->paginate($request->input('per_page', 25))->appends($request->all())
             ),
+            'default_account_price' => config('constants.suscripciones.default_account_price'),
         ]);
     }
 }

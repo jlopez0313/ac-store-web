@@ -8,6 +8,32 @@ use Illuminate\Http\Request;
 
 class MarcasController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $sortField = $request->input('sort_field', 'nombre');
+        $sortOrder = $request->input('sort_order', 'asc');
+
+        $query = Marca::with('cuenta');
+
+        if (!$user->hasRole('superadmin')) {
+            $query->where('cuenta_id', $user->cuenta_id);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('nombre', 'like', "%{$request->search}%");
+        }
+
+        $query->orderBy($sortField, $sortOrder);
+
+        return response()->json([
+            'data' => $query->paginate($request->input('per_page', 25)),
+            'meta' => [
+                'total' => $query->count() // Wait, paginate already has it, but I'll return the whole paginator if I want consistency or just use resource.
+            ]
+        ]);
+    }
+
     /**
      * Display the specified resource.
      */

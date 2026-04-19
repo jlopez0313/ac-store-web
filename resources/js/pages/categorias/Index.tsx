@@ -1,143 +1,230 @@
 import { PageHeader } from '@/components/page-header';
-import { Search } from '@/components/Search/Search';
-import { Button } from '@/components/ui/button';
-import { Modal } from '@/components/ui/Modal';
-import { useCrudPage } from '@/hooks/useCrudPage';
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { Edit, Plus, Trash } from 'lucide-react';
-import { Form } from './Form';
-import { DataGrid } from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { DataGrid } from '@/components/ui/DataTable';
+import { Input } from '@/components/ui/input';
+import { Modal } from '@/components/ui/Modal';
+import AppLayout from '@/layouts/app-layout';
+import { confirmDialog, showAlert } from '@/plugins/sweetalert';
+import { type BreadcrumbItem } from '@/types';
+import { Head } from '@inertiajs/react';
+import axios from 'axios';
+import { Edit, Plus, Search as SearchIcon, Trash } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Form } from './Form';
 
 const breadcrumbs: BreadcrumbItem[] = [
-	{ title: 'Panel principal', href: route('dashboard') },
-	{ title: 'Categorías', href: route('categorias.index') },
+    { title: 'Panel principal', href: route('dashboard') },
+    { title: 'Categorías', href: route('categorias.index') },
 ];
 
-export default function Index({ filters, lista, tipos_control, tipos_muestras }: any) {
-	const {
-		data,
-		meta: { total, current_page, per_page },
-	} = lista;
+export default function Index({ filters: initialFilters, tipos_control, tipos_muestras }: any) {
+    const [items, setItems] = useState<any[]>([]);
+    const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
+    const [loading, setLoading] = useState(true);
+    const [show, setShow] = useState(false);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
 
-	const { id, show, processing, onToggleModal, onReload, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(
-		lista,
-		(params: any) => ({ url: route('categorias.destroy', { categoria: params.id }) })
-	);
+    const [filters, setFilters] = useState({
+        search: initialFilters?.search || '',
+        per_page: initialFilters?.per_page || 25,
+        page: initialFilters?.page || 1,
+        sort_field: initialFilters?.sort_field || 'nombre',
+        sort_order: initialFilters?.sort_order || 'asc',
+    });
 
-	const columns = [
-		{
-			name: 'ID',
-			selector: (row: any) => row.id,
-			sortable: true,
-			width: '80px',
-		},
-		{
-			name: 'Nombre',
-			selector: (row: any) => row.nombre,
-			sortable: true,
-		},
-		{
-			name: 'Prefijo SKU',
-			selector: (row: any) => row.prefijo_sku,
-			sortable: true,
-			width: '120px',
-		},
-		{
-			name: 'Modo Control',
-			cell: (row: any) => (
-				<Badge variant="outline" className="capitalize">
-					{row.tipo_control}
-				</Badge>
-			),
-			sortable: true,
-		},
-		{
-			name: 'Subdivisión',
-			cell: (row: any) => (
-				<Badge variant={row.subdivision_stock ? 'default' : 'secondary'}>
-					{row.subdivision_stock ? 'Sí' : 'No'}
-				</Badge>
-			),
-			sortable: true,
-		},
-		{
-			name: 'Creado',
-			selector: (row: any) => row.created_at,
-			sortable: true,
-		},
-	];
+    const fetchData = useCallback(
+        async (newParams = {}) => {
+            setLoading(true);
+            const params = { ...filters, ...newParams };
+            try {
+                const response = await axios.get(route('api.categorias.index'), { params });
+                setItems(response.data.data);
+                setMeta(response.data.meta);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [filters],
+    );
 
-	const actions = [
-		{
-			title: 'Editar',
-			icon: Edit,
-			action: (id: number) => onSetItem(id),
-		},
-		{
-			title: 'Eliminar',
-			icon: Trash,
-			action: (id: number) => onTrash(id),
-		},
-	];
+    useEffect(() => {
+        fetchData();
+    }, [filters.page, filters.per_page, filters.sort_field, filters.sort_order]);
 
-	return (
-		<AppLayout breadcrumbs={breadcrumbs}>
-			<Head title="Categorías" />
+    const handleSearch = (search: string) => {
+        setFilters((prev) => ({ ...prev, search, page: 1 }));
+        fetchData({ search, page: 1 });
+    };
 
-			<div className="p-4 space-y-6">
-				<PageHeader
-					title="Categorías"
-					description="Gestión de categorías de productos, variaciones y stock."
-				/>
-			</div>
+    const handleDelete = async (id: number) => {
+        const result = await confirmDialog({
+            title: '¿Eliminar categoría?',
+            text: 'Esta acción no se puede deshacer.',
+            icon: 'warning',
+        });
 
-			<div className="flex items-end justify-between px-4 pt-4">
-				<Search filters={filters} ruta="categorias" />
-				<Button className="ms-4" onClick={() => onToggleModal(true)}>
-					<Plus className="h-5 w-5" />
-					Nueva Categoría
-				</Button>
-			</div>
+        if (result.isConfirmed) {
+            try {
+                await axios.delete(route('api.categorias.destroy', { categoria: id }));
+                showAlert('success', 'Categoría eliminada correctamente');
+                fetchData();
+            } catch (error: any) {
+                showAlert('error', error.response?.data?.error || 'Error al eliminar');
+            }
+        }
+    };
 
-			<div className="p-4">
-				<div className="bg-background rounded-xl shadow-xs border border-border overflow-hidden">
-					<DataGrid
-						data={data}
-						columns={columns}
-						total={total}
-						currentPage={current_page}
-						paginationPerPage={per_page}
-						actions={actions}
-						processing={processing}
-						serverSide={true}
-						paginationServer={true}
-						fetchPage={(page) => onReload(page)}
-						setPageSize={(size) => onReload(null, size)}
-						onSort={(column, direction) => {
-							const params = new URLSearchParams(window.location.search);
-							params.set('sort', column.name?.toString().toLowerCase() || '');
-							params.set('order', direction);
-							router.visit(`${window.location.pathname}?${params.toString()}`, { preserveScroll: true });
-						}}
-					/>
-				</div>
-			</div>
+    const columns = [
+        {
+            name: 'ID',
+            selector: (row: any) => row.id,
+            sortable: true,
+            sortField: 'id',
+            width: '80px',
+        },
+        {
+            name: 'Nombre',
+            selector: (row: any) => row.nombre,
+            sortable: true,
+            sortField: 'nombre',
+        },
+        {
+            name: 'Prefijo SKU',
+            selector: (row: any) => row.prefijo_sku,
+            sortable: true,
+            sortField: 'prefijo_sku',
+            width: '120px',
+        },
+        {
+            name: 'Modo Control',
+            cell: (row: any) => (
+                <Badge variant="outline" className="capitalize">
+                    {row.tipo_control}
+                </Badge>
+            ),
+            sortable: true,
+            sortField: 'tipo_control',
+        },
+        {
+            name: 'Subdivisión',
+            cell: (row: any) => <Badge variant={row.subdivision_stock ? 'default' : 'secondary'}>{row.subdivision_stock ? 'Sí' : 'No'}</Badge>,
+            sortable: true,
+            sortField: 'subdivision_stock',
+        },
+        {
+            name: 'Creado',
+            selector: (row: any) => row.created_at,
+            sortable: true,
+            sortField: 'created_at',
+        },
+    ];
 
-			<Modal show={show} closeable={true} title="Gestionar Categoría">
-				<Form
-					id={id}
-					tipos_control={tipos_control}
-					tipos_muestras={tipos_muestras}
-					processing={processing}
-					onClose={() => onToggleModal(false)}
-					onStore={onStore}
-					onGetItem={onGetItem}
-					onReload={onReload}
-				/>
-			</Modal>
-		</AppLayout>
-	);
+    const actions = [
+        {
+            title: 'Editar',
+            icon: Edit,
+            action: (id: number) => {
+                setSelectedId(id);
+                setShow(true);
+            },
+        },
+        {
+            title: 'Eliminar',
+            icon: Trash,
+            action: (id: number) => handleDelete(id),
+        },
+    ];
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Categorías" />
+
+            <div className="space-y-6 p-4">
+                <PageHeader title="Categorías" description="Gestión de categorías de productos, variaciones y stock." />
+            </div>
+
+            <div className="flex flex-col justify-between gap-4 px-4 pt-4 md:flex-row md:items-end">
+                <div className="flex max-w-md flex-1 items-center gap-2">
+                    <div className="relative flex-1">
+                        <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                        <Input
+                            placeholder="Buscar por nombre..."
+                            className="pl-9"
+                            defaultValue={filters.search}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                            onBlur={(e) => handleSearch(e.target.value)}
+                        />
+                    </div>
+                </div>
+                <Button
+                    className="ms-4"
+                    onClick={() => {
+                        setSelectedId(null);
+                        setShow(true);
+                    }}
+                >
+                    <Plus className="mr-2 h-5 w-5" />
+                    Nueva Categoría
+                </Button>
+            </div>
+
+            <div className="p-4">
+                <div className="bg-background border-border overflow-hidden rounded-xl border shadow-xs">
+                    <DataGrid
+                        data={items}
+                        columns={columns}
+                        total={meta.total}
+                        processing={loading}
+                        currentPage={meta.current_page}
+                        paginationPerPage={meta.per_page}
+                        actions={actions}
+                        serverSide={true}
+                        paginationServer={true}
+                        fetchPage={(page) => setFilters((prev) => ({ ...prev, page }))}
+                        setPageSize={(size) => setFilters((prev) => ({ ...prev, per_page: size, page: 1 }))}
+                        onSort={(column: any, sortOrder) => {
+                            setFilters((prev) => ({
+                                ...prev,
+                                sort_field: column.sortField,
+                                sort_order: sortOrder,
+                                page: 1,
+                            }));
+                        }}
+                    />
+                </div>
+            </div>
+
+            <Modal show={show} closeable={true} title="Gestionar Categoría">
+                <Form
+                    id={selectedId}
+                    tipos_control={tipos_control}
+                    tipos_muestras={tipos_muestras}
+                    processing={loading}
+                    onClose={() => setShow(false)}
+                    onStore={async (data: any) => {
+                        try {
+                            if (selectedId) {
+                                await axios.put(route('api.categorias.update', { categoria: selectedId }), data);
+                            } else {
+                                await axios.post(route('api.categorias.store'), data);
+                            }
+                            setShow(false);
+                            fetchData();
+                            showAlert('success', 'Operación exitosa');
+                        } catch (error: any) {
+                            showAlert('error', error.response?.data?.error || 'Error al procesar');
+                        }
+                    }}
+                    onGetItem={async (id: number) => {
+                        const res = await axios.get(route('api.categorias.show', { categoria: id }));
+                        return res.data.data;
+                    }}
+                    onReload={() => fetchData()}
+                />
+            </Modal>
+        </AppLayout>
+    );
 }

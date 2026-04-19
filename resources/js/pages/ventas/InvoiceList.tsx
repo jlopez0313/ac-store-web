@@ -10,6 +10,9 @@ interface InvoiceListProps {
     onSelectInvoice: (factura: any) => void;
     filters: any;
     onSearch: (value: string) => void;
+    loading: boolean;
+    meta: any;
+    onPageChange: (page: number) => void;
 }
 
 export const InvoiceList: React.FC<InvoiceListProps> = ({

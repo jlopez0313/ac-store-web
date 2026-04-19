@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Storage;
-use Inertia\Inertia;
+use App\Jobs\ImportarSistemaViejoJob;
 use App\Models\Cuenta;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Inertia\Inertia;
 
 class ImportacionController extends Controller
 {
+    // ─────────────────────────────────────────────────────
+    // PANTALLA
+    // ─────────────────────────────────────────────────────
     public function index()
     {
         return Inertia::render('importacion/Index', [
@@ -17,123 +21,195 @@ class ImportacionController extends Controller
         ]);
     }
 
-    public function ejecutar(Request $request)
+    // ─────────────────────────────────────────────────────
+    // UPLOAD CHUNKED
+    // Recibe un chunk y lo escribe en disco.
+    // El cliente envía: file (blob), chunkIndex, totalChunks, uploadId
+    // ─────────────────────────────────────────────────────
+    public function chunk(Request $request): JsonResponse
     {
         $request->validate([
-            'cuenta_id' => 'required|exists:cuentas,id',
-            'archivo' => 'required|file|mimes:xlsx|max:51200', // 50MB máx
-            'dry_run' => 'nullable|in:0,1',
-            'solo' => 'nullable|in:marcas,proveedores,bodegas,referencias,inventario,compras,ventas',
+            'file' => 'required|file',
+            'uploadId' => 'required|string|max:64',
+            'chunkIndex' => 'required|integer|min:0',
+            'totalChunks' => 'required|integer|min:1',
         ]);
 
-        // Guardar el archivo en storage temporal
-        $path = $request->file('archivo')->storeAs(
-            'importacion',
-            'datos_' . $request->cuenta_id . '_' . time() . '.xlsx',
-            'local'
-        );
+        $uploadId = preg_replace('/[^a-zA-Z0-9_-]/', '', $request->uploadId);
+        $chunkIndex = (int) $request->chunkIndex;
+        $totalChunks = (int) $request->totalChunks;
 
-        $filePath = storage_path("app/{$path}");
-
-        // Capturar output del comando Artisan
-        $output = new \Symfony\Component\Console\Output\BufferedOutput();
-
-        $params = [
-            '--file' => $filePath,
-            '--cuenta' => $request->cuenta_id,
-        ];
-
-        if ($request->dry_run === '1') {
-            $params['--dry-run'] = true;
+        $chunkDir = storage_path("app/importacion/chunks/{$uploadId}");
+        if (!is_dir($chunkDir)) {
+            mkdir($chunkDir, 0755, true);
         }
 
-        if ($request->solo) {
-            $params['--solo'] = $request->solo;
+        $request->file('file')->move($chunkDir, "chunk_{$chunkIndex}");
+
+        // ¿Llegaron todos los chunks?
+        // En lugar de glob, podemos simplemente contar si existen todos los archivos esperados
+        // o esperar a que el cliente nos diga que es el último.
+
+        $isLast = ($chunkIndex + 1) === $totalChunks;
+
+        if ($isLast) {
+            // Verificar que realmente están todos
+            for ($i = 0; $i < $totalChunks; ++$i) {
+                if (!file_exists("{$chunkDir}/chunk_{$i}")) {
+                    return response()->json(['status' => 'waiting', 'missing' => $i]);
+                }
+            }
+
+            // Ensamblar
+            $finalPath = storage_path("app/importacion/{$uploadId}.xlsx");
+            $out = fopen($finalPath, 'wb');
+            for ($i = 0; $i < $totalChunks; ++$i) {
+                $chunkFile = "{$chunkDir}/chunk_{$i}";
+                fwrite($out, file_get_contents($chunkFile));
+            }
+            fclose($out);
+
+            // Limpiar chunks
+            array_map('unlink', glob("{$chunkDir}/chunk_*"));
+            rmdir($chunkDir);
+
+            return response()->json(['status' => 'complete', 'uploadId' => $uploadId]);
         }
 
-        try {
-            $exitCode = Artisan::call('importar:sistema-viejo', $params, $output);
-            $texto = $output->fetch();
-
-            // Borrar archivo temporal
-            Storage::disk('local')->delete($path);
-
-            // Parsear output para extraer resumen por paso
-            $pasos = $this->parsearPasos($texto);
-            $resumen = $this->parsearResumen($texto);
-
-            return back()->with('resultado', [
-                'error' => $exitCode !== 0,
-                'dry_run' => $request->dry_run === '1',
-                'mensaje' => $texto,
-                'pasos' => $pasos,
-                'resumen' => $resumen,
-            ]);
-
-        } catch (\Throwable $e) {
-            Storage::disk('local')->delete($path);
-
-            return back()->with('resultado', [
-                'error' => true,
-                'dry_run' => $request->dry_run === '1',
-                'mensaje' => $e->getMessage(),
-                'pasos' => [],
-                'resumen' => [],
-            ]);
-        }
+        return response()->json(['status' => 'partial', 'received' => $chunkIndex + 1, 'total' => $totalChunks]);
     }
 
-    /**
-     * Extrae el último mensaje de cada sección del output
-     * buscando líneas como "  Marcas: 12 insertadas / 12 mapeadas"
-     */
-    private function parsearPasos(string $texto): array
+    // ─────────────────────────────────────────────────────
+    // UPLOAD CSV INVENTARIO (chunked, igual que el Excel)
+    // ─────────────────────────────────────────────────────
+    public function chunkCsv(Request $request): JsonResponse
     {
-        $mapa = [
-            'marcas' => 'Marcas',
-            'proveedores' => 'Proveedores',
-            'bodegas' => 'Bodegas',
-            'referencias' => 'Referencias',
-            'inventario' => 'Inventarios',
-            'compras' => 'Compras',
-            'ventas' => 'Ventas',
-        ];
+        $request->validate([
+            'file' => 'required|file',
+            'uploadId' => 'required|string|max:64',
+            'chunkIndex' => 'required|integer|min:0',
+            'totalChunks' => 'required|integer|min:1',
+        ]);
 
-        $resultado = [];
-        $lineas = explode("\n", $texto);
+        $uploadId = preg_replace('/[^a-zA-Z0-9_-]/', '', $request->uploadId);
+        $chunkIndex = (int) $request->chunkIndex;
+        $totalChunks = (int) $request->totalChunks;
 
-        foreach ($mapa as $key => $patron) {
-            foreach ($lineas as $linea) {
-                if (str_contains($linea, $patron . ':')) {
-                    $resultado[$key] = trim($linea);
+        $chunkDir = storage_path("app/importacion/chunks/{$uploadId}_csv");
+        if (!is_dir($chunkDir)) {
+            mkdir($chunkDir, 0755, true);
+        }
+
+        $request->file('file')->move($chunkDir, "chunk_{$chunkIndex}");
+
+        $isLast = ($chunkIndex + 1) === $totalChunks;
+
+        if ($isLast) {
+            for ($i = 0; $i < $totalChunks; ++$i) {
+                if (!file_exists("{$chunkDir}/chunk_{$i}")) {
+                    return response()->json(['status' => 'waiting', 'missing' => $i]);
+                }
+            }
+
+            $finalPath = storage_path("app/importacion/{$uploadId}_inventario.csv");
+            $out = fopen($finalPath, 'wb');
+            for ($i = 0; $i < $totalChunks; ++$i) {
+                $chunkFile = "{$chunkDir}/chunk_{$i}";
+                fwrite($out, file_get_contents($chunkFile));
+            }
+            fclose($out);
+
+            array_map('unlink', glob("{$chunkDir}/chunk_*"));
+            rmdir($chunkDir);
+
+            return response()->json(['status' => 'complete', 'uploadId' => $uploadId]);
+        }
+
+        return response()->json(['status' => 'partial', 'received' => $chunkIndex + 1, 'total' => $totalChunks]);
+    }
+
+    // ─────────────────────────────────────────────────────
+    // DISPARAR JOB
+    // ─────────────────────────────────────────────────────
+    public function ejecutar(Request $request): JsonResponse
+    {
+        $request->validate([
+            'uploadId' => 'required|string|max:64',
+            'cuenta_id' => 'required|exists:cuentas,id',
+            'dry_run' => 'nullable|boolean',
+            'solo' => 'nullable|string|max:200',
+        ]);
+
+        $uploadId = preg_replace('/[^a-zA-Z0-9_-]/', '', $request->uploadId);
+        $solo = $request->input('solo', '');
+
+        // Validar cada paso individual
+        $pasosValidos = ['categorias', 'marcas', 'users_locales', 'proveedores', 'bodegas', 'referencias', 'inventario', 'traslados', 'compras', 'ventas'];
+        if ($solo) {
+            $pasosSolicitados = array_map('trim', explode(',', $solo));
+            foreach ($pasosSolicitados as $p) {
+                if (!in_array($p, $pasosValidos)) {
+                    return response()->json(['error' => "Paso inválido: {$p}"], 422);
                 }
             }
         }
 
-        return $resultado;
-    }
+        $filePath = storage_path("app/importacion/{$uploadId}.xlsx");
 
-    /**
-     * Extrae números clave del output para mostrar en tarjetas de resumen
-     */
-    private function parsearResumen(string $texto): array
-    {
-        $resumen = [];
-
-        $patrones = [
-            'marcas' => '/Marcas:\s*(\d+) insertadas/',
-            'referencias' => '/Referencias:\s*(\d+) insertadas/',
-            'inventario' => '/Inventarios insertados:\s*(\d+)/',
-            'ventas' => '/Ventas:\s*(\d+) insertadas/',
-            'compras' => '/Compras:\s*(\d+) insertadas/',
-        ];
-
-        foreach ($patrones as $key => $pattern) {
-            if (preg_match($pattern, $texto, $m)) {
-                $resumen[$key] = (int) $m[1];
-            }
+        // CSV de inventario (opcional — si no se subió, el Job lo genera del Excel)
+        $csvFilePath = '';
+        $csvPath = storage_path("app/importacion/{$uploadId}_inventario.csv");
+        if (file_exists($csvPath)) {
+            $csvFilePath = $csvPath;
         }
 
-        return $resumen;
+        // El Excel solo es necesario si se importa algo distinto de solo inventario
+        $soloInventario = $solo === 'inventario';
+        $necesitaExcel = !$soloInventario || !$csvFilePath;
+
+        if ($necesitaExcel && !file_exists($filePath)) {
+            return response()->json(['error' => 'Archivo Excel no encontrado. ¿Se completó el upload?'], 422);
+        }
+
+        $jobKey = 'importacion_'.$uploadId;
+
+        // Estado inicial en cache
+        Cache::put($jobKey, [
+            'paso' => 'encolado',
+            'pct' => 0,
+            'mensaje' => 'Job encolado, esperando worker...',
+            'dry_run' => $request->boolean('dry_run'),
+            'logs' => [],
+            'ts' => now()->toDateTimeString(),
+        ], now()->addHours(2));
+
+        ImportarSistemaViejoJob::dispatch(
+            filePath: file_exists($filePath) ? $filePath : '',
+            cuentaId: (int) $request->cuenta_id,
+            dryRun: $request->boolean('dry_run'),
+            soloStep: $solo,
+            jobKey: $jobKey,
+            csvFilePath: $csvFilePath,
+        )->onQueue('importacion');
+
+        return response()->json(['jobKey' => $jobKey]);
+    }
+
+    // ─────────────────────────────────────────────────────
+    // PROGRESO (polling)
+    // ─────────────────────────────────────────────────────
+    public function progreso(Request $request): JsonResponse
+    {
+        $jobKey = $request->input('jobKey');
+        if (!$jobKey) {
+            return response()->json(['error' => 'jobKey requerido'], 422);
+        }
+
+        $data = Cache::get($jobKey);
+        if (!$data) {
+            return response()->json(['paso' => 'no_encontrado', 'pct' => 0, 'mensaje' => 'Job no encontrado o expirado.']);
+        }
+
+        return response()->json($data);
     }
 }

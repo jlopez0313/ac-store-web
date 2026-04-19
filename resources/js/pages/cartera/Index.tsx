@@ -1,33 +1,60 @@
 import { PageHeader } from '@/components/page-header';
-import { Search } from '@/components/Search/Search';
 import { Badge } from '@/components/ui/badge';
 import { DataGrid } from '@/components/ui/DataTable';
-import { useCrudPage } from '@/hooks/useCrudPage';
+import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { DollarSign } from 'lucide-react';
+import { Head } from '@inertiajs/react';
+import axios from 'axios';
+import { DollarSign, Search as SearchIcon } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Panel principal', href: route('dashboard') },
     { title: 'Cartera', href: route('cartera.index') },
 ];
 
-export default function Index({ lista, stats, filters }: any) {
-    const {
-        data,
-        meta: { total, current_page, per_page },
-    } = lista;
+export default function Index({ filters: initialFilters }: any) {
+    const [items, setItems] = useState<any[]>([]);
+    const [meta, setMeta] = useState<any>({
+        total: 0,
+        current_page: 1,
+        per_page: 25,
+        stats: { total_clientes: 0, con_saldo_pendiente: 0, saldo_total: 0 },
+    });
+    const [loading, setLoading] = useState(true);
 
-    const { onReload, processing } = useCrudPage(lista, null);
+    const [filters, setFilters] = useState({
+        search: initialFilters?.search || '',
+        per_page: initialFilters?.per_page || 25,
+        page: initialFilters?.page || 1,
+        tab: initialFilters?.tab || 'todo',
+    });
 
-    const currentTab = filters.tab || 'todo';
+    const fetchData = useCallback(
+        async (newParams = {}) => {
+            setLoading(true);
+            const params = { ...filters, ...newParams };
+            try {
+                const response = await axios.get(route('api.cartera.index'), { params });
+                setItems(response.data.data);
+                setMeta(response.data.meta);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [filters],
+    );
 
-    const handleTabChange = (tab: string) => {
-        router.visit(route('cartera.index', {
-            ...filters,
-            tab: tab,
-        }), { preserveState: true });
+    useEffect(() => {
+        fetchData();
+    }, [filters.page, filters.per_page, filters.tab]);
+
+    const handleSearch = (search: string) => {
+        setFilters((prev) => ({ ...prev, search, page: 1 }));
+        fetchData({ search, page: 1 });
     };
 
     const columns = [
@@ -36,24 +63,24 @@ export default function Index({ lista, stats, filters }: any) {
             cell: (row: any) => (
                 <div className="flex items-center gap-3">
                     <div className={`h-2 w-2 rounded-full ${row.saldo > 0 ? 'bg-amber-400' : 'bg-green-400'}`} />
-                    <span className="font-medium text-slate-900 uppercase text-sm tracking-tight">{row.nombre}</span>
+                    <span className="text-sm font-medium tracking-tight text-slate-900 uppercase">{row.nombre}</span>
                 </div>
             ),
             sortable: true,
+            sortField: 'name',
         },
         {
             name: 'Saldo',
             cell: (row: any) => (
-                <span className={`font-medium text-sm ${row.saldo > 0 ? 'text-slate-900' : 'text-slate-400'}`}>
-                    ${row.saldo.toLocaleString()}
-                </span>
+                <span className={`text-sm font-medium ${row.saldo > 0 ? 'text-slate-900' : 'text-slate-400'}`}>${row.saldo.toLocaleString()}</span>
             ),
             sortable: true,
+            sortField: 'saldo',
         },
         {
             name: 'Ciudad',
             cell: (row: any) => (
-                <Badge variant="outline" className="font-medium text-[10px] tracking-tighter px-2 py-0.5 bg-slate-50 border-slate-200 text-slate-600">
+                <Badge variant="outline" className="border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium tracking-tighter text-slate-600">
                     {row.ciudad}
                 </Badge>
             ),
@@ -64,50 +91,54 @@ export default function Index({ lista, stats, filters }: any) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Cartera" />
 
-            <div className="p-4 space-y-6">
+            <div className="space-y-6 p-4">
                 <PageHeader
                     title="Cartera / Accounts"
-                    description={`${stats.total_clientes} clientes · ${stats.con_saldo_pendiente} con saldo pendiente`}
+                    description={`${meta.stats.total_clientes} clientes · ${meta.stats.con_saldo_pendiente} con saldo pendiente`}
                 />
-            </div>
 
-            <div className="flex flex-col md:flex-row md:items-end justify-between px-4 pt-4 gap-4">
-                <div className="flex items-end gap-4 flex-1">
-                    <Search filters={filters} ruta="cartera" />
+                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+                    <div className="flex max-w-md flex-1 items-center gap-2">
+                        <div className="relative flex-1">
+                            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input
+                                placeholder="Buscar por nombre..."
+                                className="pl-9"
+                                defaultValue={filters.search}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                onBlur={(e) => handleSearch(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 shadow-sm">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white">
+                            <DollarSign className="h-4 w-4" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="mb-1 text-[10px] leading-none font-medium text-slate-400 uppercase">Saldo Total</span>
+                            <span className="text-lg leading-none font-medium tracking-tighter text-slate-900">
+                                ${meta.stats.saldo_total.toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 shadow-xs">
-                    <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center text-white">
-                        <DollarSign className="h-4 w-4" />
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-[10px] font-medium text-slate-400 uppercase leading-none mb-1">Saldo Total</span>
-                        <span className="text-lg font-medium text-slate-900 tracking-tighter leading-none">
-                            ${stats.saldo_total.toLocaleString()}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="p-4">
-                <div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
                     <DataGrid
-                        data={data}
+                        data={items}
                         columns={columns}
-                        total={total}
-                        currentPage={current_page}
-                        paginationPerPage={per_page}
-                        processing={processing}
+                        total={meta.total}
+                        loading={loading}
+                        currentPage={meta.current_page}
+                        paginationPerPage={meta.per_page}
                         serverSide={true}
                         paginationServer={true}
-                        fetchPage={(page) => onReload(page)}
-                        onSort={(column, direction) => {
-                            const params = new URLSearchParams(window.location.search);
-                            params.set('sort', column.name?.toString().toLowerCase() || '');
-                            params.set('order', direction);
-                            router.visit(`${window.location.pathname}?${params.toString()}`, { preserveScroll: true });
+                        fetchPage={(page) => setFilters((prev) => ({ ...prev, page }))}
+                        setPageSize={(size) => setFilters((prev) => ({ ...prev, per_page: size, page: 1 }))}
+                        onSort={(column: any, sortOrder) => {
+                            setFilters((prev) => ({ ...prev, sort_field: column.sortField, sort_order: sortOrder, page: 1 }));
                         }}
-                        setPageSize={(size) => onReload(null, size)}
                     />
                 </div>
             </div>

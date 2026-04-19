@@ -2,7 +2,6 @@ import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Modal } from '@/components/ui/Modal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
 import { showAlert } from '@/plugins/sweetalert';
 import axios from 'axios';
 import { Layers, Package, Plus } from 'lucide-react';
@@ -128,11 +127,8 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 			onClose={onClose}
 			title={`Agregar artículo a factura #${factura.id}`}
 			subtitle={`${referencia.codigo} — ${referencia.descripcion} (${referencia.categoria?.nombre})`}
-			maxWidth="2xl"
-			className={cn(
-				"flex flex-col",
-				addMode === 'simple' ? "h-[60vh]" : "h-[90vh]"
-			)}
+			maxWidth="3xl"
+			className="flex flex-col h-[90vh]"
 		>
 			<form onSubmit={submit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
 				<div className="px-6 pb-6 flex-1 overflow-y-auto mt-4 flex flex-col">

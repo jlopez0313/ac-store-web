@@ -18,6 +18,8 @@ class CuentasResource extends JsonResource
             'id'         => $this->id,
             'nombre'     => $this->nombre,
             'estado'     => $this->estado,
+            'precio_suscripcion' => $this->precio_suscripcion,
+            'fecha_vencimiento'  => $this->fecha_vencimiento?->toDateString(),
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
             'deleted_at' => $this->deleted_at?->toDateTimeString(),

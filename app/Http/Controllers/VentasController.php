@@ -56,32 +56,75 @@ class VentasController extends Controller
             'next_id' => (\App\Models\Venta::max('id') ?? 0) + 1,
             'cuentas' => $isSuper ? \App\Models\Cuenta::all(['id', 'nombre']) : [],
             'locals' => $locals,
-            'referencias' => \App\Models\Referencia::with(['categoria', 'marca'])
-                ->where($isSuper ? [] : ['cuenta_id' => $user->cuenta_id])
-                ->get()
-                ->map(function ($r) {
-                    $invs = \App\Models\Inventario::where('referencia_id', $r->id)
-                        ->join('estanterias', 'inventarios.estanteria_id', '=', 'estanterias.id')
-                        ->selectRaw('estanterias.bodega_id, inventarios.talla, SUM(inventarios.stock) as total_stock, MAX(inventarios.precio_venta) as max_precio')
-                        ->groupBy('estanterias.bodega_id', 'inventarios.talla')
-                        ->get();
-
-                    return [
-                        'id' => $r->id,
-                        'codigo' => $r->codigo,
-                        'marca' => $r->marca?->nombre,
-                        'descripcion' => $r->descripcion,
-                        'foto' => $r->foto,
-                        'categoria' => $r->categoria?->nombre,
-                        'cuenta_id' => $r->cuenta_id,
-                        'stock_global' => (int) $invs->sum('total_stock'),
-                        'total_tallas' => (int) $invs->pluck('talla')->unique()->count(),
-                        'precio_venta' => (float) $invs->max('max_precio'),
-                        'stock_breakdown' => $invs,
-                    ];
-                }),
+            // Removed full 'referencias' list to improve performance (now using search API)
             'bodegas' => \App\Models\Bodega::with('estanterias')->get(),
-            'bodega_accesos' => \App\Models\BodegaAcceso::all(), // Safe as it's filtered globally or small enough
+            'bodega_accesos' => \App\Models\BodegaAcceso::all(),
+        ]);
+    }
+
+    /**
+     * Search references with pagination and stock summaries.
+     */
+    public function searchReferences(Request $request)
+    {
+        $user = auth()->user();
+        $isSuper = $user->role === 'superadmin';
+        $cuenta_id = $request->input('cuenta_id');
+
+        $query = \App\Models\Referencia::with(['categoria', 'marca']);
+
+        // Tenancy filtering
+        if ($isSuper) {
+            if ($cuenta_id) {
+                $query->where('cuenta_id', $cuenta_id);
+            }
+        } else {
+            $query->where('cuenta_id', $user->cuenta_id);
+        }
+
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('codigo', 'like', "%{$search}%")
+                  ->orWhere('descripcion', 'like', "%{$search}%")
+                  ->orWhereHas('marca', function ($mq) use ($search) {
+                      $mq->where('nombre', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $paginated = $query->paginate(20);
+
+        $data = collect($paginated->items())->map(function ($r) {
+            $invs = \App\Models\Inventario::where('referencia_id', $r->id)
+                ->join('estanterias', 'inventarios.estanteria_id', '=', 'estanterias.id')
+                ->selectRaw('estanterias.bodega_id, inventarios.talla, SUM(inventarios.stock) as total_stock, MAX(inventarios.precio_venta) as max_precio')
+                ->groupBy('estanterias.bodega_id', 'inventarios.talla')
+                ->get();
+
+            return [
+                'id' => $r->id,
+                'codigo' => $r->codigo,
+                'marca' => $r->marca?->nombre,
+                'descripcion' => $r->descripcion,
+                'foto' => $r->foto,
+                'categoria' => $r->categoria?->nombre,
+                'cuenta_id' => $r->cuenta_id,
+                'stock_global' => (int) $invs->sum('total_stock'),
+                'total_tallas' => (int) $invs->pluck('talla')->unique()->count(),
+                'precio_venta' => (float) $invs->max('max_precio'),
+                'stock_breakdown' => $invs,
+            ];
+        });
+
+        return response()->json([
+            'data' => $data,
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'total' => $paginated->total(),
+            ]
         ]);
     }
 
@@ -249,13 +292,12 @@ class VentasController extends Controller
             \DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 422);
         }
-    }
-
-    public function bulkDeleteDetails(Request $request, \App\Models\Venta $venta)
+    }    public function bulkDeleteDetails(Request $request, \App\Models\Venta $venta)
     {
         $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'exists:venta_detalles,id'
+            'ids.*' => 'exists:venta_detalles,id',
+            'observacion' => 'required|string'
         ]);
 
         if ($venta->estado !== 'abierta') {
@@ -268,7 +310,7 @@ class VentasController extends Controller
             foreach ($request->ids as $id) {
                 $detalle = \App\Models\VentaDetalle::find($id);
                 if (!$detalle || $detalle->venta_id !== $venta->id) continue;
-                $this->processDetailDeletion($venta, $detalle);
+                $this->processDetailDeletion($venta, $detalle, $request->observacion);
             }
 
             \DB::commit();
@@ -287,6 +329,10 @@ class VentasController extends Controller
 
     public function deleteDetail(Request $request, \App\Models\Venta $venta, \App\Models\VentaDetalle $detalle)
     {
+        $request->validate([
+            'observacion' => 'required|string'
+        ]);
+
         if ($venta->estado !== 'abierta') {
             return response()->json(['error' => 'Solo se pueden eliminar productos de facturas abiertas.'], 422);
         }
@@ -294,7 +340,7 @@ class VentasController extends Controller
         try {
             \DB::beginTransaction();
 
-            $this->processDetailDeletion($venta, $detalle);
+            $this->processDetailDeletion($venta, $detalle, $request->observacion);
 
             \DB::commit();
 
@@ -311,7 +357,7 @@ class VentasController extends Controller
         }
     }
 
-    private function processDetailDeletion(\App\Models\Venta $venta, \App\Models\VentaDetalle $detalle)
+    private function processDetailDeletion(\App\Models\Venta $venta, \App\Models\VentaDetalle $detalle, string $observacion = '')
     {
         if ($detalle->muestra_id) {
             $muestra = \App\Models\Muestra::find($detalle->muestra_id);
@@ -337,6 +383,7 @@ class VentasController extends Controller
         }
 
         $venta->decrement('total', $detalle->subtotal);
+        $detalle->update(['observacion' => $observacion]);
         $detalle->delete();
     }
 
@@ -416,6 +463,7 @@ class VentasController extends Controller
                 ->get();
 
             foreach ($detalles as $detalle) {
+                /** @var \App\Models\VentaDetalle $detalle */
                 // precio_sugerido is mapped from inventario->precio_venta in VentaResource
                 $base_price = $detalle->inventario->precio_venta ?? 0;
                 $new_precio_unitario = max(0, $base_price - $discount_value);

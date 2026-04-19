@@ -8,10 +8,11 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { ArrowLeft, Check, Search as SearchIcon, ShieldCheck, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { AccesoModal } from './AccesoModal';
+import axios from 'axios';
 
-export default function Accesos({ bodega, lista, filters }: any) {
+export default function Accesos({ bodega }: any) {
 	const { isSuperAdmin } = useAuth();
 	const breadcrumbs: BreadcrumbItem[] = [
 		{ title: 'Panel principal', href: route('dashboard') },
@@ -19,8 +20,29 @@ export default function Accesos({ bodega, lista, filters }: any) {
 		{ title: `Accesos: ${bodega.nombre}`, href: route('bodegas.accesos', { bodega: bodega.id }) },
 	];
 
+	const [items, setItems] = useState<any[]>([]);
+	const [loading, setLoading] = useState(true);
 	const [selectedLocal, setSelectedLocal] = useState<any>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [search, setSearch] = useState('');
+
+	const fetchData = useCallback(async (v = '') => {
+		setLoading(true);
+		try {
+			const response = await axios.get(route('api.bodegas.accesos', { bodega: bodega.id }), {
+				params: { search: v }
+			});
+			setItems(response.data.data);
+		} catch (error) {
+			console.error('Error fetching accesos:', error);
+		} finally {
+			setLoading(false);
+		}
+	}, [bodega.id]);
+
+	useEffect(() => {
+		fetchData();
+	}, []);
 
 	const openModal = (local: any) => {
 		setSelectedLocal(local);
@@ -28,10 +50,8 @@ export default function Accesos({ bodega, lista, filters }: any) {
 	};
 
 	const handleSearch = (v: string) => {
-		router.visit(route('bodegas.accesos', { bodega: bodega.id, search: v }), {
-			preserveState: true,
-			preserveScroll: true
-		});
+		setSearch(v);
+		fetchData(v);
 	};
 
 	const columns = [
@@ -96,7 +116,7 @@ export default function Accesos({ bodega, lista, filters }: any) {
 			title: 'Configurar',
 			icon: ShieldCheck,
 			action: (id: any) => {
-				const item = lista.find((i: any) => i.id === id);
+				const item = items.find((i: any) => i.id === id);
 				if (item) openModal(item);
 			}
 		}
@@ -123,23 +143,19 @@ export default function Accesos({ bodega, lista, filters }: any) {
 						<Input
 							placeholder="Buscar local por nombre..."
 							className="pl-9"
-							defaultValue={filters?.search}
-							onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-							onBlur={(e) => {
-								if (e.target.value !== (filters?.search || '')) {
-									handleSearch(e.target.value);
-								}
-							}}
+							value={search}
+							onChange={(e) => handleSearch(e.target.value)}
 						/>
 					</div>
 				</div>
 
 				<div className="bg-background rounded-xl shadow-xs border border-border overflow-hidden">
 					<DataGrid
-						data={lista}
+						data={items}
 						columns={columns}
-						total={lista.length}
+						total={items.length}
 						actions={actions}
+						processing={loading}
 						onSort={() => { }}
 						fetchPage={() => { }}
 						setPageSize={() => { }}
@@ -152,6 +168,7 @@ export default function Accesos({ bodega, lista, filters }: any) {
 				onClose={() => setIsModalOpen(false)}
 				bodega={bodega}
 				local={selectedLocal}
+				onSuccess={() => fetchData(search)}
 			/>
 		</AppLayout>
 	);

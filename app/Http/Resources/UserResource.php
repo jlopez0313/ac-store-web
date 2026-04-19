@@ -41,6 +41,8 @@ class UserResource extends JsonResource
                 'id'     => $this->cuenta?->id,
                 'nombre' => $this->cuenta?->nombre,
             ],
+            'precio_suscripcion' => $this->precio_suscripcion,
+            'fecha_vencimiento'  => $this->fecha_vencimiento?->toDateString(),
             'created_at' => $this->created_at?->toDateTimeString(),
         ];
     }

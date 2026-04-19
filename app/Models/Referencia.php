@@ -18,6 +18,11 @@ class Referencia extends Model
         'categoria_id',
         'foto',
         'cuenta_id',
+        'sistema_viejo',
+    ];
+
+    protected $casts = [
+        'sistema_viejo' => 'boolean',
     ];
 
     public function marca()

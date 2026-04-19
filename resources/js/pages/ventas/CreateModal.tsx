@@ -13,9 +13,10 @@ interface CreateModalProps {
 	accounts: any[];
 	locals: any[];
 	nextId: number;
+	onSuccess?: () => void;
 }
 
-export const CreateModal = ({ isOpen, onClose, accounts, locals, nextId }: CreateModalProps) => {
+export const CreateModal = ({ isOpen, onClose, accounts, locals, nextId, onSuccess }: CreateModalProps) => {
 	const { isSuperAdmin } = useAuth();
 
 	const { data, setData, post, processing, errors, reset } = useForm({
@@ -34,6 +35,7 @@ export const CreateModal = ({ isOpen, onClose, accounts, locals, nextId }: Creat
 			onSuccess: () => {
 				showAlert('success', 'Operación realizada correctamente');
 				onClose();
+				if (onSuccess) onSuccess();
 			},
 			onError: () => {
 				showAlert('error', 'Error al procesar la solicitud');

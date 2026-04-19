@@ -1,150 +1,253 @@
 import { PageHeader } from '@/components/page-header';
-import { Search } from '@/components/Search/Search';
 import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
+import { SelectField } from '@/components/ui/form/SelectField';
+import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/use-auth';
 import { useCrudPage } from '@/hooks/useCrudPage';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { Edit, Image as ImageIcon, Plus, Trash } from 'lucide-react';
+import { Head } from '@inertiajs/react';
+import axios from 'axios';
+import { Download, Edit, Image as ImageIcon, Plus, Search as SearchIcon, Trash } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { Form } from './Form';
 
 const breadcrumbs: BreadcrumbItem[] = [
-	{ title: 'Panel principal', href: route('dashboard') },
-	{ title: 'Referencias', href: route('referencias.index') },
+    { title: 'Panel principal', href: route('dashboard') },
+    { title: 'Referencias', href: route('referencias.index') },
 ];
 
-export default function Index({ filters, lista, cuentas, categorias, marcas }: any) {
-	const { isSuperAdmin } = useAuth();
+export default function Index({ filters: initialFilters, cuentas, categorias, marcas }: any) {
+    const { isSuperAdmin } = useAuth();
 
-	const {
-		data,
-		meta: { total, current_page, per_page },
-	} = lista;
+    const [items, setItems] = useState<any[]>([]);
+    const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
+    const [loading, setLoading] = useState(true);
 
-	const { id, show, processing, onToggleModal, onReload, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(
-		lista,
-		(params: any) => ({ url: route('referencias.destroy', { referencia: params.id }) })
-	);
+    const [selectedCuenta, setSelectedCuenta] = useState<string>('');
 
-	const columns = [
-		{
-			name: 'Foto',
-			cell: (row: any) => (
-				<div className="w-12 h-12 rounded overflow-hidden bg-muted flex items-center justify-center my-1 border border-border">
-					{row.foto ? (
-						<img src={row.foto} alt={row.codigo} className="w-full h-full object-cover" />
-					) : (
-						<ImageIcon className="w-6 h-6 text-slate-400" />
-					)}
-				</div>
-			),
-			width: '80px',
-		},
-		{
-			name: 'Código',
-			selector: (row: any) => row.codigo,
-			sortable: true,
-			width: '120px',
-		},
-		{
-			name: 'Marca',
-			selector: (row: any) => row.marca?.nombre || 'N/A',
-			sortable: true,
-		},
-		{
-			name: 'Categoría',
-			selector: (row: any) => row.categoria?.nombre || 'N/A',
-		},
-		...(isSuperAdmin ? [{
-			name: 'Cuenta / Empresa',
-			selector: (row: any) => row.cuenta?.nombre || 'N/A',
-			sortable: true,
-		}] : []),
-		{
-			name: 'Descripción',
-			selector: (row: any) => row.descripcion || 'Sin descripción',
-			wrap: true, // Allow description to wrap if it's long
-		},
-		{
-			name: 'Creado',
-			selector: (row: any) => row.created_at,
-			sortable: true,
-			width: '160px',
-		},
-	];
+    const [filters, setFilters] = useState({
+        search: initialFilters?.search || '',
+        per_page: initialFilters?.per_page || 25,
+        sort_field: initialFilters?.sort_field || 'codigo',
+        sort_order: initialFilters?.sort_order || 'desc',
+        page: initialFilters?.page || 1,
+    });
 
-	const actions = [
-		{
-			title: 'Editar',
-			icon: Edit,
-			action: (id: number) => onSetItem(id),
-		},
-		{
-			title: 'Eliminar',
-			icon: Trash,
-			action: (id: number) => onTrash(id),
-		},
-	];
+    const fetchData = useCallback(
+        async (newParams = {}) => {
+            setLoading(true);
+            const params: any = { ...filters, ...newParams };
+            if (selectedCuenta) params.cuenta_id = selectedCuenta;
+            try {
+                const response = await axios.get(route('api.referencias.index'), { params });
+                setItems(response.data.data);
+                setMeta(response.data.meta);
+            } catch (error) {
+                console.error('Error fetching references:', error);
+            } finally {
+                setLoading(false);
+            }
+        },
+        [filters, selectedCuenta],
+    );
 
-	return (
-		<AppLayout breadcrumbs={breadcrumbs}>
-			<Head title="Referencias" />
+    useEffect(() => {
+        fetchData();
+    }, [filters.page, filters.per_page, filters.sort_field, filters.sort_order, selectedCuenta]);
 
-			<div className="p-4 space-y-6">
-				<PageHeader
-					title="Referencias (Productos)"
-					description="Gestión del catálogo maestro de productos y variaciones."
-				/>
-			</div>
+    const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(
+        null, // We handle data locally
+        (params: any) => ({ url: route('api.referencias.destroy', params.id) }),
+    );
 
-			<div className="flex items-end justify-between px-4 pt-4">
-				<Search filters={filters} ruta="referencias" />
-				<Button className="ms-4" onClick={() => onToggleModal(true)}>
-					<Plus className="h-5 w-5" />
-					Nueva Referencia
-				</Button>
-			</div>
+    const handleSearch = (search: string) => {
+        setFilters((prev) => ({ ...prev, search, page: 1 }));
+        fetchData({ search, page: 1 });
+    };
 
-			<div className="p-4">
-				<div className="bg-background rounded-xl shadow-xs border border-border overflow-hidden">
-					<DataGrid
-						data={data}
-						columns={columns}
-						total={total}
-						currentPage={current_page}
-						paginationPerPage={per_page || 25}
-						actions={actions}
-						processing={processing}
-						serverSide={true}
-						paginationServer={true}
-						fetchPage={(page) => onReload(page)}
-						setPageSize={(size) => onReload(null, size)}
-						onSort={(column, direction) => {
-							const params = new URLSearchParams(window.location.search);
-							params.set('sort', column.name?.toString().toLowerCase() || '');
-							params.set('order', direction);
-							router.visit(`${window.location.pathname}?${params.toString()}`, { preserveScroll: true });
-						}}
-					/>
-				</div>
-			</div>
+    const handleExportCsv = async () => {
+        try {
+            const params: any = {};
+            if (selectedCuenta) params.cuenta_id = selectedCuenta;
+            const response = await axios.get('/api/inventario/export-csv', {
+                params,
+                responseType: 'blob',
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'etiquetas_inventario.csv');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error exportando CSV:', error);
+        }
+    };
 
-			<Modal show={show} closeable={true} title="Gestionar Referencia">
-				<Form
-					id={id}
-					cuentas={cuentas}
-					categorias={categorias}
-					marcas={marcas}
-					processing={processing}
-					onClose={() => onToggleModal(false)}
-					onStore={onStore}
-					onGetItem={onGetItem}
-					onReload={onReload}
-				/>
-			</Modal>
-		</AppLayout>
-	);
+    const columns = [
+        {
+            name: 'Foto',
+            cell: (row: any) => (
+                <div className="bg-muted border-border my-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded border">
+                    {row.foto ? (
+                        <img src={row.foto} alt={row.codigo} className="h-full w-full object-cover" />
+                    ) : (
+                        <ImageIcon className="h-6 w-6 text-slate-400" />
+                    )}
+                </div>
+            ),
+            width: '80px',
+        },
+        {
+            name: 'Código',
+            selector: (row: any) => row.codigo,
+            sortable: true,
+            sortField: 'codigo',
+            width: '140px',
+        },
+        {
+            name: 'Marca',
+            selector: (row: any) => row.marca?.nombre || 'N/A',
+            sortable: true,
+            sortField: 'marca',
+        },
+        {
+            name: 'Categoría',
+            selector: (row: any) => row.categoria?.nombre || 'N/A',
+        },
+        ...(isSuperAdmin
+            ? [
+                  {
+                      name: 'Cuenta / Empresa',
+                      selector: (row: any) => row.cuenta?.nombre || 'N/A',
+                      sortable: true,
+                      sortField: 'cuenta_id',
+                  },
+              ]
+            : []),
+        {
+            name: 'Descripción',
+            selector: (row: any) => row.descripcion || 'Sin descripción',
+            wrap: true,
+            grow: 2,
+        },
+        {
+            name: 'Creado',
+            selector: (row: any) => row.created_at,
+            sortable: true,
+            sortField: 'created_at',
+            width: '160px',
+        },
+    ];
+
+    const actions = [
+        {
+            title: 'Editar',
+            icon: Edit,
+            action: (id: number) => onSetItem(id),
+        },
+        {
+            title: 'Eliminar',
+            icon: Trash,
+            action: (id: number) => onTrash(id).then(() => fetchData()),
+        },
+    ];
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Referencias" />
+
+            <div className="space-y-6 p-4">
+                <PageHeader title="Referencias (Productos)" description="Gestión del catálogo maestro de productos y variaciones." />
+
+                <div className="flex items-center justify-between gap-4">
+                    <div className="relative max-w-sm flex-1">
+                        <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                        <Input
+                            placeholder="Buscar por código, descripción, marca..."
+                            className="pl-9"
+                            defaultValue={filters.search}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                            onBlur={(e) => handleSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        {isSuperAdmin && cuentas?.length > 0 && (
+                            <div className="w-[220px]">
+                                <SelectField
+                                    name="cuenta_id"
+                                    title=""
+                                    placeholder="Todas las cuentas"
+                                    value={selectedCuenta}
+                                    onChange={(val) => {
+                                        setSelectedCuenta((val as string) || '');
+                                        setFilters((prev) => ({ ...prev, page: 1 }));
+                                    }}
+                                    lista={cuentas}
+                                    item={{ idx: 'id', value: 'nombre' }}
+                                    error={undefined}
+                                />
+                            </div>
+                        )}
+                        <Button variant="outline" onClick={handleExportCsv}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Exportar CSV
+                        </Button>
+                        <Button onClick={() => onToggleModal(true)}>
+                            <Plus className="mr-2 h-5 w-5" />
+                            Nueva Referencia
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs">
+                    <DataGrid
+                        data={items}
+                        columns={columns}
+                        total={meta.total}
+                        currentPage={meta.current_page}
+                        paginationPerPage={meta.per_page}
+                        actions={actions}
+                        processing={loading}
+                        serverSide={true}
+                        paginationServer={true}
+                        fetchPage={(page) => setFilters((prev) => ({ ...prev, page }))}
+                        setPageSize={(per_page) => setFilters((prev) => ({ ...prev, per_page, page: 1 }))}
+                        onSort={(column: any, sortOrder) => {
+                            setFilters((prev) => ({
+                                ...prev,
+                                sort_field: column.sortField,
+                                sort_order: sortOrder,
+                                page: 1,
+                            }));
+                        }}
+                    />
+                </div>
+            </div>
+
+            <Modal show={show} closeable={true} title="Gestionar Referencia">
+                <Form
+                    id={id}
+                    cuentas={cuentas}
+                    categorias={categorias}
+                    marcas={marcas}
+                    processing={processing}
+                    onClose={() => onToggleModal(false)}
+                    onStore={(storeFn: any, updateFn: any, data: any) =>
+                        onStore(storeFn, updateFn, data, true).then(() => {
+                            onToggleModal(false);
+                            fetchData();
+                        })
+                    }
+                    onGetItem={(params: any) => onGetItem(() => ({ url: route('api.referencias.show', params.id) }), {})}
+                    onReload={fetchData}
+                />
+            </Modal>
+        </AppLayout>
+    );
 }

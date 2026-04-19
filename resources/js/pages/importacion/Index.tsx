@@ -1,310 +1,675 @@
+import { SelectField } from '@/components/ui/form/SelectField';
 import AppLayout from '@/layouts/app-layout';
-import { Head, router } from '@inertiajs/react';
-import { useCallback, useRef, useState } from 'react';
+import { Head } from '@inertiajs/react';
+import axios from 'axios';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-const PASOS = [
+const CHUNK_SIZE = 3 * 1024 * 1024;
+
+const PASOS_MAESTROS = [
+    { key: 'categorias', label: 'Categorías', icon: '📐' },
     { key: 'marcas', label: 'Marcas', icon: '🏷️' },
+    { key: 'users_locales', label: 'Locales/Clientes', icon: '👤' },
     { key: 'proveedores', label: 'Proveedores', icon: '🤝' },
     { key: 'bodegas', label: 'Bodegas', icon: '🏭' },
     { key: 'referencias', label: 'Referencias', icon: '👟' },
-    { key: 'inventario', label: 'Inventario', icon: '📦' },
-    { key: 'compras', label: 'Compras', icon: '🛒' },
-    { key: 'ventas', label: 'Ventas', icon: '💰' },
 ];
 
-export default function ImportarSistemaViejo({ cuentas }: any) {
-    const [cuentaId, setCuentaId] = useState('');
-    const [archivo, setArchivo] = useState<any>(null);
-    const [dryRun, setDryRun] = useState(true);
-    const [soloStep, setSoloStep] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [resultado, setResultado] = useState<any>(null);
-    const [dragOver, setDragOver] = useState(false);
-    const fileRef = useRef<HTMLInputElement>(null);
+const PASO_INVENTARIO = { key: 'inventario', label: 'Inventario', icon: '📦' };
 
-    const handleDrop = useCallback((e: any) => {
+const PASOS_TRANSACCIONES = [
+    { key: 'traslados', label: 'Traslados', icon: '🔄' },
+    { key: 'compras', label: 'Compras', icon: '🛒' },
+    { key: 'ventas', label: 'Ventas', icon: '💰' },
+    { key: 'muestras', label: 'Muestras', icon: '👟' },
+];
+
+interface ProgresoData {
+    paso: string;
+    pct: number;
+    mensaje: string;
+    dry_run?: boolean;
+    logs: string[];
+}
+
+export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
+    const [cuentaId, setCuentaId] = useState('');
+    const [dryRun, setDryRun] = useState(true);
+
+    // Section toggles
+    const [secMaestros, setSecMaestros] = useState(true);
+    const [secInventario, setSecInventario] = useState(true);
+    const [secTransacciones, setSecTransacciones] = useState(true);
+
+    // Excel state
+    const [excelFile, setExcelFile] = useState<File | null>(null);
+    const [excelDragOver, setExcelDragOver] = useState(false);
+    const [excelUploadPct, setExcelUploadPct] = useState(0);
+    const [excelUploadDone, setExcelUploadDone] = useState(false);
+    const [uploading, setUploading] = useState(false);
+
+    // CSV state
+    const [csvFile, setCsvFile] = useState<File | null>(null);
+    const [csvDragOver, setCsvDragOver] = useState(false);
+    const [csvUploadPct, setCsvUploadPct] = useState(0);
+    const [csvUploadDone, setCsvUploadDone] = useState(false);
+    const [csvUploading, setCsvUploading] = useState(false);
+
+    // Shared upload ID
+    const [uploadId, setUploadId] = useState<string | null>(null);
+
+    // Job state
+    const [jobKey, setJobKey] = useState<string | null>(null);
+    const [progreso, setProgreso] = useState<ProgresoData | null>(null);
+    const [pollingActive, setPollingActive] = useState(false);
+
+    const excelRef = useRef<HTMLInputElement>(null);
+    const csvRef = useRef<HTMLInputElement>(null);
+    const pollingRef = useRef<any>(null);
+
+    const generarUploadId = () => {
+        if (uploadId) return uploadId;
+        const uid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        setUploadId(uid);
+        return uid;
+    };
+
+    // ─── Polling de progreso ───
+    useEffect(() => {
+        if (!pollingActive || !jobKey) return;
+
+        pollingRef.current = setInterval(async () => {
+            try {
+                const { data } = await axios.get(route('importar.progreso'), { params: { jobKey } });
+                setProgreso(data);
+
+                if (['completado', 'error'].includes(data.paso)) {
+                    setPollingActive(false);
+                    clearInterval(pollingRef.current);
+                }
+            } catch (e) {
+                console.error('Error polling:', e);
+            }
+        }, 2000);
+
+        return () => clearInterval(pollingRef.current);
+    }, [pollingActive, jobKey]);
+
+    // ─── Excel handlers ───
+    const handleExcelDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
-        setDragOver(false);
+        setExcelDragOver(false);
         const f = e.dataTransfer.files[0];
-        if (f && f.name.endsWith('.xlsx')) setArchivo(f);
+        if (f?.name.endsWith('.xlsx')) {
+            setExcelFile(f);
+            setExcelUploadDone(false);
+            setExcelUploadPct(0);
+        }
     }, []);
 
-    const handleFile = (e: any) => {
-        const f = e.target.files[0];
-        if (f) setArchivo(f);
+    const handleExcelFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0];
+        if (f) {
+            setExcelFile(f);
+            setExcelUploadDone(false);
+            setExcelUploadPct(0);
+        }
     };
 
-    const handleSubmit = () => {
+    // ─── CSV handlers ───
+    const handleCsvDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setCsvDragOver(false);
+        const f = e.dataTransfer.files[0];
+        if (f?.name.endsWith('.csv')) {
+            setCsvFile(f);
+            setCsvUploadDone(false);
+            setCsvUploadPct(0);
+        }
+    }, []);
+
+    const handleCsvFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0];
+        if (f) {
+            setCsvFile(f);
+            setCsvUploadDone(false);
+            setCsvUploadPct(0);
+        }
+    };
+
+    // ─── Subir CSV inventario (chunked) ───
+    const subirCsv = async (uid: string) => {
+        if (!csvFile || csvUploadDone) return;
+        setCsvUploading(true);
+        try {
+            const total = Math.ceil(csvFile.size / CHUNK_SIZE);
+            let uploaded = 0;
+
+            for (let i = 0; i < total; i++) {
+                const blob = csvFile.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+                const form = new FormData();
+                form.append('file', blob);
+                form.append('uploadId', uid);
+                form.append('chunkIndex', i.toString());
+                form.append('totalChunks', total.toString());
+
+                await axios.post(route('importar.chunkCsv'), form, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+
+                uploaded++;
+                const pct = Math.round((uploaded / total) * 100);
+                setCsvUploadPct(pct);
+                setProgreso((prev) => (prev ? { ...prev, mensaje: `Subiendo CSV: ${pct}%` } : null));
+            }
+            setCsvUploadDone(true);
+        } finally {
+            setCsvUploading(false);
+        }
+    };
+
+    // ─── Procedimiento de Importación ───
+    const iniciarProceso = async () => {
         if (!cuentaId) return alert('Selecciona una cuenta');
-        if (!archivo) return alert('Sube el archivo Excel');
+        if (necesitaExcel && !excelFile) return alert('Selecciona el archivo Excel');
+        if (!secMaestros && !secInventario && !secTransacciones) return alert('Selecciona al menos una sección');
 
-        setLoading(true);
-        setResultado(null);
+        setUploading(true);
+        setProgreso({ paso: 'subiendo', pct: 0, mensaje: 'Subiendo archivos...', logs: [] });
 
-        const form = new FormData();
-        form.append('cuenta_id', cuentaId);
-        form.append('archivo', archivo);
-        form.append('dry_run', dryRun ? '1' : '0');
-        if (soloStep) form.append('solo', soloStep);
+        try {
+            const uid = generarUploadId();
 
-        router.post(route('importar.ejecutar'), form, {
-            forceFormData: true,
-            preserveScroll: true,
-            onSuccess: (page: any) => {
-                setResultado(page.props.resultado);
-                setLoading(false);
-            },
-            onError: (errors: any) => {
-                setResultado({ error: true, mensaje: Object.values(errors).join('\n') });
-                setLoading(false);
-            },
-        });
+            // 1. Subir Excel en chunks si se necesita y no se ha subido
+            if (necesitaExcel && excelFile && !excelUploadDone) {
+                const total = Math.ceil(excelFile.size / CHUNK_SIZE);
+                let uploaded = 0;
+
+                for (let i = 0; i < total; i++) {
+                    const blob = excelFile.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+                    const form = new FormData();
+                    form.append('file', blob);
+                    form.append('uploadId', uid);
+                    form.append('chunkIndex', i.toString());
+                    form.append('totalChunks', total.toString());
+
+                    await axios.post(route('importar.chunk'), form, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                    });
+
+                    uploaded++;
+                    const pct = Math.round((uploaded / total) * 100);
+                    setExcelUploadPct(pct);
+                    setProgreso((prev) => (prev ? { ...prev, pct, mensaje: `Subiendo Excel: ${pct}%` } : null));
+                }
+                setExcelUploadDone(true);
+            }
+
+            // 2. Subir CSV de inventario si existe
+            if (secInventario && csvFile && !csvUploadDone) {
+                setProgreso((prev) => (prev ? { ...prev, mensaje: 'Subiendo CSV inventario...' } : null));
+                await subirCsv(uid);
+            }
+
+            // 3. Construir parámetro solo (comma-separated steps de secciones activas)
+            let soloParam = '';
+            if (!secMaestros || !secInventario || !secTransacciones) {
+                const steps: string[] = [];
+                if (secMaestros) steps.push(...PASOS_MAESTROS.map((p) => p.key));
+                if (secInventario) steps.push(PASO_INVENTARIO.key);
+                if (secTransacciones) steps.push(...PASOS_TRANSACCIONES.map((p) => p.key));
+                soloParam = steps.join(',');
+            }
+
+            // 4. Ejecutar Job
+            setProgreso({ paso: 'encolado', pct: 0, mensaje: 'Encolando job...', logs: [] });
+
+            const { data } = await axios.post(route('importar.ejecutar'), {
+                uploadId: uid,
+                cuenta_id: cuentaId,
+                dry_run: dryRun,
+                solo: soloParam || undefined,
+            });
+
+            setJobKey(data.jobKey);
+            setPollingActive(true);
+        } catch (error: any) {
+            console.error('Error en el proceso:', error);
+            alert(error.response?.data?.error || 'Error al procesar la solicitud.');
+            setProgreso({ paso: 'error', pct: 0, mensaje: 'Proceso detenido por error.', logs: [error.message] });
+        } finally {
+            setUploading(false);
+        }
     };
+
+    const estaActivo = !!(progreso && !['completado', 'error', 'no_encontrado'].includes(progreso?.paso));
+
+    // Derived: which files are needed based on active sections
+    const necesitaExcel = secMaestros || secTransacciones;
+    const _algunaSeccion = secMaestros || secInventario || secTransacciones;
+    const estaListo = !!(cuentaId && _algunaSeccion && (!necesitaExcel || excelFile));
 
     return (
         <AppLayout>
             <Head title="Importar Sistema Viejo" />
-
-            <div className="max-w-4xl mx-auto py-8 px-4 space-y-6">
-
+            <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
                 {/* Header */}
                 <div className="border-b border-gray-200 pb-4">
                     <h1 className="text-2xl font-bold text-gray-900">Importación de datos</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Migra los datos del sistema viejo (Access/Excel) al sistema nuevo.
+                    <p className="mt-1 text-sm text-gray-500">
+                        Migra los datos del sistema viejo (Access/Excel) al sistema nuevo. El Excel contiene datos maestros y transacciones; el
+                        inventario se carga desde CSV.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Configuración global */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                        <SelectField
+                            name="cuenta_id"
+                            title="Cuenta destino"
+                            required
+                            value={cuentaId}
+                            onChange={(val) => setCuentaId(val as string)}
+                            disabled={estaActivo}
+                            lista={cuentas}
+                            item={{ idx: 'id', value: 'nombre' }}
+                            error={""}
+                        />
+                    </div>
 
-                    {/* ─── Columna izquierda ─── */}
-                    <div className="space-y-5">
+                    <div className="flex items-end gap-6 pb-1">
+                        <label className="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={dryRun}
+                                onChange={(e) => setDryRun(e.target.checked)}
+                                disabled={estaActivo}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                            />
+                            <span className="text-sm text-gray-700">
+                                <strong>Simulación</strong>
+                            </span>
+                        </label>
+                    </div>
+                </div>
 
-                        {/* Cuenta */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Cuenta destino <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={cuentaId}
-                                onChange={e => setCuentaId(e.target.value)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">— Seleccionar cuenta —</option>
-                                {cuentas.map((c: any) => (
-                                    <option key={c.id} value={c.id}>{c.nombre}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Archivo Excel */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Archivo Excel (.xlsx) <span className="text-red-500">*</span>
-                            </label>
-                            <div
-                                onClick={() => fileRef.current?.click()}
-                                onDrop={handleDrop}
-                                onDragOver={(e: any) => { e.preventDefault(); setDragOver(true); }}
-                                onDragLeave={() => setDragOver(false)}
-                                className={`
-                                    relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
-                                    ${dragOver
-                                        ? 'border-blue-400 bg-blue-50'
-                                        : archivo
-                                            ? 'border-green-400 bg-green-50'
-                                            : 'border-gray-300 hover:border-gray-400 bg-gray-50'}
-                                `}
-                            >
-                                <input
-                                    ref={fileRef}
-                                    type="file"
-                                    accept=".xlsx"
-                                    className="hidden"
-                                    onChange={handleFile}
-                                />
-                                {archivo ? (
-                                    <div>
-                                        <div className="text-2xl mb-1">✅</div>
-                                        <p className="text-sm font-medium text-green-700">{archivo.name}</p>
-                                        <p className="text-xs text-green-600 mt-0.5">
-                                            {(archivo.size / 1024 / 1024).toFixed(2)} MB
-                                        </p>
-                                        <button
-                                            onClick={e => { e.stopPropagation(); setArchivo(null); }}
-                                            className="mt-2 text-xs text-red-500 hover:underline"
-                                        >
-                                            Quitar archivo
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div>
-                                        <div className="text-3xl mb-2">📂</div>
-                                        <p className="text-sm text-gray-600">
-                                            Arrastra el Excel aquí o{' '}
-                                            <span className="text-blue-600 font-medium">haz clic para buscar</span>
-                                        </p>
-                                        <p className="text-xs text-gray-400 mt-1">Solo archivos .xlsx</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Opciones */}
-                        <div className="space-y-3">
-                            <label className="block text-sm font-medium text-gray-700">Opciones</label>
-
-                            {/* Dry run */}
-                            <label className="flex items-start gap-3 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={dryRun}
-                                    onChange={e => setDryRun(e.target.checked)}
-                                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600"
-                                />
-                                <span className="text-sm text-gray-700">
-                                    <strong>Simulación (dry-run)</strong> — recorre el archivo pero no
-                                    inserta nada. Útil para verificar antes de importar de verdad.
-                                </span>
-                            </label>
-
-                            {/* Solo un paso */}
+                {/* ─── 3 secciones de archivos ─── */}
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+                    {/* Sección 1: Datos maestros (Excel) */}
+                    <div
+                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secMaestros ? 'border-gray-200' : 'border-gray-100 opacity-40'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={secMaestros}
+                                onChange={(e) => setSecMaestros(e.target.checked)}
+                                disabled={estaActivo}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                            />
                             <div>
-                                <label className="block text-xs text-gray-500 mb-1">
-                                    Importar solo una tabla (opcional):
-                                </label>
-                                <select
-                                    value={soloStep}
-                                    onChange={e => setSoloStep(e.target.value)}
-                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">— Todas las tablas en orden —</option>
-                                    {PASOS.map(p => (
-                                        <option key={p.key} value={p.key}>
-                                            {p.icon} {p.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                <h2 className="text-sm font-semibold text-gray-800">1. Datos maestros</h2>
+                                <p className="text-xs text-gray-500">Excel con categorías, marcas, proveedores, bodegas y referencias</p>
                             </div>
                         </div>
 
-                        {/* Botón */}
-                        <button
-                            onClick={handleSubmit}
-                            disabled={loading || !cuentaId || !archivo}
-                            className={`
-                                w-full py-3 rounded-lg font-semibold text-sm transition-all
-                                ${loading || !cuentaId || !archivo
-                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                    : dryRun
-                                        ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
-                                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'}
-                            `}
+                        <div
+                            onClick={() => necesitaExcel && !uploading && !excelUploadDone && excelRef.current?.click()}
+                            onDrop={necesitaExcel ? handleExcelDrop : undefined}
+                            onDragOver={
+                                necesitaExcel
+                                    ? (e) => {
+                                          e.preventDefault();
+                                          setExcelDragOver(true);
+                                      }
+                                    : undefined
+                            }
+                            onDragLeave={necesitaExcel ? () => setExcelDragOver(false) : undefined}
+                            className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
+                                !necesitaExcel
+                                    ? 'border-gray-200 bg-gray-50 opacity-50'
+                                    : excelDragOver
+                                      ? 'cursor-pointer border-blue-400 bg-blue-50'
+                                      : excelUploadDone
+                                        ? 'border-green-400 bg-green-50'
+                                        : excelFile
+                                          ? 'cursor-pointer border-amber-400 bg-amber-50'
+                                          : 'cursor-pointer border-gray-300 bg-gray-50 hover:border-gray-400'
+                            }`}
                         >
-                            {loading ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                    </svg>
-                                    Procesando...
-                                </span>
-                            ) : dryRun ? '🔍 Simular importación' : '🚀 Ejecutar importación'}
-                        </button>
+                            <input ref={excelRef} type="file" accept=".xlsx" className="hidden" onChange={handleExcelFile} />
 
-                        {dryRun && (
-                            <p className="text-xs text-amber-600 text-center">
-                                ⚠ Estás en modo simulación. Desmarca la casilla para importar de verdad.
-                            </p>
+                            {!necesitaExcel ? (
+                                <>
+                                    <div className="mb-1 text-xl opacity-40">📂</div>
+                                    <p className="text-xs text-gray-400">No se necesita Excel para esta selección</p>
+                                </>
+                            ) : excelUploadDone ? (
+                                <>
+                                    <div className="mb-1 text-xl">✅</div>
+                                    <p className="text-xs font-medium text-green-700">{excelFile!.name}</p>
+                                    <p className="text-xs text-green-600">{(excelFile!.size / 1024 / 1024).toFixed(1)} MB</p>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setExcelFile(null);
+                                            setExcelUploadDone(false);
+                                            setExcelUploadPct(0);
+                                        }}
+                                        className="mt-1 text-xs text-red-500 hover:underline"
+                                    >
+                                        Cambiar
+                                    </button>
+                                </>
+                            ) : excelFile ? (
+                                <>
+                                    <div className="mb-1 text-xl">📂</div>
+                                    <p className="text-xs font-medium text-amber-700">{excelFile.name}</p>
+                                    <p className="text-xs text-amber-600">{(excelFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                                    {uploading && (
+                                        <div className="mt-2">
+                                            <div className="h-1.5 w-full rounded-full bg-gray-200">
+                                                <div
+                                                    className="h-1.5 rounded-full bg-blue-500 transition-all"
+                                                    style={{ width: `${excelUploadPct}%` }}
+                                                />
+                                            </div>
+                                            <p className="mt-0.5 text-xs text-gray-500">{excelUploadPct}%</p>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <div className="mb-1 text-2xl">📂</div>
+                                    <p className="text-xs text-gray-600">
+                                        Arrastra o <span className="font-medium text-blue-600">busca</span>
+                                    </p>
+                                    <p className="text-xs text-gray-400">.xlsx</p>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Lista de pasos maestros */}
+                        <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100">
+                            {PASOS_MAESTROS.map((p, i) => (
+                                <PasoRow key={p.key} paso={p} index={i} disabled={!secMaestros} progreso={progreso} />
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Sección 2: Inventario (CSV) */}
+                    <div
+                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secInventario ? 'border-blue-200 bg-blue-50/30' : 'border-gray-100 opacity-40'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={secInventario}
+                                onChange={(e) => setSecInventario(e.target.checked)}
+                                disabled={estaActivo}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                            />
+                            <div>
+                                <h2 className="text-sm font-semibold text-gray-800">2. Inventario</h2>
+                                <p className="text-xs text-gray-500">CSV con los movimientos de inventario (~200k filas)</p>
+                            </div>
+                        </div>
+
+                        <div
+                            onClick={() => secInventario && !csvUploading && !csvUploadDone && csvRef.current?.click()}
+                            onDrop={secInventario ? handleCsvDrop : undefined}
+                            onDragOver={
+                                secInventario
+                                    ? (e) => {
+                                          e.preventDefault();
+                                          setCsvDragOver(true);
+                                      }
+                                    : undefined
+                            }
+                            onDragLeave={secInventario ? () => setCsvDragOver(false) : undefined}
+                            className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
+                                !secInventario
+                                    ? 'border-gray-200 bg-gray-50 opacity-50'
+                                    : csvDragOver
+                                      ? 'cursor-pointer border-blue-400 bg-blue-50'
+                                      : csvUploadDone
+                                        ? 'border-green-400 bg-green-50'
+                                        : csvFile
+                                          ? 'cursor-pointer border-amber-400 bg-amber-50'
+                                          : 'cursor-pointer border-gray-300 bg-white hover:border-gray-400'
+                            }`}
+                        >
+                            <input ref={csvRef} type="file" accept=".csv" className="hidden" onChange={handleCsvFile} />
+
+                            {csvUploadDone ? (
+                                <>
+                                    <div className="mb-1 text-xl">✅</div>
+                                    <p className="text-xs font-medium text-green-700">{csvFile!.name}</p>
+                                    <p className="text-xs text-green-600">{(csvFile!.size / 1024 / 1024).toFixed(1)} MB</p>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setCsvFile(null);
+                                            setCsvUploadDone(false);
+                                            setCsvUploadPct(0);
+                                        }}
+                                        className="mt-1 text-xs text-red-500 hover:underline"
+                                    >
+                                        Cambiar
+                                    </button>
+                                </>
+                            ) : csvFile ? (
+                                <>
+                                    <div className="mb-1 text-xl">📄</div>
+                                    <p className="text-xs font-medium text-amber-700">{csvFile.name}</p>
+                                    <p className="text-xs text-amber-600">{(csvFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                                    {csvUploading && (
+                                        <div className="mt-2">
+                                            <div className="h-1.5 w-full rounded-full bg-gray-200">
+                                                <div
+                                                    className="h-1.5 rounded-full bg-blue-500 transition-all"
+                                                    style={{ width: `${csvUploadPct}%` }}
+                                                />
+                                            </div>
+                                            <p className="mt-0.5 text-xs text-gray-500">{csvUploadPct}%</p>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <div className="mb-1 text-2xl">📄</div>
+                                    <p className="text-xs text-gray-600">
+                                        Arrastra o <span className="font-medium text-blue-600">busca</span>
+                                    </p>
+                                    <p className="text-xs text-gray-400">.csv</p>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100">
+                            <PasoRow paso={PASO_INVENTARIO} index={6} disabled={!secInventario} progreso={progreso} />
+                        </div>
+
+                        {secInventario && !csvFile && (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-2">
+                                <p className="text-xs text-amber-700">Si no subes CSV, el inventario se generará desde el Excel (más lento).</p>
+                            </div>
                         )}
                     </div>
 
-                    {/* ─── Columna derecha: orden de pasos ─── */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Orden de importación
-                        </label>
-                        <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-100">
-                            {PASOS.map((p, i) => {
-                                const activo = !soloStep || soloStep === p.key;
-                                const log = resultado?.pasos?.[p.key];
-                                return (
-                                    <div
-                                        key={p.key}
-                                        className={`flex items-center gap-3 px-4 py-3 transition-colors
-                                            ${activo ? 'bg-white' : 'bg-gray-50 opacity-50'}`}
-                                    >
-                                        <span className="text-lg w-6 text-center">{p.icon}</span>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-800">{p.label}</p>
-                                            {log && (
-                                                <p className="text-xs text-gray-500 truncate">{log}</p>
-                                            )}
-                                        </div>
-                                        <StepBadge index={i} activo={activo} log={log} />
-                                    </div>
-                                );
-                            })}
+                    {/* Sección 3: Transacciones (Excel) */}
+                    <div
+                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secTransacciones ? 'border-gray-200' : 'border-gray-100 opacity-40'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={secTransacciones}
+                                onChange={(e) => setSecTransacciones(e.target.checked)}
+                                disabled={estaActivo}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                            />
+                            <div>
+                                <h2 className="text-sm font-semibold text-gray-800">3. Transacciones</h2>
+                                <p className="text-xs text-gray-500">Traslados, compras, ventas y muestras del mismo Excel</p>
+                            </div>
+                        </div>
+
+                        <div className="rounded-lg border-2 border-dashed bg-gray-50 p-4 text-center">
+                            {excelFile ? (
+                                <>
+                                    <div className="mb-1 text-xl">📂</div>
+                                    <p className="text-xs font-medium text-gray-700">Usa el mismo Excel</p>
+                                    <p className="text-xs text-gray-500">{excelFile.name}</p>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="mb-1 text-xl opacity-40">📂</div>
+                                    <p className="text-xs text-gray-400">Primero sube el Excel en la sección 1</p>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100">
+                            {PASOS_TRANSACCIONES.map((p, i) => (
+                                <PasoRow key={p.key} paso={p} index={7 + i} disabled={!secTransacciones} progreso={progreso} />
+                            ))}
                         </div>
                     </div>
                 </div>
 
-                {/* ─── Resultado ─── */}
-                {resultado && (
-                    <div className={`rounded-lg border p-4 space-y-2 ${resultado.error
-                        ? 'bg-red-50 border-red-200'
-                        : resultado.dry_run
-                            ? 'bg-amber-50 border-amber-200'
-                            : 'bg-green-50 border-green-200'
-                        }`}>
-                        <div className="flex items-center gap-2">
-                            <span className="text-lg">
-                                {resultado.error ? '❌' : resultado.dry_run ? '🔍' : '✅'}
-                            </span>
-                            <p className="font-semibold text-sm">
-                                {resultado.error
-                                    ? 'Error en la importación'
-                                    : resultado.dry_run
-                                        ? 'Simulación completada'
-                                        : 'Importación exitosa'}
-                            </p>
-                        </div>
-                        {resultado.mensaje && (
-                            <pre className="text-xs whitespace-pre-wrap text-gray-700 bg-white/60 rounded p-3 overflow-auto max-h-60">
-                                {resultado.mensaje}
-                            </pre>
+                {/* ─── Botón y progreso ─── */}
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <div className="space-y-3">
+                        <button
+                            onClick={iniciarProceso}
+                            disabled={!estaListo || estaActivo || uploading}
+                            className={`w-full rounded-lg py-3 text-sm font-semibold transition-all ${
+                                !estaListo || estaActivo || uploading
+                                    ? 'cursor-not-allowed bg-gray-200 text-gray-400'
+                                    : dryRun
+                                      ? 'bg-amber-500 text-white shadow-sm hover:bg-amber-600'
+                                      : 'bg-blue-600 text-white shadow-sm hover:bg-blue-700'
+                            }`}
+                        >
+                            {uploading
+                                ? '⬆ Subiendo archivos...'
+                                : estaActivo
+                                  ? '⏳ Procesando en background...'
+                                  : dryRun
+                                    ? '🔍 Simular importación'
+                                    : '🚀 Ejecutar importación'}
+                        </button>
+
+                        {dryRun && !estaActivo && (
+                            <p className="text-center text-xs text-amber-600">⚠ Modo simulación activo. Desmarca para importar de verdad.</p>
                         )}
-                        {resultado.resumen && (
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
-                                {Object.entries(resultado.resumen).map(([k, v]) => (
-                                    <div key={k} className="bg-white/70 rounded p-2 text-center">
-                                        <p className="text-xs text-gray-500 capitalize">{k}</p>
-                                        <p className="text-lg font-bold text-gray-800">{v as any}</p>
-                                    </div>
-                                ))}
+                    </div>
+
+                    <div className="space-y-4">
+                        {/* Barra de progreso global */}
+                        {progreso && (
+                            <div
+                                className={`space-y-3 rounded-lg border p-4 ${
+                                    progreso.paso === 'error'
+                                        ? 'border-red-200 bg-red-50'
+                                        : progreso.paso === 'completado'
+                                          ? 'border-green-200 bg-green-50'
+                                          : progreso.dry_run
+                                            ? 'border-amber-200 bg-amber-50'
+                                            : 'border-blue-200 bg-blue-50'
+                                }`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-800">
+                                        {progreso.paso === 'error'
+                                            ? '❌ Error'
+                                            : progreso.paso === 'completado'
+                                              ? progreso.dry_run
+                                                  ? '🔍 Simulación completada'
+                                                  : '✅ Completado'
+                                              : progreso.paso === 'encolado'
+                                                ? '⏳ En cola...'
+                                                : `⚙ ${progreso.paso}`}
+                                    </span>
+                                    <span className="text-sm font-bold text-gray-700">{progreso.pct}%</span>
+                                </div>
+
+                                <div className="h-2.5 w-full rounded-full bg-gray-200">
+                                    <div
+                                        className={`h-2.5 rounded-full transition-all duration-500 ${
+                                            progreso.paso === 'error' ? 'bg-red-500' : progreso.paso === 'completado' ? 'bg-green-500' : 'bg-blue-500'
+                                        }`}
+                                        style={{ width: `${progreso.pct}%` }}
+                                    />
+                                </div>
+
+                                <p className="text-xs text-gray-600">{progreso.mensaje}</p>
+                            </div>
+                        )}
+
+                        {/* Logs */}
+                        {progreso?.logs && progreso.logs.length > 0 && (
+                            <div>
+                                <p className="mb-1 text-xs font-medium text-gray-500">Logs del job:</p>
+                                <div className="max-h-52 overflow-y-auto rounded-lg bg-gray-900 p-3">
+                                    {progreso.logs.map((l, i) => (
+                                        <p
+                                            key={i}
+                                            className={`font-mono text-xs whitespace-pre-wrap ${l.includes('Error') || l.includes('error') ? 'text-red-400' : 'text-green-400'}`}
+                                        >
+                                            {l}
+                                        </p>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
-                )}
+                </div>
             </div>
         </AppLayout>
     );
 }
 
-function StepBadge({ index, activo, log }: any) {
-    if (!activo) return <span className="text-xs text-gray-400">omitido</span>;
-    if (log) {
-        const isError = log.toLowerCase().includes('error');
-        return (
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isError ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'
-                }`}>
-                {isError ? 'error' : 'ok'}
-            </span>
-        );
-    }
+function PasoRow({
+    paso,
+    index,
+    disabled,
+    progreso,
+}: {
+    paso: { key: string; label: string; icon: string };
+    index: number;
+    disabled: boolean;
+    progreso: ProgresoData | null;
+}) {
+    const esActual = progreso?.paso === paso.key;
+    const enLog = progreso?.logs?.some((l) => l.includes(paso.label.toUpperCase()) || l.includes(paso.key.toUpperCase()));
+
     return (
-        <span className="text-xs text-gray-400 w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center">
-            {index + 1}
-        </span>
+        <div
+            className={`flex items-center gap-3 px-3 py-2 transition-colors ${esActual ? 'bg-blue-50' : disabled ? 'bg-gray-50 opacity-40' : 'bg-white'}`}
+        >
+            <span className="w-5 text-center text-base">{paso.icon}</span>
+            <span className="flex-1 text-xs text-gray-800">{paso.label}</span>
+            {disabled ? (
+                <span className="text-xs text-gray-400">omitido</span>
+            ) : esActual ? (
+                <Spinner />
+            ) : enLog ? (
+                <span className="text-xs font-medium text-green-600">✓</span>
+            ) : (
+                <span className="text-xs text-gray-300">{index + 1}</span>
+            )}
+        </div>
+    );
+}
+
+function Spinner() {
+    return (
+        <svg className="h-4 w-4 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
     );
 }

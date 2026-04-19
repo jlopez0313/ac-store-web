@@ -15,7 +15,10 @@ class ProveedoresController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Proveedor::with('cuenta')->orderBy('nombre');
+        $sortField = $request->input('sort_field', 'nombre');
+        $sortOrder = $request->input('sort_order', 'asc');
+
+        $query = Proveedor::with('cuenta');
 
         if (!auth()->user()->hasRole('superadmin')) {
             $query->where('cuenta_id', auth()->user()->cuenta_id);
@@ -30,7 +33,8 @@ class ProveedoresController extends Controller
         }
 
         return ProveedorResource::collection(
-            $query->paginate($request->input('per_page', 10))->appends($request->all())
+            $query->orderBy($sortField, $sortOrder)
+                  ->paginate($request->input('per_page', 25))
         );
     }
 
@@ -72,7 +76,6 @@ class ProveedoresController extends Controller
      */
     public function show(Proveedor $proveedore)
     {
-        // Parameter binding for singular is usually identical to model name (lowercase)
         $proveedore->load('cuenta');
         return new ProveedorResource($proveedore);
     }

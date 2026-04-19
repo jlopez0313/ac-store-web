@@ -25,6 +25,7 @@ class DevolucionResource extends JsonResource
             'cantidad' => $this->cantidad,
             'precio_unitario' => $this->precio_unitario,
             'subtotal' => $this->subtotal,
+            'observacion' => $this->observacion,
             'fecha_devolucion' => $this->deleted_at ?? $this->fecha_devolucion,
             'venta' => $this->whenLoaded('venta', function () {
                 return [

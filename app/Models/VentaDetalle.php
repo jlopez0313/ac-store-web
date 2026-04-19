@@ -15,6 +15,7 @@ class VentaDetalle extends Model
     protected $casts = [
         'precio_unitario' => 'integer',
         'subtotal' => 'integer',
+        'impreso' => 'boolean',
     ];
 
     protected $fillable = [
@@ -29,6 +30,8 @@ class VentaDetalle extends Model
         'subtotal',
         'muestra_id',
         'estado',
+        'observacion',
+        'impreso',
     ];
 
     public function venta()

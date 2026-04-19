@@ -22,11 +22,14 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'username',
+        'documento',
         'email',
         'password',
         'cuenta_id',
         'estado',
         'ciudad_id',
+        'precio_suscripcion',
+        'fecha_vencimiento',
     ];
 
     /**
@@ -58,6 +61,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'fecha_vencimiento' => 'date',
         ];
     }
 
@@ -99,5 +103,57 @@ class User extends Authenticatable
     public function ventas()
     {
         return $this->hasMany(Venta::class, 'user_id');
+    }
+
+    /**
+     * Get the number of unique accounts the user has bodega access to.
+     */
+    public function getWarehouseAccountCount(): int
+    {
+        return $this->bodegaAccesos()
+            ->join('bodegas', 'bodega_accesos.bodega_id', '=', 'bodegas.id')
+            ->distinct('bodegas.cuenta_id')
+            ->count('bodegas.cuenta_id');
+    }
+
+    /**
+     * Calculate the subscription price based on the role and warehouse access.
+     */
+    public function calculateSubscriptionPrice(): float
+    {
+        if ($this->hasRole('superadmin') || $this->hasRole('admin')) {
+            return (float) config('constants.suscripciones.default_user_price', 110000);
+        }
+
+        if ($this->role === 'local') {
+            $accountsCount = $this->getWarehouseAccountCount();
+            $basePrice = (float) config('constants.suscripciones.default_user_price', 110000);
+            $extraPrice = (float) config('constants.suscripciones.default_user_extra_price', 10000);
+            
+            return $basePrice + (($accountsCount - 1) * $extraPrice);
+        }
+
+        return (float) config('constants.suscripciones.default_user_price', 110000);
+    }
+
+    /**
+     * Get IDs of all accounts the user has warehouse access to.
+     */
+    public function getAccessibleAccountIds(): array
+    {
+        if ($this->hasRole('superadmin')) {
+            return \App\Models\Cuenta::pluck('id')->toArray();
+        }
+
+        // Always include their primary account
+        $ids = [$this->cuenta_id];
+
+        // Add accounts from warehouse access
+        $warehouseAccountIds = \App\Models\BodegaAcceso::where('user_id', $this->id)
+            ->join('bodegas', 'bodega_accesos.bodega_id', '=', 'bodegas.id')
+            ->pluck('bodegas.cuenta_id')
+            ->toArray();
+
+        return array_unique(array_filter(array_merge($ids, $warehouseAccountIds)));
     }
 }

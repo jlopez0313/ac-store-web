@@ -44,6 +44,7 @@ class UsuariosController extends Controller
             'roles'   => Role::orderBy('name')->get()->map(fn($role) => ['id' => $role->name, 'name' => $role->name]),
             'cuentas' => Cuenta::where('estado', 1)->orderBy('nombre')->get(['id', 'nombre as name']),
             'estados' => config('constantes.estados'),
+            'default_user_price' => config('constants.suscripciones.default_user_price'),
         ]);
     }
     public function getCountries()

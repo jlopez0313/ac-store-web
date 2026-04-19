@@ -18,7 +18,7 @@ class FacturasController extends Controller
             ->orderBy('id', 'desc');
 
         if (!$isSuper) {
-            $query->where('cuenta_id', $user->cuenta_id);
+            $query->whereIn('cuenta_id', $user->getAccessibleAccountIds());
         }
 
         // Apply tab filters

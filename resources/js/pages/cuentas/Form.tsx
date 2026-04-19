@@ -8,12 +8,16 @@ import { FormEventHandler, useEffect } from 'react';
 type ThisForm = {
 	nombre: string;
 	estado: string;
+	precio_suscripcion: string;
+	fecha_vencimiento: string;
 };
 
-export const Form = ({ id, estados, setIsOpen, processing, onStore, onGetItem, onReload }: any) => {
+export const Form = ({ id, estados, setIsOpen, processing, onStore, onGetItem, onReload, default_account_price }: any) => {
 	const { data, setData, errors, reset } = useForm<ThisForm>({
 		nombre: '',
 		estado: '1',
+		precio_suscripcion: '',
+		fecha_vencimiento: '',
 	});
 
 	const submit: FormEventHandler = async (e) => {
@@ -34,6 +38,9 @@ export const Form = ({ id, estados, setIsOpen, processing, onStore, onGetItem, o
 	useEffect(() => {
 		if (!id) {
 			reset();
+			if (default_account_price) {
+				setData('precio_suscripcion', default_account_price.toString());
+			}
 			return;
 		}
 		const getItem = async () => {
@@ -45,6 +52,8 @@ export const Form = ({ id, estados, setIsOpen, processing, onStore, onGetItem, o
 				setData({
 					nombre: item.nombre,
 					estado: item.estado ? '1' : '0',
+					precio_suscripcion: item.precio_suscripcion?.toString() || '',
+					fecha_vencimiento: item.fecha_vencimiento || '',
 				});
 			}
 		};
@@ -76,6 +85,28 @@ export const Form = ({ id, estados, setIsOpen, processing, onStore, onGetItem, o
 								lista={estados}
 								item={{ idx: 'id', value: 'name' }}
 								error={errors.estado}
+							/>
+						</div>
+
+						<div>
+							<InputField
+								name="precio_suscripcion"
+								title="Precio Suscripción"
+								type="number"
+								value={data.precio_suscripcion}
+								onChange={(value) => setData('precio_suscripcion', value as any)}
+								error={(errors as any).precio_suscripcion}
+							/>
+						</div>
+
+						<div>
+							<InputField
+								name="fecha_vencimiento"
+								title="Fecha de Vencimiento"
+								type="date"
+								value={data.fecha_vencimiento}
+								onChange={(value) => setData('fecha_vencimiento', value as any)}
+								error={(errors as any).fecha_vencimiento}
 							/>
 						</div>
 					</div>

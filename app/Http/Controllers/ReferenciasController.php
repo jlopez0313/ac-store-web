@@ -27,10 +27,10 @@ class ReferenciasController extends Controller
         // General search
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('codigo', 'like', '%' . $request->search . '%')
-                    ->orWhere('descripcion', 'like', '%' . $request->search . '%')
+                $q->where('codigo', 'like', '%'.$request->search.'%')
+                    ->orWhere('descripcion', 'like', '%'.$request->search.'%')
                     ->orWhereHas('marca', function ($mq) use ($request) {
-                        $mq->where('nombre', 'like', '%' . $request->search . '%');
+                        $mq->where('nombre', 'like', '%'.$request->search.'%');
                     });
             });
         }
@@ -61,7 +61,7 @@ class ReferenciasController extends Controller
 
     public function show(Referencia $referencia)
     {
-        return response()->json($referencia->load(['categoria', 'cuenta']));
+        return response()->json(['data' => $referencia->load(['categoria', 'cuenta'])]);
     }
 
     public function store(Request $request)
@@ -88,7 +88,7 @@ class ReferenciasController extends Controller
 
         return response()->json([
             'message' => 'Referencia creada correctamente.',
-            'data' => $referencia
+            'data' => $referencia,
         ]);
     }
 
@@ -121,7 +121,7 @@ class ReferenciasController extends Controller
 
         return response()->json([
             'message' => 'Referencia actualizada correctamente.',
-            'data' => $referencia
+            'data' => $referencia,
         ]);
     }
 
