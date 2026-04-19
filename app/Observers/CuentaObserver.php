@@ -30,8 +30,9 @@ class CuentaObserver
         if (!empty($username)) {
             try {
                 // Crear usuario con permisos limitados a su vista
+                $password = ucfirst($username) . "@2026";
                 DB::statement("DROP USER IF EXISTS '{$username}'@'%'");
-                DB::statement("CREATE USER '{$username}'@'%' IDENTIFIED BY '{$username}'");
+                DB::statement("CREATE USER '{$username}'@'%' WITH mysql_native_password IDENTIFIED BY '{$password}'");
                 DB::statement("GRANT SELECT ON `{$dbName}`.`{$viewName}` TO '{$username}'@'%'");
                 DB::statement("FLUSH PRIVILEGES");
                 \Log::info("MySQL user created: {$username} with access to {$viewName}");
