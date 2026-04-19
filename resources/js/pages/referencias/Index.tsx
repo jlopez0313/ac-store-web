@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import { Download, Edit, Image as ImageIcon, Plus, Search as SearchIcon, Trash } from 'lucide-react';
+import { Edit, Image as ImageIcon, Plus, Search as SearchIcon, Trash } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Form } from './Form';
 
@@ -66,27 +66,6 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
     const handleSearch = (search: string) => {
         setFilters((prev) => ({ ...prev, search, page: 1 }));
         fetchData({ search, page: 1 });
-    };
-
-    const handleExportCsv = async () => {
-        try {
-            const params: any = {};
-            if (selectedCuenta) params.cuenta_id = selectedCuenta;
-            const response = await axios.get('/api/inventario/export-csv', {
-                params,
-                responseType: 'blob',
-            });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'etiquetas_inventario.csv');
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Error exportando CSV:', error);
-        }
     };
 
     const columns = [
@@ -194,10 +173,6 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
                                 />
                             </div>
                         )}
-                        <Button variant="outline" onClick={handleExportCsv}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Exportar CSV
-                        </Button>
                         <Button onClick={() => onToggleModal(true)}>
                             <Plus className="mr-2 h-5 w-5" />
                             Nueva Referencia

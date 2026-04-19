@@ -49,6 +49,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
         private readonly string $soloStep,
         private readonly string $jobKey,
         private readonly string $csvFilePath = '',
+        private readonly string $refDesde = '',
     ) {
     }
 
@@ -725,8 +726,13 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
         $this->log('  Paso 1: Leyendo CSV y agregando en memoria por ref/talla/ubicación...');
 
+        if ($this->refDesde !== '') {
+            $this->log("  ⚠ Filtrando: solo referencias >= {$this->refDesde}");
+        }
+
         $agrupados = [];
         $rowCount = 0;
+        $omitidosPorFiltro = 0;
         $handle = fopen($csvPath, 'r');
 
         // Auto-detectar delimitador leyendo la primera línea
@@ -773,9 +779,15 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 continue;
             }
 
+            // Filtrar por referencia de inicio si se especificó
+            if ($this->refDesde !== '' && (int) $row[2] < (int) $this->refDesde) {
+                ++$omitidosPorFiltro;
+                continue;
+            }
+
             $ref = $row[2];
             $rawTalla = (string) ($row[4] ?? '');
-            $talla = mb_detect_encoding($rawTalla, 'UTF-8', true) ? $rawTalla : mb_convert_encoding($rawTalla, 'UTF-8', 'Windows-1252');
+            $talla = mb_check_encoding($rawTalla, 'UTF-8') ? $rawTalla : mb_convert_encoding($rawTalla, 'UTF-8', 'Windows-1252');
             $talla = trim($talla);
             $ubicacion = $row[6] ?? '';
             $cantidad = (int) ($row[3] ?? 0);
@@ -813,6 +825,10 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
         $grupos = count($agrupados);
         $this->log("  {$rowCount} filas leídas → {$grupos} grupos únicos");
+
+        if ($omitidosPorFiltro > 0) {
+            $this->log("  ({$omitidosPorFiltro} filas omitidas por filtro ref >= {$this->refDesde})");
+        }
 
         if ($this->dryRun) {
             $this->log('  [DRY-RUN] Omitiendo inserción en tablas de producción');

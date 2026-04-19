@@ -41,6 +41,9 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
     const [secInventario, setSecInventario] = useState(true);
     const [secTransacciones, setSecTransacciones] = useState(true);
 
+    // Inventario: importar desde referencia
+    const [refDesde, setRefDesde] = useState('');
+
     // Excel state
     const [excelFile, setExcelFile] = useState<File | null>(null);
     const [excelDragOver, setExcelDragOver] = useState(false);
@@ -229,6 +232,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                 cuenta_id: cuentaId,
                 dry_run: dryRun,
                 solo: soloParam || undefined,
+                ref_desde: refDesde || undefined,
             });
 
             setJobKey(data.jobKey);
@@ -488,6 +492,20 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                                 </>
                             )}
                         </div>
+
+                        {secInventario && (
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs font-medium whitespace-nowrap text-gray-600 dark:text-gray-400">Desde ref:</label>
+                                <input
+                                    type="text"
+                                    value={refDesde}
+                                    onChange={(e) => setRefDesde(e.target.value)}
+                                    disabled={estaActivo}
+                                    placeholder="Ej: 496 (vacío = todas)"
+                                    className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-800 placeholder-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-500"
+                                />
+                            </div>
+                        )}
 
                         <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100 dark:divide-gray-700 dark:border-gray-700">
                             <PasoRow paso={PASO_INVENTARIO} index={6} disabled={!secInventario} progreso={progreso} />

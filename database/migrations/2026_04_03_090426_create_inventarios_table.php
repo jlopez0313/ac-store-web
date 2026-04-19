@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('cuenta_id')->constrained('cuentas')->cascadeOnDelete();
             $table->foreignId('referencia_id')->constrained('referencias')->cascadeOnDelete();
             $table->foreignId('estanteria_id')->constrained('estanterias')->cascadeOnDelete();
-            $table->string('talla');
+            $table->string('talla', 20)->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
             $table->integer('stock')->default(0);
             $table->decimal('precio_compra', 12, 2)->default(0);
             $table->decimal('precio_venta', 12, 2)->default(0);

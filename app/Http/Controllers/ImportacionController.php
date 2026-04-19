@@ -138,6 +138,7 @@ class ImportacionController extends Controller
             'cuenta_id' => 'required|exists:cuentas,id',
             'dry_run' => 'nullable|boolean',
             'solo' => 'nullable|string|max:200',
+            'ref_desde' => 'nullable|string|max:50',
         ]);
 
         $uploadId = preg_replace('/[^a-zA-Z0-9_-]/', '', $request->uploadId);
@@ -190,6 +191,7 @@ class ImportacionController extends Controller
             soloStep: $solo,
             jobKey: $jobKey,
             csvFilePath: $csvFilePath,
+            refDesde: trim((string) $request->input('ref_desde', '')),
         )->onQueue('importacion');
 
         return response()->json(['jobKey' => $jobKey]);
