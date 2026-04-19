@@ -774,7 +774,9 @@ class ImportarSistemaViejoJob implements ShouldQueue
             }
 
             $ref = $row[2];
-            $talla = (string) ($row[4] ?? '');
+            $rawTalla = (string) ($row[4] ?? '');
+            $talla = mb_detect_encoding($rawTalla, 'UTF-8', true) ? $rawTalla : mb_convert_encoding($rawTalla, 'UTF-8', 'Windows-1252');
+            $talla = trim($talla);
             $ubicacion = $row[6] ?? '';
             $cantidad = (int) ($row[3] ?? 0);
             $pCosto = (int) ($row[5] ?? 0);

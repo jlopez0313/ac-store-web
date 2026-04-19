@@ -56,6 +56,19 @@ export const customStyles = {
       borderTopWidth: '1px',
       borderTopColor: 'var(--border)',
       fontSize: '13px',
-    }
-  }
+    },
+    pageButtonsStyle: {
+      fill: 'var(--muted-foreground)',
+      '&:disabled': {
+        fill: 'var(--muted-foreground)',
+        opacity: 0.3,
+      },
+      '&:hover:not(:disabled)': {
+        backgroundColor: 'var(--muted)',
+      },
+      '&:focus': {
+        backgroundColor: 'var(--muted)',
+      },
+    },
+  },
 }

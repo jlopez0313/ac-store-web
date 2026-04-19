@@ -137,7 +137,7 @@
     --navy-400: hsl(220 35% 45%);
     --navy-300: hsl(220 30% 60%);
     --navy-100: hsl(220 30% 90%);
-    --navy-50:  hsl(220 30% 96%);
+    --navy-50: hsl(220 30% 96%);
 
     /* Accent Blue */
     --accent-blue: hsl(210 90% 50%);
@@ -246,7 +246,11 @@
 
     body {
         @apply bg-background text-foreground;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-family:
+            'Inter',
+            system-ui,
+            -apple-system,
+            sans-serif;
     }
 
     h1,
@@ -282,20 +286,33 @@
     }
 
     /* Sidebar specific overrides (for the dark background) */
-    [data-sidebar="content"] {
+    [data-sidebar='content'] {
         scrollbar-color: hsl(220 20% 60% / 0.2) transparent !important;
     }
 
-    [data-sidebar="content"]::-webkit-scrollbar-thumb {
+    [data-sidebar='content']::-webkit-scrollbar-thumb {
         background: hsl(220 20% 60% / 0.2);
     }
 
-    [data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
+    [data-sidebar='content']::-webkit-scrollbar-thumb:hover {
         background: hsl(220 20% 60% / 0.4);
     }
 }
 
 @layer components {
+    /* DataTable pagination dark mode fixes */
+    .dark .rdt_Pagination button svg {
+        fill: var(--muted-foreground);
+    }
+    .dark .rdt_Pagination button:disabled svg {
+        fill: var(--muted-foreground);
+        opacity: 0.3;
+    }
+    .dark .rdt_Pagination select {
+        background-color: var(--card);
+        color: var(--card-foreground);
+    }
+
     /* Sidebar nav active state */
     .sidebar-nav-active {
         background: hsl(var(--sidebar-accent));
@@ -306,26 +323,26 @@
 
     /* Status badge variants */
     .badge-open {
-        @apply bg-green-100 text-green-800 border border-green-200;
+        @apply border border-green-200 bg-green-100 text-green-800;
     }
     .badge-closed {
-        @apply bg-gray-100 text-gray-600 border border-gray-200;
+        @apply border border-gray-200 bg-gray-100 text-gray-600;
     }
     .badge-pending {
-        @apply bg-yellow-100 text-yellow-800 border border-yellow-200;
+        @apply border border-yellow-200 bg-yellow-100 text-yellow-800;
     }
 
     /* Data table row hover */
     .data-table-row {
-        @apply hover:bg-muted/50 transition-colors cursor-pointer;
+        @apply hover:bg-muted/50 cursor-pointer transition-colors;
     }
     .data-table-row-selected {
-        @apply bg-primary/10 border-l-2 border-l-primary;
+        @apply bg-primary/10 border-l-primary border-l-2;
     }
 
     /* Module card */
     .module-card {
-        @apply rounded-xl border bg-card p-6 transition-all duration-200 cursor-pointer;
+        @apply bg-card cursor-pointer rounded-xl border p-6 transition-all duration-200;
         box-shadow: var(--shadow-card);
     }
     .module-card:hover {
