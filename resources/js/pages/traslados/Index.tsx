@@ -125,7 +125,7 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
 					</div>
 				</div>
 
-				<div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+				<div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden dark:bg-slate-900 dark:border-slate-700">
 					<DataGrid
 						data={items}
 						columns={columns}

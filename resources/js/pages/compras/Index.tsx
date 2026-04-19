@@ -326,8 +326,8 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
 								</Card>
 							</>
 						) : (
-							<Card className="lg:col-span-2 h-[calc(100vh-16rem)] border-slate-200 shadow-sm flex items-center justify-center bg-slate-50/50">
-								<div className="text-center text-slate-400">
+							<Card className="lg:col-span-2 h-[calc(100vh-16rem)] border-slate-200 shadow-sm flex items-center justify-center bg-slate-50/50 dark:border-slate-700 dark:bg-slate-800/30">
+								<div className="text-center text-slate-400 dark:text-slate-500">
 									<ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-20" />
 									<p className="text-sm">Selecciona una factura para ver sus detalles</p>
 								</div>

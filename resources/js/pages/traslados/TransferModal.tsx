@@ -180,10 +180,10 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
 			<div className="p-6 space-y-6">
 				{/* Stepper Header */}
 				<div className="flex items-center justify-between px-10 relative">
-					<div className="absolute top-1/2 left-10 right-10 h-0.5 bg-slate-100 -z-10 -translate-y-1/2"></div>
-					<div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${step >= 1 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`}>1</div>
-					<div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${step >= 2 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`}>2</div>
-					<div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${step >= 3 ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`}>3</div>
+					<div className="absolute top-1/2 left-10 right-10 h-0.5 bg-slate-100 dark:bg-slate-700 -z-10 -translate-y-1/2"></div>
+					<div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${step >= 1 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500'}`}>1</div>
+					<div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${step >= 2 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500'}`}>2</div>
+					<div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${step >= 3 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500'}`}>3</div>
 				</div>
 
 				{/* Step 1: Account and Selector for Reference */}
@@ -228,11 +228,11 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
 				{step === 2 && (
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
-							<label className="text-sm font-semibold text-slate-700">3. Selecciona el Origen de la Mercancía</label>
+							<label className="text-sm font-semibold text-slate-700 dark:text-slate-300">3. Selecciona el Origen de la Mercancía</label>
 							<Button variant="ghost" size="sm" onClick={() => setStep(1)} className="text-xs">← Cambiar producto</Button>
 						</div>
 
-						<div className="grid grid-cols-1 gap-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+						<div className="grid grid-cols-1 gap-4 bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
 							<SelectField
 								name="originBodega"
 								title="Bodega de Origen"
@@ -292,7 +292,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
 				{/* Step 3: Destination Selection */}
 				{step === 3 && selectedOriginItem && (
 					<div className="space-y-4">
-						<div className="bg-slate-100 rounded-lg p-4 flex items-center justify-between border border-slate-200">
+						<div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 flex items-center justify-between border border-slate-200 dark:border-slate-700">
 							<div>
 								<p className="text-[10px] uppercase font-bold text-slate-400">Vas a trasladar</p>
 								<div className="flex items-center gap-2">

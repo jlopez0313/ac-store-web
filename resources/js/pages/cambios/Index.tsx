@@ -153,7 +153,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
             </div>
 
             <div className="flex w-full max-w-full min-w-0 flex-col overflow-hidden p-4">
-                <div className="w-full min-w-0 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
+                <div className="w-full min-w-0 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}
