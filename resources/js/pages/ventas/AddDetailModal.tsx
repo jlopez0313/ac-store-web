@@ -355,7 +355,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                     ) : (
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
                                     {selectedRef?.foto ? (
                                         <img src={`/storage/${selectedRef.foto}`} alt="Product" className="h-full w-full object-cover" />
                                     ) : (
@@ -392,10 +392,10 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                 <button
                                     key={r.id}
                                     onClick={() => handleSelectRef(r)}
-                                    className="group flex w-full cursor-pointer items-center justify-between rounded-xl p-3 text-left transition-colors hover:bg-slate-50"
+                                    className="group flex w-full cursor-pointer items-center justify-between rounded-xl p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-slate-100 bg-slate-100">
+                                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
                                             {r.foto ? (
                                                 <img src={`/storage/${r.foto}`} alt="Thumb" className="h-full w-full object-cover" />
                                             ) : (
@@ -452,7 +452,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                             {loadingStock ? (
                                 <div className="space-y-3">
                                     {[1, 2].map((i) => (
-                                        <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-50" />
+                                        <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-50 dark:bg-slate-800" />
                                     ))}
                                 </div>
                             ) : (

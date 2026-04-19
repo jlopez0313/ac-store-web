@@ -72,7 +72,9 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                         >
                             {factura.estado === 'cerrada' ? 'Cerrada' : 'Abierta'}
                         </Badge>
-                        <div className="text-xs font-medium text-slate-400 uppercase dark:text-slate-500">{new Date(factura.fecha).toLocaleDateString()}</div>
+                        <div className="text-xs font-medium text-slate-400 uppercase dark:text-slate-500">
+                            {new Date(factura.fecha).toLocaleDateString()}
+                        </div>
                     </div>
                 </div>
 

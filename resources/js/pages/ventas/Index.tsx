@@ -292,7 +292,9 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         <ShoppingCart className="h-10 w-10 text-slate-200 dark:text-slate-600" />
                                     </div>
                                     <div>
-                                        <p className="mb-2 text-xs font-black tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500">Comienza ahora</p>
+                                        <p className="mb-2 text-xs font-black tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500">
+                                            Comienza ahora
+                                        </p>
                                         <p className="text-lg leading-tight font-bold text-slate-900 dark:text-white">
                                             Selecciona una factura de la lista para ver sus detalles o crear una nueva.
                                         </p>

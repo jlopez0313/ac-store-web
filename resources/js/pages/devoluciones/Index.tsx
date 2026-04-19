@@ -80,7 +80,9 @@ export default function Index({ locals, filters: initialFilters }: any) {
             width: '180px',
             cell: (row: any) => (
                 <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{new Date(row.fecha_devolucion).toLocaleDateString()}</span>
+                    <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                        {new Date(row.fecha_devolucion).toLocaleDateString()}
+                    </span>
                     <span className="text-[10px] text-slate-400 dark:text-slate-500">{new Date(row.fecha_devolucion).toLocaleTimeString()}</span>
                 </div>
             ),

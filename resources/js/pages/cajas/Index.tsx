@@ -113,7 +113,9 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
             selector: (row: any) => row.precio_compra,
             right: true,
             width: '120px',
-            cell: (row: any) => <span className="font-semibold text-slate-600 dark:text-slate-400">${Number(row.precio_compra).toLocaleString()}</span>,
+            cell: (row: any) => (
+                <span className="font-semibold text-slate-600 dark:text-slate-400">${Number(row.precio_compra).toLocaleString()}</span>
+            ),
         },
         {
             name: 'P. Venta',

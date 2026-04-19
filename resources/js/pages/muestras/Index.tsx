@@ -125,7 +125,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
             cell: (row: any) => (
                 <div className="flex flex-wrap gap-1">
                     {row.etiquetas?.map((tag: string) => (
-                        <Badge key={tag} variant="outline" className="border-slate-200 bg-slate-50 text-[10px]">
+                        <Badge key={tag} variant="outline" className="border-slate-200 bg-slate-50 text-[10px] dark:border-slate-700 dark:bg-slate-800">
                             {tag}
                         </Badge>
                     ))}

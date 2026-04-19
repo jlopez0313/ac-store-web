@@ -254,9 +254,9 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
             <Head title="Importar Sistema Viejo" />
             <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
                 {/* Header */}
-                <div className="border-b border-gray-200 pb-4">
-                    <h1 className="text-2xl font-bold text-gray-900">Importación de datos</h1>
-                    <p className="mt-1 text-sm text-gray-500">
+                <div className="border-b border-gray-200 pb-4 dark:border-gray-700">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Importación de datos</h1>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         Migra los datos del sistema viejo (Access/Excel) al sistema nuevo. El Excel contiene datos maestros y transacciones; el
                         inventario se carga desde CSV.
                     </p>
@@ -285,9 +285,9 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                                 checked={dryRun}
                                 onChange={(e) => setDryRun(e.target.checked)}
                                 disabled={estaActivo}
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 dark:border-gray-600 dark:bg-gray-700"
                             />
-                            <span className="text-sm text-gray-700">
+                            <span className="text-sm text-gray-700 dark:text-gray-300">
                                 <strong>Simulación</strong>
                             </span>
                         </label>
@@ -298,7 +298,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                 <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
                     {/* Sección 1: Datos maestros (Excel) */}
                     <div
-                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secMaestros ? 'border-gray-200' : 'border-gray-100 opacity-40'}`}
+                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secMaestros ? 'border-gray-200 dark:border-gray-700' : 'border-gray-100 opacity-40 dark:border-gray-800'}`}
                     >
                         <div className="flex items-center gap-2">
                             <input
@@ -306,11 +306,11 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                                 checked={secMaestros}
                                 onChange={(e) => setSecMaestros(e.target.checked)}
                                 disabled={estaActivo}
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 dark:border-gray-600 dark:bg-gray-700"
                             />
                             <div>
-                                <h2 className="text-sm font-semibold text-gray-800">1. Datos maestros</h2>
-                                <p className="text-xs text-gray-500">Excel con categorías, marcas, proveedores, bodegas y referencias</p>
+                                <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200">1. Datos maestros</h2>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Excel con categorías, marcas, proveedores, bodegas y referencias</p>
                             </div>
                         </div>
 
@@ -328,14 +328,14 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             onDragLeave={necesitaExcel ? () => setExcelDragOver(false) : undefined}
                             className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
                                 !necesitaExcel
-                                    ? 'border-gray-200 bg-gray-50 opacity-50'
+                                    ? 'border-gray-200 bg-gray-50 opacity-50 dark:border-gray-700 dark:bg-gray-800'
                                     : excelDragOver
-                                      ? 'cursor-pointer border-blue-400 bg-blue-50'
+                                      ? 'cursor-pointer border-blue-400 bg-blue-50 dark:bg-blue-950/30'
                                       : excelUploadDone
-                                        ? 'border-green-400 bg-green-50'
+                                        ? 'border-green-400 bg-green-50 dark:bg-green-950/30'
                                         : excelFile
-                                          ? 'cursor-pointer border-amber-400 bg-amber-50'
-                                          : 'cursor-pointer border-gray-300 bg-gray-50 hover:border-gray-400'
+                                          ? 'cursor-pointer border-amber-400 bg-amber-50 dark:bg-amber-950/30'
+                                          : 'cursor-pointer border-gray-300 bg-gray-50 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
                             }`}
                         >
                             <input ref={excelRef} type="file" accept=".xlsx" className="hidden" onChange={handleExcelFile} />
@@ -391,7 +391,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                         </div>
 
                         {/* Lista de pasos maestros */}
-                        <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100">
+                        <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100 dark:divide-gray-700 dark:border-gray-700">
                             {PASOS_MAESTROS.map((p, i) => (
                                 <PasoRow key={p.key} paso={p} index={i} disabled={!secMaestros} progreso={progreso} />
                             ))}
@@ -400,7 +400,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
 
                     {/* Sección 2: Inventario (CSV) */}
                     <div
-                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secInventario ? 'border-blue-200 bg-blue-50/30' : 'border-gray-100 opacity-40'}`}
+                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secInventario ? 'border-blue-200 bg-blue-50/30 dark:border-blue-800 dark:bg-blue-950/20' : 'border-gray-100 opacity-40 dark:border-gray-800'}`}
                     >
                         <div className="flex items-center gap-2">
                             <input
@@ -408,11 +408,11 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                                 checked={secInventario}
                                 onChange={(e) => setSecInventario(e.target.checked)}
                                 disabled={estaActivo}
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 dark:border-gray-600 dark:bg-gray-700"
                             />
                             <div>
-                                <h2 className="text-sm font-semibold text-gray-800">2. Inventario</h2>
-                                <p className="text-xs text-gray-500">CSV con los movimientos de inventario (~200k filas)</p>
+                                <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200">2. Inventario</h2>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">CSV con los movimientos de inventario (~200k filas)</p>
                             </div>
                         </div>
 
@@ -430,14 +430,14 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             onDragLeave={secInventario ? () => setCsvDragOver(false) : undefined}
                             className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
                                 !secInventario
-                                    ? 'border-gray-200 bg-gray-50 opacity-50'
+                                    ? 'border-gray-200 bg-gray-50 opacity-50 dark:border-gray-700 dark:bg-gray-800'
                                     : csvDragOver
-                                      ? 'cursor-pointer border-blue-400 bg-blue-50'
+                                      ? 'cursor-pointer border-blue-400 bg-blue-50 dark:bg-blue-950/30'
                                       : csvUploadDone
-                                        ? 'border-green-400 bg-green-50'
+                                        ? 'border-green-400 bg-green-50 dark:bg-green-950/30'
                                         : csvFile
-                                          ? 'cursor-pointer border-amber-400 bg-amber-50'
-                                          : 'cursor-pointer border-gray-300 bg-white hover:border-gray-400'
+                                          ? 'cursor-pointer border-amber-400 bg-amber-50 dark:bg-amber-950/30'
+                                          : 'cursor-pointer border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
                             }`}
                         >
                             <input ref={csvRef} type="file" accept=".csv" className="hidden" onChange={handleCsvFile} />
@@ -487,20 +487,20 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             )}
                         </div>
 
-                        <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100">
+                        <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100 dark:divide-gray-700 dark:border-gray-700">
                             <PasoRow paso={PASO_INVENTARIO} index={6} disabled={!secInventario} progreso={progreso} />
                         </div>
 
                         {secInventario && !csvFile && (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-2">
-                                <p className="text-xs text-amber-700">Si no subes CSV, el inventario se generará desde el Excel (más lento).</p>
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/30">
+                                <p className="text-xs text-amber-700 dark:text-amber-400">Si no subes CSV, el inventario se generará desde el Excel (más lento).</p>
                             </div>
                         )}
                     </div>
 
                     {/* Sección 3: Transacciones (Excel) */}
                     <div
-                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secTransacciones ? 'border-gray-200' : 'border-gray-100 opacity-40'}`}
+                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secTransacciones ? 'border-gray-200 dark:border-gray-700' : 'border-gray-100 opacity-40 dark:border-gray-800'}`}
                     >
                         <div className="flex items-center gap-2">
                             <input
@@ -508,20 +508,20 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                                 checked={secTransacciones}
                                 onChange={(e) => setSecTransacciones(e.target.checked)}
                                 disabled={estaActivo}
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 dark:border-gray-600 dark:bg-gray-700"
                             />
                             <div>
-                                <h2 className="text-sm font-semibold text-gray-800">3. Transacciones</h2>
-                                <p className="text-xs text-gray-500">Traslados, compras, ventas y muestras del mismo Excel</p>
+                                <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200">3. Transacciones</h2>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Traslados, compras, ventas y muestras del mismo Excel</p>
                             </div>
                         </div>
 
-                        <div className="rounded-lg border-2 border-dashed bg-gray-50 p-4 text-center">
+                        <div className="rounded-lg border-2 border-dashed bg-gray-50 p-4 text-center dark:bg-gray-800 dark:border-gray-600">
                             {excelFile ? (
                                 <>
                                     <div className="mb-1 text-xl">📂</div>
-                                    <p className="text-xs font-medium text-gray-700">Usa el mismo Excel</p>
-                                    <p className="text-xs text-gray-500">{excelFile.name}</p>
+                                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300">Usa el mismo Excel</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{excelFile.name}</p>
                                 </>
                             ) : (
                                 <>
@@ -531,7 +531,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             )}
                         </div>
 
-                        <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100">
+                        <div className="divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100 dark:divide-gray-700 dark:border-gray-700">
                             {PASOS_TRANSACCIONES.map((p, i) => (
                                 <PasoRow key={p.key} paso={p} index={7 + i} disabled={!secTransacciones} progreso={progreso} />
                             ))}
@@ -547,7 +547,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             disabled={!estaListo || estaActivo || uploading}
                             className={`w-full rounded-lg py-3 text-sm font-semibold transition-all ${
                                 !estaListo || estaActivo || uploading
-                                    ? 'cursor-not-allowed bg-gray-200 text-gray-400'
+                                    ? 'cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500'
                                     : dryRun
                                       ? 'bg-amber-500 text-white shadow-sm hover:bg-amber-600'
                                       : 'bg-blue-600 text-white shadow-sm hover:bg-blue-700'
@@ -573,16 +573,16 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             <div
                                 className={`space-y-3 rounded-lg border p-4 ${
                                     progreso.paso === 'error'
-                                        ? 'border-red-200 bg-red-50'
+                                        ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30'
                                         : progreso.paso === 'completado'
-                                          ? 'border-green-200 bg-green-50'
+                                          ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30'
                                           : progreso.dry_run
-                                            ? 'border-amber-200 bg-amber-50'
-                                            : 'border-blue-200 bg-blue-50'
+                                            ? 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30'
+                                            : 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30'
                                 }`}
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-gray-800">
+                                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
                                         {progreso.paso === 'error'
                                             ? '❌ Error'
                                             : progreso.paso === 'completado'
@@ -593,10 +593,10 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                                                 ? '⏳ En cola...'
                                                 : `⚙ ${progreso.paso}`}
                                     </span>
-                                    <span className="text-sm font-bold text-gray-700">{progreso.pct}%</span>
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{progreso.pct}%</span>
                                 </div>
 
-                                <div className="h-2.5 w-full rounded-full bg-gray-200">
+                                <div className="h-2.5 w-full rounded-full bg-gray-200 dark:bg-gray-700">
                                     <div
                                         className={`h-2.5 rounded-full transition-all duration-500 ${
                                             progreso.paso === 'error' ? 'bg-red-500' : progreso.paso === 'completado' ? 'bg-green-500' : 'bg-blue-500'
@@ -605,15 +605,15 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                                     />
                                 </div>
 
-                                <p className="text-xs text-gray-600">{progreso.mensaje}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">{progreso.mensaje}</p>
                             </div>
                         )}
 
                         {/* Logs */}
                         {progreso?.logs && progreso.logs.length > 0 && (
                             <div>
-                                <p className="mb-1 text-xs font-medium text-gray-500">Logs del job:</p>
-                                <div className="max-h-52 overflow-y-auto rounded-lg bg-gray-900 p-3">
+                                <p className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">Logs del job:</p>
+                                <div className="max-h-52 overflow-y-auto rounded-lg bg-gray-900 p-3 dark:bg-black">
                                     {progreso.logs.map((l, i) => (
                                         <p
                                             key={i}
@@ -648,18 +648,18 @@ function PasoRow({
 
     return (
         <div
-            className={`flex items-center gap-3 px-3 py-2 transition-colors ${esActual ? 'bg-blue-50' : disabled ? 'bg-gray-50 opacity-40' : 'bg-white'}`}
+            className={`flex items-center gap-3 px-3 py-2 transition-colors ${esActual ? 'bg-blue-50 dark:bg-blue-950/30' : disabled ? 'bg-gray-50 opacity-40 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}`}
         >
             <span className="w-5 text-center text-base">{paso.icon}</span>
-            <span className="flex-1 text-xs text-gray-800">{paso.label}</span>
+            <span className="flex-1 text-xs text-gray-800 dark:text-gray-200">{paso.label}</span>
             {disabled ? (
-                <span className="text-xs text-gray-400">omitido</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">omitido</span>
             ) : esActual ? (
                 <Spinner />
             ) : enLog ? (
                 <span className="text-xs font-medium text-green-600">✓</span>
             ) : (
-                <span className="text-xs text-gray-300">{index + 1}</span>
+                <span className="text-xs text-gray-300 dark:text-gray-600">{index + 1}</span>
             )}
         </div>
     );

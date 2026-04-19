@@ -2,16 +2,15 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DataGrid } from '@/components/ui/DataTable';
+import { SelectField } from '@/components/ui/form/SelectField';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { SelectField } from '@/components/ui/form/SelectField';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Loader2, Search as SearchIcon, X } from 'lucide-react';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Panel principal', href: route('dashboard') },
@@ -114,31 +113,28 @@ export default function Search({ results: initialResults, filters, cuentas, marc
             selector: (row: any) => row.stock,
             sortable: true,
             width: '100px',
-            cell: (row: any) => (
-                <span className={`font-bold ${row.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>
-                    {row.stock}
-                </span>
-            ),
+            cell: (row: any) => <span className={`font-bold ${row.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>{row.stock}</span>,
         },
-        ...(isSuperAdmin ? [{
-            name: 'Cuenta',
-            selector: (row: any) => row.cuenta,
-        }] : []),
+        ...(isSuperAdmin
+            ? [
+                  {
+                      name: 'Cuenta',
+                      selector: (row: any) => row.cuenta,
+                  },
+              ]
+            : []),
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Búsqueda de Referencias" />
 
-            <div className="p-4 space-y-6">
-                <PageHeader
-                    title="Búsqueda de Referencias"
-                    description="Busque disponibilidad de productos por marca, código, referencia o talla."
-                />
+            <div className="space-y-6 p-4">
+                <PageHeader title="Búsqueda de Referencias" description="Busque disponibilidad de productos por marca, código, referencia o talla." />
 
-                <Card className="border-border/50 shadow-sm overflow-visible">
+                <Card className="border-border/50 overflow-visible shadow-sm">
                     <CardContent className="p-4">
-                        <form onSubmit={onSearchSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
+                        <form onSubmit={onSearchSubmit} className="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-12">
                             {isSuperAdmin && (
                                 <div className="lg:col-span-2">
                                     <SelectField
@@ -197,16 +193,20 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                                 />
                             </div>
 
-                            <div className="flex gap-2 min-w-[120px] lg:col-span-2">
-                                <Button type="submit" className="flex-1 h-10" disabled={loading}>
-                                    {loading ? (
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    ) : (
-                                        <SearchIcon className="mr-2 h-4 w-4" />
-                                    )}
+                            <div className="flex min-w-[120px] gap-2 lg:col-span-2">
+                                <Button type="submit" className="h-10 flex-1" disabled={loading}>
+                                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <SearchIcon className="mr-2 h-4 w-4" />}
                                     {loading ? 'Buscando...' : 'Buscar'}
                                 </Button>
-                                <Button type="button" variant="outline" onClick={handleClear} size="icon" className="h-10 w-10 shrink-0" title="Limpiar filtros" disabled={loading}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleClear}
+                                    size="icon"
+                                    className="h-10 w-10 shrink-0"
+                                    title="Limpiar filtros"
+                                    disabled={loading}
+                                >
                                     <X className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -214,12 +214,12 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                     </CardContent>
                 </Card>
 
-                <div className="bg-background rounded-xl shadow-xs border border-border overflow-hidden">
+                <div className="bg-background border-border overflow-hidden rounded-xl border shadow-xs">
                     <DataGrid
                         data={results}
                         columns={columns}
                         total={total}
-                        onSort={() => { }}
+                        onSort={() => {}}
                         fetchPage={handlePageChange}
                         setPageSize={(size) => handlePerRowsChange(size, 1)}
                         serverSide={true}
@@ -229,9 +229,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                         paginationPerPage={perPage}
                         processing={loading}
                         noDataComponent={
-                            <div className="p-8 text-center text-muted-foreground">
-                                No se encontraron resultados para los filtros seleccionados.
-                            </div>
+                            <div className="text-muted-foreground p-8 text-center">No se encontraron resultados para los filtros seleccionados.</div>
                         }
                     />
                 </div>

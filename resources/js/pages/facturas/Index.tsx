@@ -174,7 +174,9 @@ export default function Index({ filters: initialFilters }: any) {
                             <DollarSign className="h-4 w-4" />
                         </div>
                         <div>
-                            <p className="mb-1.5 text-[10px] leading-none font-medium text-slate-400 uppercase dark:text-slate-500">Total Acumulado</p>
+                            <p className="mb-1.5 text-[10px] leading-none font-medium text-slate-400 uppercase dark:text-slate-500">
+                                Total Acumulado
+                            </p>
                             <p className="text-xl leading-none font-bold tracking-tighter text-slate-900 dark:text-white">
                                 ${Number(meta.gran_total || 0).toLocaleString()}
                             </p>
@@ -206,7 +208,9 @@ export default function Index({ filters: initialFilters }: any) {
                                     key={tab.id}
                                     onClick={() => handleSearch(tab.id)}
                                     className={`rounded-md px-3 py-1.5 text-xs font-bold transition-all ${
-                                        filters.tab === tab.id ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                                        filters.tab === tab.id
+                                            ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                                            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                                     }`}
                                 >
                                     {tab.label}
