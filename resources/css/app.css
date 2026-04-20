@@ -162,8 +162,8 @@
     --muted: hsl(220 25% 95%);
     --muted-foreground: hsl(220 20% 50%);
 
-    --accent: hsl(210 90% 50%);
-    --accent-foreground: hsl(0 0% 100%);
+    --accent: hsl(220 25% 93%);
+    --accent-foreground: hsl(220 55% 22%);
 
     --destructive: hsl(0 84.2% 60.2%);
     --destructive-foreground: hsl(0 0% 98%);
@@ -220,8 +220,8 @@
     --secondary-foreground: hsl(220 20% 92%);
     --muted: hsl(220 45% 16%);
     --muted-foreground: hsl(220 20% 60%);
-    --accent: hsl(210 90% 60%);
-    --accent-foreground: hsl(0 0% 100%);
+    --accent: hsl(220 45% 18%);
+    --accent-foreground: hsl(220 20% 92%);
     --border: hsl(220 40% 20%);
     --input: hsl(220 40% 20%);
     --ring: hsl(210 90% 55%);
@@ -323,13 +323,13 @@
 
     /* Status badge variants */
     .badge-open {
-        @apply border border-green-200 bg-green-100 text-green-800;
+        @apply border border-green-200 bg-green-100 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-300;
     }
     .badge-closed {
-        @apply border border-gray-200 bg-gray-100 text-gray-600;
+        @apply border border-gray-200 bg-gray-100 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300;
     }
     .badge-pending {
-        @apply border border-yellow-200 bg-yellow-100 text-yellow-800;
+        @apply border border-yellow-200 bg-yellow-100 text-yellow-800 dark:border-yellow-800 dark:bg-yellow-950 dark:text-yellow-300;
     }
 
     /* Data table row hover */

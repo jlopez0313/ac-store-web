@@ -27,6 +27,7 @@ class User extends Authenticatable
         'password',
         'cuenta_id',
         'estado',
+        'impresion_principal',
         'ciudad_id',
         'precio_suscripcion',
         'fecha_vencimiento',
@@ -62,6 +63,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'fecha_vencimiento' => 'date',
+            'impresion_principal' => 'boolean',
         ];
     }
 

@@ -39,6 +39,8 @@ export interface User {
     is_admin: boolean;
     is_bodega: boolean;
     is_local: boolean;
+    cuenta_id: number | null;
+    impresion_principal: boolean;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;

@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
@@ -144,16 +145,28 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
             <div className="space-y-6 p-4">
                 <PageHeader title="Control de Cajas" description="Gestiona las cajas de productos recibidas de proveedores pendientes por tallar." />
 
-                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-                    <div className="relative max-w-sm flex-1">
-                        <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                        <Input
-                            placeholder="Buscar por código, descripción..."
-                            className="pl-9"
-                            defaultValue={filters.search}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-                            onBlur={(e) => handleSearch(e.target.value)}
-                        />
+                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
+                    <div className="flex flex-1 max-w-sm gap-2">
+                        <div className="relative flex-1">
+                            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input
+                                id="search-input"
+                                placeholder="Buscar por código, descripción..."
+                                className="pl-9"
+                                defaultValue={filters.search}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                            />
+                        </div>
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+                                handleSearch(val);
+                            }}
+                        >
+                            <SearchIcon className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
                     </div>
                     <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="px-3 py-1 text-xs">

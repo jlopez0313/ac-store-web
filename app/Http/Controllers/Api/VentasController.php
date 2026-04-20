@@ -25,7 +25,11 @@ class VentasController extends Controller
         $query = Venta::with(['local', 'detalles.producto', 'detalles.estanteria.bodega']);
 
         if (!$isSuper) {
-            $query->where('cuenta_id', $user->cuenta_id);
+            if ($user->role === 'local') {
+                $query->where('user_id', $user->id);
+            } else {
+                $query->where('cuenta_id', $user->cuenta_id);
+            }
         }
 
         if ($request->filled('search')) {

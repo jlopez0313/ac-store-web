@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/Modal';
@@ -177,17 +178,29 @@ export default function Index({ filters: initialFilters }: any) {
 					description="Visualiza el stock disponible agrupado por referencia y marca."
 				/>
 
-				<div className="flex items-center justify-between gap-4">
-					<div className="relative flex-1 max-w-sm">
-						<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-						<Input
-							placeholder="Buscar por código, descripción, marca..."
-							className="pl-9"
-							defaultValue={filters.search}
-							onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-							onBlur={(e) => handleSearch(e.target.value)}
-						/>
-					</div>
+				<div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <div className="flex flex-1 max-w-sm gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="search-input"
+                                placeholder="Buscar por código, descripción, marca..."
+                                className="pl-9"
+                                defaultValue={filters.search}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                            />
+                        </div>
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+                                handleSearch(val);
+                            }}
+                        >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
+                    </div>
 					<div className="flex items-center gap-2">
 						<Badge variant="secondary" className="px-3 py-1 text-xs">
 							Total referencias: {meta.total}

@@ -114,7 +114,18 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                         Agregar Producto
                                     </Button>
                                 )}
-                                {factura.detalles?.length > 0 && (
+                                {factura.detalles?.length > 0 && isLocal && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => onPrint('pendientes')}
+                                        className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                    >
+                                        <Printer className="mr-2 h-4 w-4" />
+                                        Imprimir pendientes
+                                    </Button>
+                                )}
+                                {factura.detalles?.length > 0 && !isLocal && (
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button

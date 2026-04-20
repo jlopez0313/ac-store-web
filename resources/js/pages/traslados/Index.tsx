@@ -99,23 +99,31 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Traslados de Inventario" />
 
-            <div className="space-y-6 p-4">
+            <div className="p-4 space-y-6">
                 <PageHeader title="Historial de Traslados" description="Registro de movimientos de mercancía entre bodegas y estanterías." />
 
-                <div className="flex items-center justify-between gap-4">
-                    <div className="relative max-w-sm flex-1">
-                        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                        <Input
-                            placeholder="Buscar por código, descripción, usuario..."
-                            className="pl-9"
-                            defaultValue={filters.search}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-                            onBlur={(e) => {
-                                if (e.target.value !== (filters.search || '')) {
-                                    handleSearch(e.target.value);
-                                }
+                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
+                    <div className="flex flex-1 max-w-sm gap-2">
+                        <div className="relative flex-1">
+                            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input
+                                id="search-input"
+                                placeholder="Buscar por código..."
+                                className="pl-9"
+                                defaultValue={filters.search}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                            />
+                        </div>
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+                                handleSearch(val);
                             }}
-                        />
+                        >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button onClick={() => setIsModalOpen(true)}>

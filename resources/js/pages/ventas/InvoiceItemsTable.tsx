@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 import { Edit, ExternalLink, Package, RefreshCcw, Tag, Trash, Warehouse } from 'lucide-react';
 import React from 'react';
 
@@ -68,7 +69,10 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                         {factura.detalles?.map((detalle: any) => (
                             <TableRow
                                 key={detalle.id}
-                                className="group border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50/30 dark:border-slate-800 dark:hover:bg-slate-800/30"
+                                className={cn(
+                                    'group border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50/30 dark:border-slate-800 dark:hover:bg-slate-800/30',
+                                    !detalle.impreso && 'bg-yellow-50/60 dark:bg-yellow-950/20',
+                                )}
                             >
                                 <TableCell className="px-4 py-4">
                                     {isAdmin && factura.estado === 'abierta' && (

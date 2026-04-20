@@ -2,6 +2,7 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { createPrintRequest } from '@/lib/firebase';
 import { confirmDialog, showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
 import { printCuadre } from '@/utils/printCuadre';
@@ -197,10 +198,12 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <PageHeader title="Módulo de Ventas" description="Gestión de facturación a locales y control de salidas de inventario." />
                     <div className="flex items-center gap-4">
-                        <Button onClick={() => setIsCreateModalOpen(true)}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Nueva Factura
-                        </Button>
+                        {isAdmin && (
+                            <Button onClick={() => setIsCreateModalOpen(true)}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                Nueva Factura
+                            </Button>
+                        )}
                     </div>
                 </div>
 
@@ -231,13 +234,49 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                     }}
                                     onCloseFactura={handleCloseFactura}
                                     onPrint={async (type) => {
-                                        const detalles = selectedFactura.detalles || [];
+                                        // Re-fetch factura to get current impreso status
+                                        let freshFactura = selectedFactura;
+                                        try {
+                                            const res = await axios.get(route('api.ventas.index'), {
+                                                params: { search: selectedFactura.id, per_page: 1 },
+                                            });
+                                            const found = res.data.data?.find((f: any) => f.id === selectedFactura.id);
+                                            if (found) {
+                                                freshFactura = found;
+                                                setSelectedFactura(found);
+                                            }
+                                        } catch {
+                                            // Continue with stale data if fetch fails
+                                        }
+
+                                        const detalles = freshFactura.detalles || [];
+                                        const localName = freshFactura.local?.name || auth.user.name;
+
+                                        // Local users send print request to Firebase for bodega to handle
+                                        if (auth.user.role === 'local' && (type === 'pendientes' || type === 'cuadre')) {
+                                            const cuentaId = freshFactura.cuenta_id || auth.user.cuenta_id;
+                                            if (!cuentaId) {
+                                                showAlert('error', 'No se pudo determinar la cuenta.');
+                                                return;
+                                            }
+                                            try {
+                                                await createPrintRequest(cuentaId, {
+                                                    venta_id: freshFactura.id,
+                                                    local_name: localName,
+                                                    type,
+                                                });
+                                                showAlert('success', 'Solicitud de impresión enviada.');
+                                            } catch {
+                                                showAlert('error', 'Error al enviar solicitud de impresión.');
+                                            }
+                                            return;
+                                        }
 
                                         if (type === 'cuadre') {
                                             printCuadre({
-                                                facturaId: selectedFactura.id,
-                                                localName: selectedFactura.local?.name || auth.user.name,
-                                                vendedor: selectedFactura.vendedor || auth.user.name,
+                                                facturaId: freshFactura.id,
+                                                localName,
+                                                vendedor: freshFactura.vendedor || auth.user.name,
                                                 items: detalles,
                                             });
                                             return;
@@ -256,20 +295,20 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         }
 
                                         printReceipts({
-                                            facturaId: selectedFactura.id,
-                                            localName: selectedFactura.local?.name || auth.user.name,
+                                            facturaId: freshFactura.id,
+                                            localName,
                                             items,
                                         });
 
                                         if (type === 'pendientes') {
                                             try {
-                                                await axios.post(route('api.ventas.mark_printed', selectedFactura.id), {
+                                                await axios.post(route('api.ventas.mark_printed', freshFactura.id), {
                                                     detalle_ids: items.map((d: any) => d.id),
                                                 });
                                                 const updatedDetalles = detalles.map((d: any) =>
                                                     items.find((i: any) => i.id === d.id) ? { ...d, impreso: true } : d,
                                                 );
-                                                setSelectedFactura({ ...selectedFactura, detalles: updatedDetalles });
+                                                setSelectedFactura({ ...freshFactura, detalles: updatedDetalles });
                                             } catch {
                                                 showAlert('error', 'Error al marcar ítems como impresos.');
                                             }

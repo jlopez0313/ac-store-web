@@ -364,14 +364,12 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                 </div>
                                 <div className="space-y-0.5">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-foreground text-xl font-black">{selectedRef?.codigo}</span>
+                                        <span className="text-foreground text-xl font-bold">{selectedRef?.codigo}</span>
                                         <Badge variant="outline" className="text-muted-foreground h-5 border px-2 text-[10px] font-bold uppercase">
                                             {typeof selectedRef?.marca === 'object' ? selectedRef.marca.nombre : selectedRef?.marca || 'N/A'}
                                         </Badge>
                                     </div>
-                                    <h3 className="text-muted-foreground text-[13px] font-bold tracking-wide uppercase">
-                                        {selectedRef?.descripcion}
-                                    </h3>
+                                    <h3 className="text-muted-foreground text-[13px] font-bold uppercase">{selectedRef?.descripcion}</h3>
                                 </div>
                             </div>
                             <button
@@ -462,7 +460,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                             <div className="bg-muted/30 flex items-center justify-between border-b px-4 py-2">
                                                 <div className="text-foreground flex items-center gap-2">
                                                     <Warehouse className="text-muted-foreground h-3.5 w-3.5" />
-                                                    <span className="text-[11px] font-bold tracking-widest uppercase">{bodega.nombre}</span>
+                                                    <span className="text-[11px] font-bold uppercase">{bodega.nombre}</span>
                                                 </div>
                                                 <span className="text-muted-foreground text-[11px]">{bodega.total_stock} uds disponibles</span>
                                             </div>
@@ -497,7 +495,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                                                             </div>
                                                                         )}
                                                                     </div>
-                                                                    <div className="text-muted-foreground flex items-center gap-2 text-[11px] tracking-tight">
+                                                                    <div className="flex items-center gap-2 text-[12px]">
                                                                         <span>{item.stock} disp.</span>
                                                                         <span className="text-foreground border-border ml-1 border-l pl-2">
                                                                             ${Number(item.precio_ajustado || 0).toLocaleString()}

@@ -188,43 +188,50 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Muestras" />
-
-            <div className="space-y-6 p-4">
+            <div className="p-4 space-y-6">
                 <PageHeader title="Distribución de Muestras" description="Historial de muestras enviadas a locales." />
-            </div>
 
-            <div className="flex flex-col justify-between gap-4 px-4 pt-4 md:flex-row md:items-end">
-                <div className="flex max-w-md flex-1 items-center gap-2">
-                    <div className="relative flex-1">
-                        <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                        <Input
-                            placeholder="Buscar por código, local..."
-                            className="pl-9"
-                            defaultValue={filters.search}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-                            onBlur={(e) => handleSearch(e.target.value)}
-                        />
+                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
+                    <div className="flex flex-1 max-w-md gap-2">
+                        <div className="relative flex-1">
+                            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input
+                                id="search-input"
+                                placeholder="Buscar por referencia..."
+                                className="pl-9"
+                                defaultValue={filters.search}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                            />
+                        </div>
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+                                handleSearch(val);
+                            }}
+                        >
+                            <SearchIcon className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
                     </div>
-                </div>
-                <Button
-                    className="ms-4"
-                    onClick={() => {
-                        setSelectedId(null);
-                        setShow(true);
-                    }}
-                >
-                    <Plus className="mr-2 h-5 w-5" />
-                    Registrar Muestra
-                </Button>
-            </div>
 
-            <div className="p-4">
+                    <Button
+                        onClick={() => {
+                            setSelectedId(null);
+                            setShow(true);
+                        }}
+                    >
+                        <Plus className="mr-2 h-5 w-5" />
+                        Registrar Muestra
+                    </Button>
+                </div>
+
                 <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}
                         total={meta.total}
-                        loading={loading}
+                        processing={loading}
                         currentPage={meta.current_page}
                         paginationPerPage={meta.per_page}
                         actions={actions}
@@ -232,7 +239,14 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                         paginationServer={true}
                         fetchPage={(page) => setFilters((prev) => ({ ...prev, page }))}
                         setPageSize={(size) => setFilters((prev) => ({ ...prev, per_page: size, page: 1 }))}
-                        onSort={() => {}}
+                        onSort={(column: any, sortOrder) => {
+                            setFilters((prev) => ({
+                                ...prev,
+                                sort_field: column.sortField,
+                                sort_order: sortOrder,
+                                page: 1,
+                            }));
+                        }}
                     />
                 </div>
             </div>

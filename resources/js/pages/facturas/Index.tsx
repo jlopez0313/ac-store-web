@@ -184,11 +184,12 @@ export default function Index({ filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
                     <div className="flex max-w-md flex-1 items-center gap-2">
                         <div className="relative flex-1">
                             <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                             <Input
+                                id="search-input"
                                 placeholder="Buscar por ID, vendedor, local..."
                                 className="pl-9"
                                 value={searchValue}
@@ -196,22 +197,28 @@ export default function Index({ filters: initialFilters }: any) {
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                             />
                         </div>
-                        <Button variant="outline" onClick={() => handleSearch()}>
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+                                handleSearch();
+                            }}
+                        >
+                            <SearchIcon className="h-4 w-4 mr-2" />
                             Buscar
                         </Button>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3 border rounded-lg">
                         <div className="flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => handleSearch(tab.id)}
-                                    className={`rounded-md px-3 py-1.5 text-xs font-bold transition-all ${
-                                        filters.tab === tab.id
-                                            ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
-                                            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                                    }`}
+                                    className={`rounded-md px-3 py-1.5 text-xs font-bold transition-all ${filters.tab === tab.id
+                                        ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-white'
+                                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                                        }`}
                                 >
                                     {tab.label}
                                 </button>
@@ -225,7 +232,7 @@ export default function Index({ filters: initialFilters }: any) {
                         data={data}
                         columns={columns}
                         total={meta.total}
-                        loading={loading}
+                        processing={loading}
                         serverSide={true}
                         paginationServer={true}
                         currentPage={meta.current_page}

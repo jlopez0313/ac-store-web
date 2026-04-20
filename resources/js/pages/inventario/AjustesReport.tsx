@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
@@ -152,17 +153,28 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 					description="Consulta todos los cambios realizados manualmente en el stock y precios de inventario."
 				/>
 
-				<div className="flex flex-wrap items-center justify-between gap-4 bg-muted/20 p-4 rounded-xl border border-border">
-					<div className="flex items-center gap-4 flex-1 min-w-[300px]">
+				<div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-700">
+					<div className="flex items-center gap-2 flex-1 min-w-[300px]">
 						<div className="relative flex-1">
 							<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 							<Input
+								id="search-input"
 								placeholder="Buscar por código o descripción..."
 								className="pl-9"
 								defaultValue={filters.search}
 								onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
 							/>
 						</div>
+						<Button
+							variant="secondary"
+							onClick={() => {
+								const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+								handleSearch(val);
+							}}
+						>
+							<SearchIcon className="h-4 w-4 mr-2" />
+							Buscar
+						</Button>
 					</div>
 					
 					<div className="flex items-center gap-2">

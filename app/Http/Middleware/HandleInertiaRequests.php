@@ -51,6 +51,8 @@ class HandleInertiaRequests extends Middleware
                     'is_admin'      => $user->isAdmin(),
                     'is_bodega'     => $user->isBodega(),
                     'is_local'      => $user->isLocal(),
+                    'cuenta_id'     => $user->cuenta_id,
+                    'impresion_principal' => (bool) $user->impresion_principal,
                 ] : null,
             ],
             'constants' => [

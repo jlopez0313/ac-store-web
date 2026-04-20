@@ -48,7 +48,7 @@ function buildTicketHtml(item: PrintItem, facturaId: number, localName: string, 
         <div class="ticket">
             <div class="row">
                 <span><b>REF ${item.producto.codigo} </b></span>
-                <span><b>EST ${item.estanteria_nombre} </b></span>
+                <span><b>EST ${item.estanteria_nombre.substring(0, 4)} </b></span>
                 <span><b>FAC ${facturaId} </b></span>
             </div>
             <div class="row header-labels">

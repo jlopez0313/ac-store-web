@@ -120,25 +120,39 @@ export default function Index({ filters: initialFilters, cuentas, tipos_document
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Proveedores" />
-
-            <div className="space-y-6 p-4">
+            <div className="p-4 space-y-6">
                 <PageHeader title="Proveedores" description="Gestión del catálogo de proveedores para compras y abastecimiento." />
 
-                <div className="flex items-center justify-between gap-4">
-                    <div className="relative max-w-sm flex-1">
-                        <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                        <Input
-                            placeholder="Buscar por nombre, documento..."
-                            className="pl-9"
-                            defaultValue={filters.search}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-                            onBlur={(e) => handleSearch(e.target.value)}
-                        />
+                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
+                    <div className="flex flex-1 max-w-sm gap-2">
+                        <div className="relative flex-1">
+                            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                            <Input
+                                id="search-input"
+                                placeholder="Buscar por nombre, NIT..."
+                                className="pl-9"
+                                defaultValue={filters.search}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                            />
+                        </div>
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+                                handleSearch(val);
+                            }}
+                        >
+                            <SearchIcon className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
                     </div>
-                    <Button onClick={() => onToggleModal(true)}>
-                        <Plus className="mr-2 h-5 w-5" />
-                        Nuevo Proveedor
-                    </Button>
+
+                    <div className="flex items-center gap-2">
+                        <Button onClick={() => onToggleModal(true)}>
+                            <Plus className="mr-2 h-5 w-5" />
+                            Nuevo Proveedor
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
@@ -153,7 +167,7 @@ export default function Index({ filters: initialFilters, cuentas, tipos_document
                         serverSide={true}
                         paginationServer={true}
                         fetchPage={(page) => setFilters((prev) => ({ ...prev, page }))}
-                        setPageSize={(per_page) => setFilters((prev) => ({ ...prev, per_page, page: 1 }))}
+                        setPageSize={(size) => setFilters((prev) => ({ ...prev, per_page: size, page: 1 }))}
                         onSort={(column: any, sortOrder) => {
                             setFilters((prev) => ({
                                 ...prev,

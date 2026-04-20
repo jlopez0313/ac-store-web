@@ -128,16 +128,27 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                         </CardHeader>
 
                         <CardContent className="flex flex-1 flex-col overflow-hidden p-2">
-                            <div className="relative mb-2 shrink-0">
-                                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                                <input
-                                    type="text"
-                                    defaultValue={filters.search}
-                                    placeholder="Buscar factura, proveedor..."
-                                    className="w-full rounded-lg border border-slate-200 py-2 pr-3 pl-9 text-sm transition-all focus:border-transparent focus:ring-2 focus:ring-slate-900 focus:outline-none"
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-                                    onBlur={(e) => handleSearch(e.target.value)}
-                                />
+                            <div className="flex shrink-0 gap-2 mb-2 px-1">
+                                <div className="relative flex-1">
+                                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                    <input
+                                        id="search-input"
+                                        type="text"
+                                        defaultValue={filters.search}
+                                        placeholder="Buscar factura, proveedor..."
+                                        className="w-full rounded-lg border border-slate-200 py-2 pr-3 pl-9 text-sm transition-all focus:border-transparent focus:ring-2 focus:ring-slate-900 focus:outline-none"
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                    />
+                                </div>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                        const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+                                        handleSearch(val);
+                                    }}
+                                >
+                                    <Search className="h-4 w-4" />
+                                </Button>
                             </div>
                             <div className="flex-1 space-y-1 overflow-y-auto pr-1">
                                 {loading && facturas.length === 0 ? (

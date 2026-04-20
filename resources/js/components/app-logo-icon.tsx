@@ -11,3 +11,4 @@ export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
         </svg>
     );
 }
+

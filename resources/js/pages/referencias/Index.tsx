@@ -143,40 +143,54 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
 
             <div className="space-y-6 p-4">
                 <PageHeader title="Referencias (Productos)" description="Gestión del catálogo maestro de productos y variaciones." />
-
-                <div className="flex items-center justify-between gap-4">
-                    <div className="relative max-w-sm flex-1">
-                        <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                        <Input
-                            placeholder="Buscar por código, descripción, marca..."
-                            className="pl-9"
-                            defaultValue={filters.search}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-                            onBlur={(e) => handleSearch(e.target.value)}
-                        />
-                    </div>
-                    <div className="flex gap-2">
-                        {isSuperAdmin && cuentas?.length > 0 && (
-                            <div className="w-[220px]">
-                                <SelectField
-                                    name="cuenta_id"
-                                    title=""
-                                    placeholder="Todas las cuentas"
-                                    value={selectedCuenta}
-                                    onChange={(val) => {
-                                        setSelectedCuenta((val as string) || '');
-                                        setFilters((prev) => ({ ...prev, page: 1 }));
-                                    }}
-                                    lista={cuentas}
-                                    item={{ idx: 'id', value: 'nombre' }}
-                                    error={undefined}
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                        <div className="flex flex-1 max-w-md gap-2">
+                            <div className="relative flex-1">
+                                <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                <Input
+                                    id="search-input"
+                                    placeholder="Buscar por código, descripción, marca..."
+                                    className="pl-9"
+                                    defaultValue={filters.search}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
                                 />
                             </div>
-                        )}
-                        <Button onClick={() => onToggleModal(true)}>
-                            <Plus className="mr-2 h-5 w-5" />
-                            Nueva Referencia
-                        </Button>
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+                                    handleSearch(val);
+                                }}
+                            >
+                                <SearchIcon className="h-4 w-4 mr-2" />
+                                Buscar
+                            </Button>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                            {isSuperAdmin && cuentas?.length > 0 && (
+                                <div className="w-[220px]">
+                                    <SelectField
+                                        name="cuenta_id"
+                                        title=""
+                                        placeholder="Todas las cuentas"
+                                        value={selectedCuenta}
+                                        onChange={(val) => {
+                                            setSelectedCuenta((val as string) || '');
+                                            setFilters((prev) => ({ ...prev, page: 1 }));
+                                        }}
+                                        lista={cuentas}
+                                        item={{ idx: 'id', value: 'nombre' }}
+                                        error={undefined}
+                                    />
+                                </div>
+                            )}
+                            <Button onClick={() => onToggleModal(true)}>
+                                <Plus className="mr-2 h-5 w-5" />
+                                Nueva Referencia
+                            </Button>
+                        </div>
                     </div>
                 </div>
 

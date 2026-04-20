@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Dialog, Transition } from "@headlessui/react";
+import { X } from "lucide-react";
 import { Fragment } from "react";
 
 const MaxWidthClass = {
@@ -79,11 +80,21 @@ export const Modal = ({
                         className={cn(
                             'relative z-50',
                             'mb-6 bg-background rounded-lg overflow-hidden shadow-xl transform transition-all w-full sm:mx-auto border border-border',
+                            'max-h-[90vh] overflow-y-auto',
                             maxWidthClass,
                             className
                         )}
                     >
-                        <Dialog.Title className="text-lg font-medium leading-6 text-foreground max-w-7xl sm:px-6 lg:px-8 px-3 mt-6">
+                        {closeable && (
+                            <button
+                                type="button"
+                                onClick={close}
+                                className="absolute top-4 right-4 z-10 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                        <Dialog.Title className="text-lg font-medium leading-6 text-foreground max-w-7xl sm:px-6 lg:px-8 px-3 mt-6 pr-10">
                             {title}
                         </Dialog.Title>
                         <Dialog.Description className="text-sm leading-6 text-muted-foreground max-w-7xl sm:px-6 lg:px-8 px-3 mt-1">

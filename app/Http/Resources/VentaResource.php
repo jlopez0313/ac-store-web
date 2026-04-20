@@ -14,12 +14,19 @@ class VentaResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $bodega = $this->detalles->first()?->bodega;
+
+        if (!$bodega && $this->local) {
+            $acceso = \App\Models\BodegaAcceso::where('user_id', $this->user_id)->first();
+            $bodega = $acceso ? $acceso->bodega : null;
+        }
+
         return [
             'id' => $this->id,
             'local' => new UserResource($this->local),
-            'bodega' => $this->detalles->first()?->bodega ? [
-                'id' => $this->detalles->first()->bodega->id,
-                'nombre' => $this->detalles->first()->bodega->nombre,
+            'bodega' => $bodega ? [
+                'id' => $bodega->id,
+                'nombre' => $bodega->nombre,
             ] : null,
             'fecha' => $this->fecha ? $this->fecha->format('Y-m-d') : null,
             'created_at' => $this->created_at->toISOString(),

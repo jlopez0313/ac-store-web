@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
@@ -132,18 +133,28 @@ export default function Index({ filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs md:flex-row md:items-center dark:border-slate-700 dark:bg-slate-900">
-                    <div className="max-w-sm flex-1">
-                        <div className="relative">
+                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:items-center dark:border-slate-700 dark:bg-slate-900">
+                    <div className="max-w-md flex-1 flex gap-2">
+                        <div className="relative flex-1">
                             <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                             <Input
+                                id="search-input"
                                 placeholder="Buscar por código, descripción..."
                                 className="pl-9"
                                 defaultValue={filters.search}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-                                onBlur={(e) => handleSearch(e.target.value)}
                             />
                         </div>
+                        <Button
+                            variant="secondary"
+                            onClick={() => {
+                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+                                handleSearch(val);
+                            }}
+                        >
+                            <SearchIcon className="h-4 w-4 mr-2" />
+                            Buscar
+                        </Button>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
@@ -164,7 +175,7 @@ export default function Index({ filters: initialFilters }: any) {
                         data={items}
                         columns={columns}
                         total={meta.total}
-                        loading={loading}
+                        processing={loading}
                         currentPage={meta.current_page}
                         paginationPerPage={meta.per_page}
                         serverSide={true}
