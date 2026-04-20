@@ -53,6 +53,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('ventas/{venta}/mark-printed', [App\Http\Controllers\Api\VentasController::class, 'markPrinted'])->name('api.ventas.mark_printed');
     Route::get('search-references', [App\Http\Controllers\Api\VentasController::class, 'searchReferences'])->name('api.ventas.search_references');
 
+    // Impresión directa
+    Route::post('print/tickets', [App\Http\Controllers\Api\PrinterController::class, 'printTickets'])->name('api.print.tickets');
+    Route::post('print/cuadre', [App\Http\Controllers\Api\PrinterController::class, 'printCuadre'])->name('api.print.cuadre');
+
     // Traslados
     Route::prefix('traslados')->group(function () {
         Route::get('referencias', [App\Http\Controllers\TrasladosController::class, 'getReferenciasByCuenta'])->name('api.traslados.referencias');

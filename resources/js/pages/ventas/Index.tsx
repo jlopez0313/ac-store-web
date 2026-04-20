@@ -4,7 +4,8 @@ import { Card } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { confirmDialog, showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
-import { printCuadre, printReceipts } from '@/utils/printReceipt';
+import { printCuadre } from '@/utils/printCuadre';
+import { printReceipts } from '@/utils/printReceipt';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Plus, ShoppingCart } from 'lucide-react';
@@ -233,12 +234,13 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         const detalles = selectedFactura.detalles || [];
 
                                         if (type === 'cuadre') {
-                                            printCuadre({
+                                            const ok = await printCuadre({
                                                 facturaId: selectedFactura.id,
                                                 localName: selectedFactura.local?.name || auth.user.name,
                                                 vendedor: selectedFactura.vendedor || auth.user.name,
                                                 items: detalles,
                                             });
+                                            if (!ok) showAlert('error', 'Error al imprimir cuadre.');
                                             return;
                                         }
 
@@ -254,11 +256,16 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                             items = detalles;
                                         }
 
-                                        printReceipts({
+                                        const ok = await printReceipts({
                                             facturaId: selectedFactura.id,
                                             localName: selectedFactura.local?.name || auth.user.name,
                                             items,
                                         });
+
+                                        if (!ok) {
+                                            showAlert('error', 'Error al imprimir tickets.');
+                                            return;
+                                        }
 
                                         if (type === 'pendientes') {
                                             try {

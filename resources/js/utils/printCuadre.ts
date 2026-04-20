@@ -1,30 +1,29 @@
 import axios from 'axios';
 
-interface PrintItem {
-    id: number;
+interface CuadreItem {
     producto: {
         codigo: string;
         descripcion: string;
-        marca: string;
     };
-    estanteria_nombre: string;
-    bodega_nombre: string;
     talla: string;
     cantidad: number;
+    precio_unitario: number;
 }
 
-interface PrintData {
+interface CuadreData {
     facturaId: number;
     localName: string;
-    items: PrintItem[];
+    vendedor: string;
+    items: CuadreItem[];
     footer?: string;
 }
 
-export async function printReceipts(data: PrintData): Promise<boolean> {
+export async function printCuadre(data: CuadreData): Promise<boolean> {
     try {
-        const res = await axios.post(route('api.print.tickets'), {
+        const res = await axios.post(route('api.print.cuadre'), {
             facturaId: data.facturaId,
             localName: data.localName,
+            vendedor: data.vendedor,
             items: data.items,
             footer: data.footer,
         });
