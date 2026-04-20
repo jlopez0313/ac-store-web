@@ -4,9 +4,10 @@ import { InputField } from '@/components/ui/form/InputField';
 import { Modal } from '@/components/ui/Modal';
 import { showAlert } from '@/plugins/sweetalert';
 import { router } from '@inertiajs/react';
+import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-export const AccesoModal = ({ isOpen, onClose, bodega, local }: any) => {
+export const AccesoModal = ({ isOpen, onClose, bodega, local, onSuccess }: any) => {
 	const [canView, setCanView] = useState(false);
 	const [canOrder, setCanOrder] = useState(false);
 	const [descuento, setDescuento] = useState<string | number>(0);
@@ -20,19 +21,23 @@ export const AccesoModal = ({ isOpen, onClose, bodega, local }: any) => {
 		}
 	}, [isOpen, local]);
 
-	const handleSave = () => {
+	const handleSave = async () => {
 		setProcessing(true);
-		router.post(route('bodegas.accesos.update', { bodega: bodega.id, user_id: local.id }), {
-			can_view: canView,
-			can_order: canOrder,
-			descuento: descuento
-		}, {
-			onSuccess: () => {
-				showAlert('success', 'Permisos actualizados.');
-				onClose();
-			},
-			onFinish: () => setProcessing(false)
-		});
+		try {
+			await axios.post(route('api.bodegas.accesos.update', { bodega: bodega.id, user_id: local.id }), {
+				can_view: canView,
+				can_order: canOrder,
+				descuento: descuento
+			});
+			showAlert('success', 'Permisos actualizados.');
+			if (onSuccess) onSuccess();
+			onClose();
+		} catch (error) {
+			console.error('Error updating permisos:', error);
+			showAlert('error', 'No se pudieron actualizar los permisos.');
+		} finally {
+			setProcessing(false);
+		}
 	};
 
 	if (!local) return null;
