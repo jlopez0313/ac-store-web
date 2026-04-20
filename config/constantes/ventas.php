@@ -7,12 +7,12 @@ return [
      * Los días no listados o vacíos se consideran cerrados.
      */
     'horarios_locales' => [
-        'monday' => [['08:00', '17:00']],
-        'tuesday' => [['08:00', '17:00']],
-        'wednesday' => [['08:00', '17:00']],
-        'thursday' => [['08:00', '17:00']],
-        'friday' => [['08:00', '17:00']],
-        'saturday' => [['08:00', '17:00']],
+        'monday' => [['09:00', '17:00']],
+        'tuesday' => [['09:00', '17:00']],
+        'wednesday' => [['09:00', '17:00']],
+        'thursday' => [['09:00', '17:00']],
+        'friday' => [['09:00', '17:00']],
+        'saturday' => [['09:00', '17:00']],
         'sunday' => [], // Cerrado
     ],
 

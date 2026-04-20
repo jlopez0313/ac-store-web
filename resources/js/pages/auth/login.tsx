@@ -37,7 +37,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 	};
 
 	return (
-		<AuthLayout title="Inicia sesión en tu cuenta" description="Ingresa tu nombre de usuario y contraseña para continuar">
+		<AuthLayout title="Ingresa a tu cuenta" description="Ingresa tu usuario y contraseña para continuar">
 			<Head title="Iniciar sesión" />
 
 			<form className="flex flex-col gap-6" onSubmit={submit}>
@@ -82,7 +82,13 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 					</div>
 
 					<div className="flex items-center space-x-3">
-						<Checkbox id="remember" name="remember" tabIndex={3} />
+						<Checkbox
+							id="remember"
+							name="remember"
+							tabIndex={3}
+							checked={data.remember as boolean}
+							onCheckedChange={(checked) => setData('remember', checked as boolean)}
+						/>
 						<Label htmlFor="remember">Recordarme</Label>
 					</div>
 
