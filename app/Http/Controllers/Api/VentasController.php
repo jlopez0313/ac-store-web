@@ -59,7 +59,7 @@ class VentasController extends Controller
                 $query->where('cuenta_id', $cuenta_id);
             }
         } else {
-            $query->where('cuenta_id', $user->cuenta_id);
+            $query->whereIn('cuenta_id', $user->getAccessibleAccountIds());
         }
 
         if ($request->filled('search')) {
