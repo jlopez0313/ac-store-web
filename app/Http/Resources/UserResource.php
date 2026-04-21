@@ -23,6 +23,7 @@ class UserResource extends JsonResource
             'cuenta_id'  => $this->cuenta_id,
             'estado'     => $this->estado,
             'impresion_principal' => $this->impresion_principal,
+            'nombre_impresora' => $this->nombre_impresora,
             'ciudad_id'  => $this->ciudad_id,
             'ciudad'     => $this->ciudad ? [
                 'id' => $this->ciudad->id,

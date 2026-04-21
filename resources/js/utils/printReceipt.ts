@@ -81,7 +81,7 @@ function buildTicketHtml(item: PrintItem, facturaId: number, localName: string, 
     `;
 }
 
-export function printReceipts(data: PrintData): void {
+export function printReceipts(data: PrintData, returnHtml = false): string | void {
     const footer = data.footer || import.meta.env.VITE_APP_NAME || ' / WhatsApp / 300 000 0000';
     const ticketsHtml = data.items.map((item) => buildTicketHtml(item, data.facturaId, data.localName, footer)).join('');
 
@@ -193,15 +193,12 @@ export function printReceipts(data: PrintData): void {
 </head>
 <body>
     ${ticketsHtml}
-    <script>
-        window.onload = function() {
-            window.print();
-            window.onafterprint = function() { window.close(); };
-            setTimeout(function() { window.close(); }, 10000);
-        };
-    </script>
 </body>
 </html>`;
+
+    if (returnHtml) {
+        return html;
+    }
 
     const printWindow = window.open('', '_blank', 'width=320,height=600');
     if (printWindow) {

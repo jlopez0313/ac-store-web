@@ -41,6 +41,7 @@ export interface User {
     is_local: boolean;
     cuenta_id: number | null;
     impresion_principal: boolean;
+    nombre_impresora?: string;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;

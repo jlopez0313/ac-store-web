@@ -4,9 +4,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { getPrintRequestsRef, onValue, removePrintRequest, type PrintRequest } from '@/lib/firebase';
 import { showAlert } from '@/plugins/sweetalert';
 import { printReceipts } from '@/utils/printReceipt';
+import { printWithQZ } from '@/utils/qz-service';
+import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Bell, Loader2, Printer } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Props {
     cuentaId?: number | null;
@@ -15,6 +17,8 @@ interface Props {
 export function PrintNotificationBell({ cuentaId }: Props) {
     const [requests, setRequests] = useState<PrintRequest[]>([]);
     const [processingKey, setProcessingKey] = useState<string | null>(null);
+    const { auth } = usePage().props as any;
+    const processedKeys = useRef<Set<string>>(new Set());
 
     useEffect(() => {
         const dbRef = getPrintRequestsRef(cuentaId);
@@ -49,6 +53,17 @@ export function PrintNotificationBell({ cuentaId }: Props) {
         return () => unsubscribe();
     }, [cuentaId]);
 
+    // Automatic printing for impresion_principal
+    useEffect(() => {
+        if (!auth.user.impresion_principal || !auth.user.nombre_impresora || requests.length === 0) return;
+
+        const latestRequest = requests[0];
+        if (latestRequest.key && !processedKeys.current.has(latestRequest.key)) {
+            processedKeys.current.add(latestRequest.key);
+            handlePrint(latestRequest);
+        }
+    }, [requests, auth.user]);
+
     const handlePrint = async (request: PrintRequest) => {
         const effectiveCuentaId = cuentaId || (request as any)._cuentaId;
         setProcessingKey(request.key || null);
@@ -73,23 +88,50 @@ export function PrintNotificationBell({ cuentaId }: Props) {
                     return;
                 }
 
-                printReceipts({
-                    facturaId: venta.id,
-                    localName: venta.local?.name || '',
-                    items: pendientes,
-                });
+                const html = printReceipts(
+                    {
+                        facturaId: venta.id,
+                        localName: venta.local?.name || '',
+                        items: pendientes,
+                    },
+                    true,
+                ) as string;
+
+                if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                    await printWithQZ(auth.user.nombre_impresora, html);
+                } else {
+                    printReceipts({
+                        facturaId: venta.id,
+                        localName: venta.local?.name || '',
+                        items: pendientes,
+                    });
+                }
 
                 await axios.post(route('api.ventas.mark_printed', venta.id), {
                     detalle_ids: pendientes.map((d: any) => d.id),
                 });
             } else {
                 const { printCuadre } = await import('@/utils/printCuadre');
-                printCuadre({
-                    facturaId: venta.id,
-                    localName: venta.local?.name || '',
-                    vendedor: venta.vendedor || '',
-                    items: detalles,
-                });
+                const html = printCuadre(
+                    {
+                        facturaId: venta.id,
+                        localName: venta.local?.name || '',
+                        vendedor: venta.vendedor || '',
+                        items: detalles,
+                    },
+                    true,
+                ) as string;
+
+                if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                    await printWithQZ(auth.user.nombre_impresora, html);
+                } else {
+                    printCuadre({
+                        facturaId: venta.id,
+                        localName: venta.local?.name || '',
+                        vendedor: venta.vendedor || '',
+                        items: detalles,
+                    });
+                }
             }
 
             if (request.key) await removePrintRequest(effectiveCuentaId, request.key);

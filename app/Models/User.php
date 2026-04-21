@@ -28,6 +28,7 @@ class User extends Authenticatable
         'cuenta_id',
         'estado',
         'impresion_principal',
+        'nombre_impresora',
         'ciudad_id',
         'precio_suscripcion',
         'fecha_vencimiento',

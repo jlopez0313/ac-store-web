@@ -18,6 +18,7 @@ type ThisForm = {
     cuenta_id: string;
     estado: string;
     impresion_principal: boolean;
+    nombre_impresora: string;
     country_id: string;
     state_id: string;
     ciudad_id: string;
@@ -37,6 +38,7 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
         cuenta_id: '',
         estado: '1',
         impresion_principal: false,
+        nombre_impresora: '',
         country_id: '',
         state_id: '',
         ciudad_id: '',
@@ -146,6 +148,7 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
                     cuenta_id: item.cuenta_id?.toString() || '',
                     estado: item.estado ? '1' : '0',
                     impresion_principal: !!item.impresion_principal,
+                    nombre_impresora: item.nombre_impresora || '',
                     country_id: countryId,
                     state_id: stateId,
                     ciudad_id: ciudadId,
@@ -304,6 +307,17 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
                             checked={data.impresion_principal}
                             onChange={(value) => setData('impresion_principal', value)}
                         />
+
+                        {data.impresion_principal && (
+                            <InputField
+                                name="nombre_impresora"
+                                title="Nombre de la Impresora (QZ Tray)"
+                                placeholder="ej. Epson-TM-T20"
+                                value={data.nombre_impresora}
+                                onChange={(value) => setData('nombre_impresora', value as string)}
+                                error={(errors as any).nombre_impresora}
+                            />
+                        )}
                     </div>
 
                     <div className="mt-6 flex items-center justify-end gap-4">

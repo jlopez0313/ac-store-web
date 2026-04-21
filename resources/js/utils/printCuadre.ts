@@ -16,7 +16,7 @@ interface CuadreData {
     footer?: string;
 }
 
-export function printCuadre(data: CuadreData): void {
+export function printCuadre(data: CuadreData, returnHtml = false): string | void {
     const footer = data.footer || import.meta.env.VITE_APP_NAME || '';
     const now = new Date();
     const fecha = now.toLocaleDateString('es-CO');
@@ -112,15 +112,13 @@ export function printCuadre(data: CuadreData): void {
         <div class="disclaimer">Conserve el Sticker o Factura para realizar cambios o garant&iacute;as (15) d&iacute;as.</div>
         ${footer ? `<div class="footer-text">${footer}</div>` : ''}
     </div>
-    <script>
-        window.onload = function() {
-            window.print();
-            window.onafterprint = function() { window.close(); };
-            setTimeout(function() { window.close(); }, 10000);
-        };
-    </script>
+    </div>
 </body>
 </html>`;
+
+    if (returnHtml) {
+        return html;
+    }
 
     const printWindow = window.open('', '_blank', 'width=320,height=600');
     if (printWindow) {
