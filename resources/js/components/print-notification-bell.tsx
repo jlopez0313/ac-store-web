@@ -4,7 +4,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { getPrintRequestsRef, onValue, removePrintRequest, type PrintRequest } from '@/lib/firebase';
 import { showAlert } from '@/plugins/sweetalert';
 import { printReceipts } from '@/utils/printReceipt';
-import { printWithQZ } from '@/utils/qz-service';
+import { connectQZ, disconnectQZ, printWithQZ } from '@/utils/qz-service';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Bell, Loader2, Printer } from 'lucide-react';
@@ -63,6 +63,16 @@ export function PrintNotificationBell({ cuentaId }: Props) {
             handlePrint(latestRequest);
         }
     }, [requests, auth.user]);
+
+    // Connect to QZ tray on mount if impresion_principal is active
+    useEffect(() => {
+        if (auth.user.impresion_principal) {
+            connectQZ().catch(() => {});
+        }
+        return () => {
+            disconnectQZ().catch(() => {});
+        };
+    }, [auth.user.impresion_principal]);
 
     const handlePrint = async (request: PrintRequest) => {
         const effectiveCuentaId = cuentaId || (request as any)._cuentaId;

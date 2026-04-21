@@ -11,7 +11,7 @@ export const connectQZ = async () => {
 
         // List available printers
         const printers = await qz.printers.find();
-        console.log('--- Available Printers ---');
+        console.log('--- Impresoras Disponibles (Copia el nombre exacto) ---');
         console.log(printers);
         console.log('---------------------------');
     } catch (err) {
