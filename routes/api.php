@@ -92,4 +92,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('cartera', [App\Http\Controllers\Api\CarteraController::class, 'index'])->name('api.cartera.index');
     Route::get('cardex', [App\Http\Controllers\Api\CardexController::class, 'index'])->name('api.cardex.index');
     Route::get('cajas', [App\Http\Controllers\Api\CajasController::class, 'index'])->name('api.cajas.index');
+
+    // QZ Tray Signing
+    Route::post('qz/sign', [App\Http\Controllers\Api\QzController::class, 'sign'])->name('api.qz.sign');
+    Route::get('qz/certificate', [App\Http\Controllers\Api\QzController::class, 'getCertificate'])->name('api.qz.certificate');
 });

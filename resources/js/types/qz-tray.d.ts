@@ -10,5 +10,9 @@ declare module 'qz-tray' {
     export namespace printers {
         function find(): Promise<string[]>;
     }
+    export namespace security {
+        function setCertificatePromise(promise: (resolve: (cert: string) => void, reject: (err: any) => void) => void): void;
+        function setSignaturePromise(promise: (toSign: string) => (resolve: (sig: string) => void, reject: (err: any) => void) => void): void;
+    }
     function print(config: any, data: any[]): Promise<void>;
 }

@@ -1,13 +1,38 @@
+import axios from 'axios';
 import * as qz from 'qz-tray';
 
 let connected = false;
+let securitySetup = false;
+
+const setupSecurity = () => {
+    if (securitySetup) return;
+
+    qz.security.setCertificatePromise((resolve: (cert: string) => void, reject: (err: any) => void) => {
+        axios
+            .get('/api/qz/certificate')
+            .then((response) => resolve(response.data))
+            .catch(reject);
+    });
+
+    qz.security.setSignaturePromise((toSign: string) => {
+        return (resolve: (sig: string) => void, reject: (err: any) => void) => {
+            axios
+                .post('/api/qz/sign', { request: toSign })
+                .then((response) => resolve(response.data))
+                .catch(reject);
+        };
+    });
+
+    securitySetup = true;
+};
 
 export const connectQZ = async () => {
+    setupSecurity();
     if (connected) return;
     try {
         await qz.websocket.connect();
         connected = true;
-        console.log('QZ Tray connected');
+        console.log('QZ Tray connected (with security)');
 
         // List available printers
         const printers = await qz.printers.find();
