@@ -21,13 +21,14 @@ class QzController extends Controller
 
         $privateKey = openssl_get_privatekey(file_get_contents($keyPath));
         $signature = '';
-        openssl_sign($request->input('request'), $signature, $privateKey, OPENSSL_ALGO_SHA512);
+        // QZ Tray 2.0 uses SHA1, 2.1+ uses SHA512. SHA1 is often more compatible as a default.
+        openssl_sign($request->input('request'), $signature, $privateKey, OPENSSL_ALGO_SHA1);
 
         if (PHP_MAJOR_VERSION < 8) {
             openssl_free_key($privateKey);
         }
 
-        return response()->json(base64_encode($signature));
+        return response(base64_encode($signature))->header('Content-Type', 'text/plain');
     }
 
     public function getCertificate()
