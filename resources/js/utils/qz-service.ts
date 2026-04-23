@@ -69,7 +69,7 @@ export const printWithQZ = async (printerName: string, htmlContent: string) => {
         ];
         await qz.print(config, data);
     } catch (err) {
-        console.error('Error printing with QZ Tray', err);
+        console.error('Detailed QZ Print Error:', err);
         throw err;
     }
 };

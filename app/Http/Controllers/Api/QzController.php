@@ -10,9 +10,9 @@ class QzController extends Controller
 {
     public function sign(Request $request)
     {
-        // We use $request->json('request') to get the raw value if possible, 
-        // to avoid any automatic trimming by global middlewares.
-        $toSign = $request->json('request');
+        $toSign = $request->input('request');
+        
+        \Log::info('QZ Sign request received', ['toSign' => substr($toSign, 0, 50)]);
         
         if (!$toSign) {
              return response()->json(['error' => 'No request data provided'], 400);
