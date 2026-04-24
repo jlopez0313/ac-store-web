@@ -72,6 +72,7 @@ class ReferenciaSearchController extends Controller
                     'descripcion' => $item->referencia->descripcion,
                     'talla' => $item->talla,
                     'stock' => $item->stock,
+                    'foto' => $item->referencia->foto,
                     'bodega' => $item->estanteria->bodega->nombre,
                     'cuenta' => $item->cuenta->nombre ?? 'N/A',
                 ];

@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { Loader2, Search as SearchIcon, X } from 'lucide-react';
+import { ImageIcon, Loader2, Search as SearchIcon, X } from 'lucide-react';
 import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -81,6 +81,19 @@ export default function Search({ results: initialResults, filters, cuentas, marc
     };
 
     const columns = [
+        {
+            name: 'Foto',
+            width: '80px',
+            cell: (row: any) => (
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
+                    {row.foto ? (
+                        <img src={`/storage/${row.foto}`} alt="Product" className="h-full w-full object-cover" />
+                    ) : (
+                        <ImageIcon className="h-4 w-4 text-slate-300" />
+                    )}
+                </div>
+            ),
+        },
         {
             name: 'Código',
             selector: (row: any) => row.codigo,
