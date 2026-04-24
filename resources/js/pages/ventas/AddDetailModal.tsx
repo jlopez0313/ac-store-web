@@ -29,6 +29,9 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
     const [selectedTalla, setSelectedTalla] = useState<string | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const loadingMore = useRef(false);
+    // Synchronous guard: set BEFORE setViewerImage so Headless UI capture-phase
+    // listener sees it immediately in the same event tick.
+    const viewerOpenRef = useRef(false);
 
     const isLocal = auth.user?.role === 'local';
     const [isOutsideHours, setIsOutsideHours] = useState(false);
@@ -76,9 +79,27 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                 setSelectedTalla(null);
             }
         } else {
+            viewerOpenRef.current = false;
             setViewerImage(null);
         }
     }, [isOpen, referencia]);
+
+    // Stable close handler that checks the sync ref — never stale
+    const handleModalClose = useCallback(() => {
+        if (!viewerOpenRef.current) {
+            onClose();
+        }
+    }, [onClose]);
+
+    const openViewer = useCallback((foto: string) => {
+        viewerOpenRef.current = true;
+        setViewerImage(foto);
+    }, []);
+
+    const closeViewer = useCallback(() => {
+        viewerOpenRef.current = false;
+        setViewerImage(null);
+    }, []);
 
     // Debounced search
     useEffect(() => {
@@ -303,7 +324,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
             <Modal
                 show={isOpen}
                 closeable={true}
-                onClose={viewerImage ? () => {} : onClose}
+                onClose={handleModalClose}
                 title={mode === 'search' ? 'Búsqueda por Referencia' : 'Seleccionar Detalle'}
                 maxWidth="3xl"
                 className="max-h-[95vh] overflow-y-auto"
@@ -364,7 +385,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                     {selectedRef?.foto ? (
                                     <button
                                         type="button"
-                                        onClick={() => setViewerImage(selectedRef.foto)}
+                                        onClick={() => openViewer(selectedRef.foto)}
                                         className="h-full w-full overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 transition-transform hover:scale-[1.02]"
                                     >
                                         <img src={`/storage/${selectedRef.foto}`} alt="Product" className="h-full w-full object-cover" />
@@ -408,9 +429,9 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                             tabIndex={0}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                if (r.foto) setViewerImage(r.foto);
+                                                if (r.foto) openViewer(r.foto);
                                             }}
-                                            onKeyDown={(e) => e.key === 'Enter' && r.foto && setViewerImage(r.foto)}
+                                            onKeyDown={(e) => e.key === 'Enter' && r.foto && openViewer(r.foto)}
                                             className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                                         >
                                             {r.foto ? (
@@ -591,7 +612,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
         <ViewerModal 
             show={!!viewerImage} 
             image={viewerImage} 
-            onClose={() => setViewerImage(null)} 
+            onClose={closeViewer} 
         />
     </>
 );
