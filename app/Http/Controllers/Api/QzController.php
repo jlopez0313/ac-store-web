@@ -12,8 +12,6 @@ class QzController extends Controller
     {
         $toSign = $request->input('request');
         
-        \Log::info('QZ Sign request received', ['toSign' => substr($toSign, 0, 50)]);
-        
         if (!$toSign) {
              return response()->json(['error' => 'No request data provided'], 400);
         }
