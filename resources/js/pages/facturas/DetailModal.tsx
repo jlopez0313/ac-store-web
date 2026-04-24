@@ -167,8 +167,9 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 	];
 
 	return (
-		<Modal
-			show={isOpen}
+		<>
+			<Modal
+				show={isOpen}
 			onClose={onClose}
 			title={`Detalle de Factura #${factura.id}`}
 			maxWidth="4xl"
@@ -283,12 +284,13 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 					</div>
 				</div>
 			</div>
+		</Modal>
 
 			<ViewerModal 
 				show={!!viewerImage} 
 				image={viewerImage} 
 				onClose={() => setViewerImage(null)} 
 			/>
-		</Modal>
+		</>
 	);
 };

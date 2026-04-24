@@ -299,8 +299,9 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
     };
 
     return (
-        <Modal
-            show={isOpen}
+        <>
+            <Modal
+                show={isOpen}
             closeable={true}
             onClose={onClose}
             title={mode === 'search' ? 'Búsqueda por Referencia' : 'Seleccionar Detalle'}
@@ -583,12 +584,13 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                     )}
                 </div>
             </form>
-
-            <ViewerModal 
-                show={!!viewerImage} 
-                image={viewerImage} 
-                onClose={() => setViewerImage(null)} 
-            />
         </Modal>
-    );
+
+        <ViewerModal 
+            show={!!viewerImage} 
+            image={viewerImage} 
+            onClose={() => setViewerImage(null)} 
+        />
+    </>
+);
 };
