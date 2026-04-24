@@ -4,8 +4,9 @@ import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import axios from 'axios';
 import { Barcode, Edit, Info, Package, Tag, Warehouse } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AdjustmentModal } from './AdjustmentModal';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 
 interface DetailModalProps {
     isOpen: boolean;
@@ -19,6 +20,12 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
     const [loading, setLoading] = useState(false);
     const [adjustmentOpen, setAdjustmentOpen] = useState(false);
     const [selectedShelf, setSelectedShelf] = useState<any>(null);
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
+    const viewerOpenRef = useRef(false);
+
+    const openViewer = (foto: string) => { viewerOpenRef.current = true; setViewerImage(foto); };
+    const closeViewer = () => { viewerOpenRef.current = false; setViewerImage(null); };
+    const handleModalClose = () => { if (!viewerOpenRef.current) onClose(); };
 
     useEffect(() => {
         if (isOpen && referencia) {
@@ -98,12 +105,15 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
 
     return (
         <>
-            <Modal show={isOpen} onClose={onClose} title={`Detalle de Inventario: ${referencia.codigo}`} maxWidth="5xl" closeable={true}>
+            <Modal show={isOpen} onClose={handleModalClose} title={`Detalle de Inventario: ${referencia.codigo}`} maxWidth="5xl" closeable={true}>
                 <div className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-background max-h-[85vh] overflow-y-auto">
                     <div className="space-y-8 p-6">
-                        <div className="bg-muted/30 border-border flex flex-col items-center gap-8 rounded-2xl border p-6 text-center shadow-sm md:flex-row md:items-start md:text-left">
+                        <div className="bg-muted/30 border-border flex flex-col gap-8 rounded-2xl border p-6 shadow-sm md:flex-row md:items-start">
                             {referencia.foto && (
-                                <div className="border-border bg-background h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl border shadow-sm transition-transform duration-300 hover:scale-105">
+                                <div
+                                    onClick={() => openViewer(referencia.foto)}
+                                    className="border-border bg-background h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl border shadow-sm transition-transform duration-300 hover:scale-105 cursor-pointer"
+                                >
                                     <img
                                         src={referencia.foto}
                                         alt={referencia.codigo}
@@ -281,6 +291,12 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                     items={details.filter((d) => d.estanteria_id === selectedShelf.id)}
                 />
             )}
+
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={closeViewer}
+            />
         </>
     );
 };

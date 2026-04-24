@@ -9,10 +9,11 @@ import { showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import { Edit, Eye, Search, Warehouse } from 'lucide-react';
+import { Edit, Eye, Image as ImageIcon, Search, Warehouse } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { AdjustmentModal } from './AdjustmentModal';
 import { DetailModal } from './DetailModal';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Panel principal', href: route('dashboard') },
@@ -41,6 +42,7 @@ export default function Index({ filters: initialFilters }: any) {
 	const [selectedShelf, setSelectedShelf] = useState<any>(null);
 	const [distributionDetails, setDistributionDetails] = useState<any[]>([]);
 	const [shelfSelectorOpen, setShelfSelectorOpen] = useState(false);
+	const [viewerImage, setViewerImage] = useState<string | null>(null);
 
 	const fetchData = useCallback(async (newParams = {}) => {
 		setLoading(true);
@@ -107,6 +109,23 @@ export default function Index({ filters: initialFilters }: any) {
 	};
 
 	const columns = [
+		{
+			name: 'Foto',
+			width: '80px',
+			cell: (row: any) => (
+				<button
+					type="button"
+					onClick={() => row.foto && setViewerImage(row.foto)}
+					className="my-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded border border-border bg-muted transition-transform hover:scale-110 active:scale-95"
+				>
+					{row.foto ? (
+						<img src={row.foto} alt={row.codigo} className="h-full w-full object-cover" />
+					) : (
+						<ImageIcon className="h-5 w-5 text-slate-400" />
+					)}
+				</button>
+			),
+		},
 		{
 			name: 'Código',
 			selector: (row: any) => row.codigo,
@@ -294,13 +313,19 @@ export default function Index({ filters: initialFilters }: any) {
 					onClose={() => setAdjustmentOpen(false)}
 					onSuccess={() => {
 						setAdjustmentOpen(false);
-						fetchData(); // Refresh list
+						fetchData();
 					}}
 					referencia={selectedReferencia}
 					estanteria={selectedShelf}
 					items={distributionDetails.filter(d => d.estanteria_id === selectedShelf.id)}
 				/>
 			)}
+
+			<ViewerModal
+				show={!!viewerImage}
+				image={viewerImage}
+				onClose={() => setViewerImage(null)}
+			/>
 		</AppLayout>
 	);
 }
