@@ -14,6 +14,7 @@ export const ViewerModal = ({ show, image, onClose }: ViewerModalProps) => {
 
     return createPortal(
         <div
+            data-headlessui-portal=""
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-sm"
             onClick={(e) => { e.stopPropagation(); onClose(); }}
         >

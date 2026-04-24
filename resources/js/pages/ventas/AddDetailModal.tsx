@@ -403,20 +403,22 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                     className="group flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex min-w-0 flex-1 items-center gap-3">
-                                        <button
-                                            type="button"
+                                        <div
+                                            role="button"
+                                            tabIndex={0}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setViewerImage(r.foto);
+                                                if (r.foto) setViewerImage(r.foto);
                                             }}
-                                            className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+                                            onKeyDown={(e) => e.key === 'Enter' && r.foto && setViewerImage(r.foto)}
+                                            className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                                         >
                                             {r.foto ? (
                                                 <img src={`/storage/${r.foto}`} alt="Thumb" className="h-full w-full object-cover" />
                                             ) : (
                                                 <ImageIcon className="h-4 w-4 text-slate-300" />
                                             )}
-                                        </button>
+                                        </div>
                                         <div className="min-w-0 space-y-0.5">
                                             <div className="flex min-w-0 items-center gap-1.5">
                                                 <span className="text-foreground flex-shrink-0 font-bold">{r.codigo}</span>
