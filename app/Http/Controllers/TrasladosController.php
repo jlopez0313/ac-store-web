@@ -43,14 +43,14 @@ class TrasladosController extends Controller
                 $query->paginate($request->input('per_page', 25))->appends($request->all())
             ),
             'cuentas' => $user->hasRole('superadmin') ? Cuenta::where('estado', 1)->orderBy('nombre')->get(['id', 'nombre as name']) : [],
-            'referencias' => !$user->hasRole('superadmin') ? Referencia::where('cuenta_id', $user->cuenta_id)->orderBy('codigo')->get(['id', 'codigo', 'descripcion']) : [],
+            'referencias' => !$user->hasRole('superadmin') ? Referencia::where('cuenta_id', $user->cuenta_id)->orderBy('codigo')->get(['id', 'codigo', 'descripcion', 'foto']) : [],
         ]);
     }
 
     public function getReferenciasByCuenta(Request $request)
     {
         $request->validate(['cuenta_id' => 'required|exists:cuentas,id']);
-        return response()->json(Referencia::where('cuenta_id', $request->cuenta_id)->orderBy('codigo')->get(['id', 'codigo', 'descripcion']));
+        return response()->json(Referencia::where('cuenta_id', $request->cuenta_id)->orderBy('codigo')->get(['id', 'codigo', 'descripcion', 'foto']));
     }
 
     public function getBodegasByCuenta(Request $request)

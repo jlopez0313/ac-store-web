@@ -19,6 +19,7 @@ class CajaResource extends JsonResource
             'referencia_id' => $this->referencia_id,
             'referencia_codigo' => $this->referencia->codigo ?? '',
             'referencia_descripcion' => $this->referencia->descripcion ?? '',
+            'referencia_foto' => $this->referencia->foto ?? '',
             'referencia_marca' => $this->referencia->marca ?? '',
             'bodega_id' => $this->bodega_id,
             'bodega_nombre' => $this->bodega->nombre ?? '',

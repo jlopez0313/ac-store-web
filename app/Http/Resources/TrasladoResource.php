@@ -19,6 +19,7 @@ class TrasladoResource extends JsonResource
             'referencia_id' => $this->referencia_id,
             'referencia_codigo' => $this->referencia->codigo ?? '',
             'referencia_descripcion' => $this->referencia->descripcion ?? '',
+            'referencia_foto' => $this->referencia->foto ?? '',
             'talla' => $this->talla,
             'bodega_origen' => $this->bodegaOrigen->nombre ?? '',
             'estanteria_origen' => $this->estanteriaOrigen->nombre ?? '',
