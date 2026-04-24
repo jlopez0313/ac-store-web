@@ -302,12 +302,12 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
         <>
             <Modal
                 show={isOpen}
-            closeable={true}
-            onClose={onClose}
-            title={mode === 'search' ? 'Búsqueda por Referencia' : 'Seleccionar Detalle'}
-            maxWidth="3xl"
-            className="max-h-[95vh] overflow-y-auto"
-        >
+                closeable={true}
+                onClose={viewerImage ? () => {} : onClose}
+                title={mode === 'search' ? 'Búsqueda por Referencia' : 'Seleccionar Detalle'}
+                maxWidth="3xl"
+                className="max-h-[95vh] overflow-y-auto"
+            >
             <form
                 onSubmit={(e) => {
                     e.preventDefault();

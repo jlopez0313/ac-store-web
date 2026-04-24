@@ -170,11 +170,11 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 		<>
 			<Modal
 				show={isOpen}
-			onClose={onClose}
-			title={`Detalle de Factura #${factura.id}`}
-			maxWidth="4xl"
-			closeable={true}
-		>
+				onClose={viewerImage ? () => {} : onClose}
+				title={`Detalle de Factura #${factura.id}`}
+				maxWidth="4xl"
+				closeable={true}
+			>
 			<div className="max-h-[85vh] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-background">
 				<div className="p-6 space-y-8">
 					{/* Premium Header Decoration */}
