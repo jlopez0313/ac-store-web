@@ -10,7 +10,7 @@ import { printReceipts } from '@/utils/printReceipt';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Plus, ShoppingCart } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AddDetailModal } from './AddDetailModal';
 import { CreateModal } from './CreateModal';
 
@@ -42,6 +42,17 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [selectedRef, setSelectedRef] = useState<any>(null);
     const [selectedDetailIds, setSelectedDetailIds] = useState<number[]>([]);
+    const detailContainerRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll to details on mobile when selection changes
+    useEffect(() => {
+        if (selectedFactura && window.innerWidth < 1024) {
+            // Wait a tiny bit for the components to render/update if needed
+            setTimeout(() => {
+                detailContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    }, [selectedFactura?.id]);
 
     const fetchData = useCallback(
         async (newParams = {}) => {
@@ -219,7 +230,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                         onPageChange={(page: number) => setFilters((f) => ({ ...f, page }))}
                     />
 
-                    <div className="space-y-6 lg:col-span-3">
+                    <div className="space-y-6 lg:col-span-3" ref={detailContainerRef}>
                         {selectedFactura ? (
                             <>
                                 <InvoiceDetailHeader
