@@ -418,9 +418,12 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                     {mode === 'search' ? (
                         <div className="divide-y divide-slate-100 p-2">
                             {displayResults.map((r: any) => (
-                                <button
+                                <div
                                     key={r.id}
+                                    role="button"
+                                    tabIndex={0}
                                     onClick={() => handleSelectRef(r)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSelectRef(r)}
                                     className="group flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex min-w-0 flex-1 items-center gap-3">
