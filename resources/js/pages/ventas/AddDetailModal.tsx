@@ -474,7 +474,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                         </Badge>
                                         ${Number(r.precio_venta || 0).toLocaleString()}
                                     </div>
-                                </button>
+                                </div>
                             ))}
                             {meta && meta.current_page < meta.last_page && (
                                 <div className="flex justify-center py-4">
