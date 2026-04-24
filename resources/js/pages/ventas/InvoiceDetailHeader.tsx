@@ -77,27 +77,27 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                     </div>
                 </div>
 
-                <div className="flex flex-col justify-between gap-6 border-t border-slate-100 pt-6 md:flex-row md:items-center dark:border-slate-700">
-                    <div className="flex flex-wrap gap-2">
+                <div className="flex flex-col justify-between gap-6 border-t border-slate-100 pt-6 lg:flex-row lg:items-center dark:border-slate-700">
+                    <div className="flex w-full flex-col gap-2 md:flex-row md:flex-wrap md:items-center lg:w-auto">
                         {factura.estado === 'abierta' && (
                             <>
                                 {isAdmin && selectedDetailIds.length > 0 && (
-                                    <div className="mr-2 flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsBulkModalOpen(true)}
-                                            className="group flex flex-col justify-center gap-0.5 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                                        >
-                                            <span className="text-[9px] tracking-tight text-slate-400 uppercase">
-                                                {sameRefItemsCount} con misma referencia
-                                            </span>
-                                            <span className="transition-colors group-hover:text-indigo-600">Descontar x mayor</span>
-                                        </button>
+                                    <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsBulkModalOpen(true)}
+                                                className="group flex w-full flex-col justify-center gap-0.5 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200 md:w-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                                            >
+                                                <span className="text-[9px] tracking-tight text-slate-400 uppercase">
+                                                    {sameRefItemsCount} con misma referencia
+                                                </span>
+                                                <span className="transition-colors group-hover:text-indigo-600">Descontar x mayor</span>
+                                            </button>
                                         <Button
                                             variant="destructive"
                                             size="sm"
                                             onClick={onBulkDelete}
-                                            className="h-10 rounded-xl bg-red-600 px-4 font-bold text-white transition-all hover:bg-red-700 active:scale-95"
+                                            className="h-10 w-full rounded-xl bg-red-600 px-4 font-bold text-white transition-all hover:bg-red-700 md:w-auto active:scale-95"
                                         >
                                             Eliminar
                                         </Button>
@@ -107,7 +107,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                     <Button
                                         size="sm"
                                         onClick={onAddProduct}
-                                        className="h-10 bg-indigo-600 px-4 text-white transition-all hover:bg-indigo-700 active:scale-95"
+                                        className="h-10 w-full bg-indigo-600 px-4 text-white transition-all hover:bg-indigo-700 md:w-auto active:scale-95"
                                     >
                                         <Plus className="mr-2 h-4 w-4" />
                                         Agregar Producto
@@ -118,7 +118,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                         variant="outline"
                                         size="sm"
                                         onClick={() => onPrint('pendientes')}
-                                        className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                        className="h-10 w-full border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 md:w-auto active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                                     >
                                         <Printer className="mr-2 h-4 w-4" />
                                         Imprimir pendientes
@@ -130,7 +130,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                                className="h-10 w-full border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 md:w-auto active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                                             >
                                                 <Printer className="mr-2 h-4 w-4" />
                                                 Imprimir
@@ -154,7 +154,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                         variant="outline"
                                         size="sm"
                                         onClick={onCloseFactura}
-                                        className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                        className="h-10 w-full border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 md:w-auto active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                                     >
                                         <ShoppingCart className="mr-2 h-4 w-4" />
                                         Cerrar Factura
@@ -167,7 +167,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                 variant="outline"
                                 size="sm"
                                 onClick={() => onPrint('factura')}
-                                className="h-10 border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                className="h-10 w-full border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 md:w-auto active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                             >
                                 <Printer className="mr-2 h-4 w-4" />
                                 Imprimir Factura
