@@ -44,7 +44,7 @@ export const ViewerModal = ({ show, image, onClose }: ViewerModalProps) => {
                                 </button>
                                 {image && (
                                     <img
-                                        src={image.startsWith('http') ? image : `/storage/${image}`}
+                                        src={image.startsWith('http') || image.startsWith('/') ? image : `/storage/${image}`}
                                         alt="Full resolution"
                                         className="h-auto max-h-[85vh] w-full rounded-lg object-contain shadow-2xl"
                                         onClick={(e) => e.stopPropagation()}

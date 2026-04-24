@@ -23,7 +23,7 @@ class VentaDetalleResource extends JsonResource
                 'codigo' => $this->producto->codigo ?? 'N/A',
                 'descripcion' => $this->producto->descripcion ?? 'N/A',
                 'marca' => $this->producto->marca->nombre ?? $this->producto->marca ?? 'N/A',
-                'foto' => $this->producto->foto ? Storage::url($this->producto->foto) : null,
+                'foto' => $this->producto->foto ? asset('storage/' . ltrim(str_replace('storage/', '', ltrim($this->producto->foto, '/')), '/')) : null,
             ],
             'bodega_id' => $this->bodega_id,
             'estanteria_id' => $this->estanteria_id,
