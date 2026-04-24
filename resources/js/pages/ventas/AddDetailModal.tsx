@@ -7,6 +7,7 @@ import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { AlertCircle, Box, Image as ImageIcon, Minus, Plus, Search, Warehouse } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 
 export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, bodega_accesos, onAdded }: any) => {
     const { auth, time_restriction } = usePage().props as any;
@@ -22,6 +23,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
     const [loadingStock, setLoadingStock] = useState(false);
     const [saving, setSaving] = useState(false);
     const [quantities, setQuantities] = useState<Record<string, number>>({});
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
 
     const [selectedBodegaId, setSelectedBodegaId] = useState<number | null>(null);
     const [selectedTalla, setSelectedTalla] = useState<string | null>(null);
@@ -357,8 +359,13 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                             <div className="flex items-center gap-4">
                                 <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
                                     {selectedRef?.foto ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setViewerImage(selectedRef.foto)}
+                                        className="h-full w-full overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 transition-transform hover:scale-[1.02]"
+                                    >
                                         <img src={`/storage/${selectedRef.foto}`} alt="Product" className="h-full w-full object-cover" />
-                                    ) : (
+                                    </button>                                    ) : (
                                         <ImageIcon className="h-6 w-6 text-slate-300" />
                                     )}
                                 </div>
@@ -393,13 +400,20 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                     className="group flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
                                 >
                                     <div className="flex min-w-0 flex-1 items-center gap-3">
-                                        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 flex items-center justify-center">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setViewerImage(r.foto);
+                                            }}
+                                            className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+                                        >
                                             {r.foto ? (
                                                 <img src={`/storage/${r.foto}`} alt="Thumb" className="h-full w-full object-cover" />
                                             ) : (
                                                 <ImageIcon className="h-4 w-4 text-slate-300" />
                                             )}
-                                        </div>
+                                        </button>
                                         <div className="min-w-0 space-y-0.5">
                                             <div className="flex min-w-0 items-center gap-1.5">
                                                 <span className="text-foreground flex-shrink-0 font-bold">{r.codigo}</span>
@@ -567,6 +581,12 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                     )}
                 </div>
             </form>
+
+            <ViewerModal 
+                show={!!viewerImage} 
+                image={viewerImage} 
+                onClose={() => setViewerImage(null)} 
+            />
         </Modal>
     );
 };

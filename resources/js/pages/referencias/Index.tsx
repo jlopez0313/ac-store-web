@@ -13,6 +13,7 @@ import axios from 'axios';
 import { Edit, Image as ImageIcon, Plus, Search as SearchIcon, Trash } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Form } from './Form';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Panel principal', href: route('dashboard') },
@@ -27,6 +28,7 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
     const [loading, setLoading] = useState(true);
 
     const [selectedCuenta, setSelectedCuenta] = useState<string>('');
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
 
     const [filters, setFilters] = useState({
         search: initialFilters?.search || '',
@@ -72,13 +74,17 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
         {
             name: 'Foto',
             cell: (row: any) => (
-                <div className="bg-muted border-border my-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded border">
+                <button
+                    type="button"
+                    onClick={() => setViewerImage(row.foto)}
+                    className="bg-muted border-border my-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded border transition-transform hover:scale-110 active:scale-95"
+                >
                     {row.foto ? (
                         <img src={row.foto} alt={row.codigo} className="h-full w-full object-cover" />
                     ) : (
                         <ImageIcon className="h-6 w-6 text-slate-400" />
                     )}
-                </div>
+                </button>
             ),
             width: '80px',
         },
@@ -237,6 +243,12 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
                     onReload={fetchData}
                 />
             </Modal>
+
+            <ViewerModal 
+                show={!!viewerImage} 
+                image={viewerImage} 
+                onClose={() => setViewerImage(null)} 
+            />
         </AppLayout>
     );
 }
