@@ -26,23 +26,37 @@ const setupSecurity = () => {
     securitySetup = true;
 };
 
+let connectionPromise: Promise<void> | null = null;
+
 export const connectQZ = async () => {
     setupSecurity();
-    if (connected) return;
-    try {
-        await qz.websocket.connect();
+    
+    if (qz.websocket.isActive()) {
         connected = true;
-        console.log('QZ Tray connected (with security)');
-
-        // List available printers
-        const printers = await qz.printers.find();
-        console.log('--- Impresoras Disponibles (Copia el nombre exacto) ---');
-        console.log(printers);
-        console.log('---------------------------');
-    } catch (err) {
-        console.error('Error connecting to QZ Tray', err);
-        throw err;
+        return;
     }
+
+    if (connectionPromise) return connectionPromise;
+
+    connectionPromise = (async () => {
+        try {
+            await qz.websocket.connect();
+            connected = true;
+            console.log('QZ Tray connected (with security)');
+
+            // List available printers
+            const printers = await qz.printers.find();
+            console.log('--- Impresoras Disponibles (Copia el nombre exacto) ---');
+            console.log(printers);
+            console.log('---------------------------');
+        } catch (err) {
+            console.error('Error connecting to QZ Tray', err);
+            connectionPromise = null;
+            throw err;
+        }
+    })();
+
+    return connectionPromise;
 };
 
 export const disconnectQZ = async () => {
@@ -50,6 +64,7 @@ export const disconnectQZ = async () => {
     try {
         await qz.websocket.disconnect();
         connected = false;
+        connectionPromise = null;
         console.log('QZ Tray disconnected');
     } catch (err) {
         console.error('Error disconnecting from QZ Tray', err);
