@@ -15,7 +15,7 @@ export const ViewerModal = ({ show, image, onClose }: ViewerModalProps) => {
     return createPortal(
         <div
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-sm"
-            onClick={onClose}
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
         >
             <div
                 className="relative w-full max-w-5xl p-4"
