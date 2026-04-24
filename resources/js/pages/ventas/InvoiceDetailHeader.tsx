@@ -65,8 +65,8 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                         <Badge
                             variant="outline"
                             className={`px-3 py-1 text-xs ${factura.estado === 'cerrada'
-                                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
-                                    : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
+                                : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                                 }`}
                         >
                             {factura.estado === 'cerrada' ? 'Cerrada' : 'Abierta'}
@@ -83,23 +83,23 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                             <>
                                 {isAdmin && selectedDetailIds.length > 0 && (
                                     <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsBulkModalOpen(true)}
-                                                className="group flex w-full flex-col justify-center gap-0.5 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200 md:w-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                                            >
-                                                <span className="text-[9px] tracking-tight text-slate-400 uppercase">
-                                                    {sameRefItemsCount} con misma referencia
-                                                </span>
-                                                <span className="transition-colors group-hover:text-indigo-600">Descontar x mayor</span>
-                                            </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsBulkModalOpen(true)}
+                                            className="group flex w-full flex-col justify-center gap-0.5 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200 md:w-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                                        >
+                                            <span className="text-[9px] tracking-tight text-slate-400 uppercase">
+                                                {sameRefItemsCount} con misma referencia
+                                            </span>
+                                            <span className="transition-colors group-hover:text-indigo-600">Descontar x mayor</span>
+                                        </button>
                                         <Button
                                             variant="destructive"
                                             size="sm"
                                             onClick={onBulkDelete}
                                             className="h-10 w-full rounded-xl bg-red-600 px-4 font-bold text-white transition-all hover:bg-red-700 md:w-auto active:scale-95"
                                         >
-                                            Eliminar
+                                            Eliminar {selectedDetailIds.length} {selectedDetailIds.length === 1 ? 'seleccionado' : 'seleccionados'}
                                         </Button>
                                     </div>
                                 )}
@@ -111,6 +111,17 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                     >
                                         <Plus className="mr-2 h-4 w-4" />
                                         Agregar Producto
+                                    </Button>
+                                )}
+                                {factura.detalles?.length > 0 && isAdmin && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={onCloseFactura}
+                                        className="h-10 w-full border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 md:w-auto active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                    >
+                                        <ShoppingCart className="mr-2 h-4 w-4" />
+                                        Cerrar Factura
                                     </Button>
                                 )}
                                 {factura.detalles?.length > 0 && isLocal && (
@@ -148,17 +159,6 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
-                                )}
-                                {factura.detalles?.length > 0 && isAdmin && (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={onCloseFactura}
-                                        className="h-10 w-full border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 md:w-auto active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                                    >
-                                        <ShoppingCart className="mr-2 h-4 w-4" />
-                                        Cerrar Factura
-                                    </Button>
                                 )}
                             </>
                         )}
