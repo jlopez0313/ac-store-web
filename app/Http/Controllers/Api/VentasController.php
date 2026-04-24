@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\VentaResource;
+use App\Http\Resources\VentaDetalleResource;
 use App\Models\Venta;
 use App\Models\Referencia;
 use App\Models\Inventario;
@@ -461,5 +462,15 @@ class VentasController extends Controller
             ->update(['impreso' => true]);
 
         return response()->json(['message' => 'Items marcados como impresos.']);
+    }
+
+    public function getDetails(Request $request, Venta $venta)
+    {
+        $query = $venta->detalles()->with(['producto', 'estanteria.bodega', 'cambio.creator']);
+        
+        $perPage = $request->input('per_page', 10);
+        $paginated = $query->paginate($perPage);
+
+        return VentaDetalleResource::collection($paginated);
     }
 }

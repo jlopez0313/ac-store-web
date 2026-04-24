@@ -1,9 +1,11 @@
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/Modal';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DataGrid } from '@/components/ui/DataTable';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Calendar, Clock, ExternalLink, House, MapPin, RefreshCcw, Tag, User } from 'lucide-react';
-import React from 'react';
+import { Calendar, Clock, ExternalLink, House, Image as ImageIcon, MapPin, RefreshCcw, Tag, User } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ViewerModal } from '@/components/ui/ViewerModal';
+import axios from 'axios';
 
 interface DetailModalProps {
 	isOpen: boolean;
@@ -13,9 +15,154 @@ interface DetailModalProps {
 }
 
 export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factura, onViewInvoice }) => {
+	const [items, setItems] = useState<any[]>([]);
+	const [loading, setLoading] = useState(false);
+	const [total, setTotal] = useState(0);
+	const [currentPage, setCurrentPage] = useState(1);
+	const [perPage, setPerPage] = useState(10);
+	const [viewerImage, setViewerImage] = useState<string | null>(null);
+
+	const fetchDetails = async (page = 1, pageSize = perPage) => {
+		if (!factura) return;
+		setLoading(true);
+		try {
+			const response = await axios.get(route('api.ventas.detalles', factura.id), {
+				params: { page, per_page: pageSize }
+			});
+			setItems(response.data.data);
+			setTotal(response.data.meta.total);
+			setCurrentPage(response.data.meta.current_page);
+		} catch (error) {
+			console.error('Error fetching invoice details:', error);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	useEffect(() => {
+		if (isOpen && factura) {
+			fetchDetails(1, perPage);
+		}
+	}, [isOpen, factura]);
+
 	if (!factura) return null;
 
 	const days = Math.floor(Math.abs(new Date().getTime() - new Date(factura.created_at).getTime()) / (1000 * 60 * 60 * 24));
+
+	const columns = [
+		{
+			name: 'Foto',
+			width: '80px',
+			cell: (row: any) => (
+				<button
+					type="button"
+					onClick={() => setViewerImage(row.producto.foto)}
+					className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted transition-transform hover:scale-110 active:scale-95"
+				>
+					{row.producto.foto ? (
+						<img src={row.producto.foto} alt="Product" className="h-full w-full object-cover" />
+					) : (
+						<ImageIcon className="h-4 w-4 text-muted-foreground" />
+					)}
+				</button>
+			),
+		},
+		{
+			name: 'Referencia',
+			selector: (row: any) => row.producto.codigo,
+			cell: (row: any) => (
+				<div className="flex flex-col py-1">
+					<span className="font-mono font-bold text-primary text-sm">{row.producto.codigo}</span>
+					<span className="text-[10px] text-muted-foreground uppercase font-medium line-clamp-1">{row.producto.descripcion}</span>
+				</div>
+			),
+		},
+		{
+			name: 'Talla',
+			width: '80px',
+			center: true,
+			cell: (row: any) => (
+				<span className="bg-muted border border-border px-2 py-1 rounded text-xs font-bold shadow-xs">
+					{row.talla}
+				</span>
+			),
+		},
+		{
+			name: 'Cant.',
+			width: '80px',
+			right: true,
+			selector: (row: any) => row.cantidad,
+			cell: (row: any) => <span className="font-bold text-muted-foreground">{row.cantidad}</span>
+		},
+		{
+			name: 'Precio Unit.',
+			right: true,
+			selector: (row: any) => row.precio_unitario,
+			cell: (row: any) => <span className="text-muted-foreground">${Number(row.precio_unitario).toLocaleString()}</span>
+		},
+		{
+			name: 'Subtotal',
+			right: true,
+			selector: (row: any) => row.subtotal,
+			cell: (row: any) => <span className="font-bold text-foreground">${Number(row.subtotal).toLocaleString()}</span>
+		},
+		{
+			name: '',
+			width: '60px',
+			right: true,
+			cell: (row: any) => (
+				<div className="flex items-center justify-end pr-4">
+					{row.cambio && (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<button
+									className="p-2 rounded-lg transition-all text-amber-500 hover:bg-amber-50 data-[state=open]:bg-amber-100"
+									title="Ver detalles del cambio"
+								>
+									<RefreshCcw className="w-4 h-4" />
+								</button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent 
+								align="end" 
+								side="top" 
+								sideOffset={12}
+								className="w-72 p-4 bg-popover text-popover-foreground rounded-2xl shadow-2xl border-border z-[1001]"
+							>
+								<div className="flex items-center justify-between mb-3">
+									<div className="flex flex-col">
+										<span className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mb-1">Detalles del Cambio</span>
+										<span className="text-[10px] text-muted-foreground font-bold uppercase">{row.cambio.usuario}</span>
+									</div>
+								</div>
+								
+								<div className="bg-muted rounded-xl p-3 border border-border mb-4">
+									<p className="text-[12px] leading-relaxed text-muted-foreground font-medium italic">
+										"{row.cambio.observacion || 'Sin observaciones'}"
+									</p>
+								</div>
+								
+								{row.cambio.nueva_venta_id && (
+									<button 
+										onClick={(e) => {
+											e.preventDefault();
+											onViewInvoice?.(row.cambio.nueva_venta_id);
+										}}
+										className="w-full flex items-center justify-between gap-3 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all border border-indigo-400/30 group/btn shadow-xl shadow-indigo-900/40"
+									>
+										<div className="flex items-center gap-2">
+											<ExternalLink className="w-3.5 h-3.5 text-indigo-200 group-hover/btn:scale-110 transition-transform" />
+											<span className="text-[11px] font-black uppercase tracking-tight">Ver Factura Nueva</span>
+										</div>
+										<span className="text-[10px] font-mono font-bold text-indigo-100 bg-white/10 px-2 py-0.5 rounded-lg border border-white/10"># {row.cambio.nueva_venta_id}</span>
+									</button>
+								)}
+							</DropdownMenuContent>
+						</DropdownMenu>
+					)}
+				</div>
+			)
+		}
+	];
 
 	return (
 		<Modal
@@ -103,92 +250,23 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 						<h3 className="text-sm font-medium text-foreground uppercase flex items-center gap-2">
 							Lista de Productos
 						</h3>
-						<div className="bg-background rounded-2xl border border-border overflow-hidden shadow-sm">
-							<Table>
-								<TableHeader className="bg-muted/50 sticky top-0 z-10 shadow-sm">
-									<TableRow>
-										<TableHead className="font-bold text-foreground h-12 bg-muted/50">Referencia</TableHead>
-										<TableHead className="text-center font-bold text-foreground h-12 bg-muted/50">Talla</TableHead>
-										<TableHead className="text-right font-bold text-foreground h-12 bg-muted/50">Cant.</TableHead>
-										<TableHead className="text-right font-bold text-foreground h-12 bg-muted/50">Precio Unit.</TableHead>
-										<TableHead className="text-right font-bold text-foreground h-12 bg-muted/50">Subtotal</TableHead>
-										<TableHead className="w-10 bg-muted/50 h-12 pr-6"></TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{factura.detalles?.map((detalle: any) => (
-										<TableRow key={detalle.id} className="hover:bg-muted/20 transition-colors border-border/50 group">
-											<TableCell>
-												<div className="flex flex-col py-1">
-													<span className="font-mono font-bold text-primary text-sm">{detalle.producto.codigo}</span>
-													<span className="text-[10px] text-muted-foreground uppercase font-medium">{detalle.producto.descripcion}</span>
-												</div>
-											</TableCell>
-											<TableCell className="text-center">
-												<span className="bg-muted border border-border px-2 py-1 rounded text-xs font-bold shadow-xs">
-													{detalle.talla}
-												</span>
-											</TableCell>
-											<TableCell className="text-right font-bold text-muted-foreground">{detalle.cantidad}</TableCell>
-											<TableCell className="text-right text-muted-foreground">${Number(detalle.precio_unitario).toLocaleString()}</TableCell>
-											<TableCell className="text-right font-bold text-foreground">
-												${Number(detalle.subtotal).toLocaleString()}
-											</TableCell>
-											<TableCell className="p-0 pr-6">
-												<div className="flex items-center justify-end">
-													{detalle.cambio && (
-														<DropdownMenu>
-															<DropdownMenuTrigger asChild>
-																<button
-																	className="p-2 rounded-lg transition-all text-amber-500 hover:bg-amber-50 data-[state=open]:bg-amber-100"
-																	title="Ver detalles del cambio"
-																>
-																	<RefreshCcw className="w-4 h-4" />
-																</button>
-															</DropdownMenuTrigger>
-															<DropdownMenuContent 
-																align="end" 
-																side="top" 
-																sideOffset={12}
-																className="w-72 p-4 bg-popover text-popover-foreground rounded-2xl shadow-2xl border-border z-[1001]"
-															>
-																<div className="flex items-center justify-between mb-3">
-																	<div className="flex flex-col">
-																		<span className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mb-1">Detalles del Cambio</span>
-																		<span className="text-[10px] text-muted-foreground font-bold uppercase">{detalle.cambio.usuario}</span>
-																	</div>
-																</div>
-																
-																<div className="bg-muted rounded-xl p-3 border border-border mb-4">
-																	<p className="text-[12px] leading-relaxed text-muted-foreground font-medium italic">
-																		"{detalle.cambio.observacion || 'Sin observaciones'}"
-																	</p>
-																</div>
-																
-																{detalle.cambio.nueva_venta_id && (
-																	<button 
-																		onClick={(e) => {
-																			e.preventDefault();
-																			onViewInvoice?.(detalle.cambio.nueva_venta_id);
-																		}}
-																		className="w-full flex items-center justify-between gap-3 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all border border-indigo-400/30 group/btn shadow-xl shadow-indigo-900/40"
-																	>
-																		<div className="flex items-center gap-2">
-																			<ExternalLink className="w-3.5 h-3.5 text-indigo-200 group-hover/btn:scale-110 transition-transform" />
-																			<span className="text-[11px] font-black uppercase tracking-tight">Ver Factura Nueva</span>
-																		</div>
-																		<span className="text-[10px] font-mono font-bold text-indigo-100 bg-white/10 px-2 py-0.5 rounded-lg border border-white/10"># {detalle.cambio.nueva_venta_id}</span>
-																	</button>
-																)}
-															</DropdownMenuContent>
-														</DropdownMenu>
-													)}
-												</div>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
+						<div className="bg-background rounded-2xl border border-border overflow-hidden shadow-sm min-h-[400px]">
+							<DataGrid
+								data={items}
+								columns={columns}
+								processing={loading}
+								total={total}
+								serverSide={true}
+								paginationServer={true}
+								currentPage={currentPage}
+								paginationPerPage={perPage}
+								fetchPage={(page) => fetchDetails(page, perPage)}
+								setPageSize={(size) => {
+									setPerPage(size);
+									fetchDetails(1, size);
+								}}
+								onSort={() => {}}
+							/>
 						</div>
 					</div>
 
@@ -203,6 +281,12 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 					</div>
 				</div>
 			</div>
+
+			<ViewerModal 
+				show={!!viewerImage} 
+				image={viewerImage} 
+				onClose={() => setViewerImage(null)} 
+			/>
 		</Modal>
 	);
 };

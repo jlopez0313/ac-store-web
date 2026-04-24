@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Ventas
     Route::apiResource('ventas', App\Http\Controllers\Api\VentasController::class)->names('api.ventas')->only(['index', 'store', 'update', 'destroy']);
+    Route::get('ventas/{venta}/detalles', [App\Http\Controllers\Api\VentasController::class, 'getDetails'])->name('api.ventas.detalles');
     Route::post('ventas/{venta}/detalles', [App\Http\Controllers\Api\VentasController::class, 'addDetail'])->name('api.ventas.detalles.add');
     Route::put('ventas/{venta}/detalles/{detalle}', [App\Http\Controllers\Api\VentasController::class, 'updateDetail'])->name('api.ventas.detalles.update');
     Route::delete('ventas/{venta}/detalles/bulk', [App\Http\Controllers\Api\VentasController::class, 'bulkDeleteDetails'])->name('api.ventas.detalles.bulk_delete');
