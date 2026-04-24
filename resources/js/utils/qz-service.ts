@@ -3,8 +3,6 @@ import * as qz from 'qz-tray';
 
 let connected = false;
 let securitySetup = false;
-let lastAttemptTime = 0;
-const COOLDOWN_MS = 60000; // 1 minute cooldown after failure
 
 const setupSecurity = () => {
     if (securitySetup) return;
@@ -30,7 +28,7 @@ const setupSecurity = () => {
 
 let connectionPromise: Promise<void> | null = null;
 
-export const connectQZ = async (force: boolean = false): Promise<boolean> => {
+export const connectQZ = async (): Promise<boolean> => {
     setupSecurity();
 
     if (qz.websocket.isActive()) {
@@ -38,22 +36,10 @@ export const connectQZ = async (force: boolean = false): Promise<boolean> => {
         return true;
     }
 
-    const now = Date.now();
-    if (!force && lastAttemptTime > 0 && now - lastAttemptTime < COOLDOWN_MS) {
-        // Still in cooldown period after a failure
-        return false;
-    }
-
     if (connectionPromise) {
-        try {
-            await connectionPromise;
-            return qz.websocket.isActive();
-        } catch {
-            return false;
-        }
+        try { await connectionPromise; return qz.websocket.isActive(); } catch { return false; }
     }
 
-    lastAttemptTime = now;
     connectionPromise = (async () => {
         try {
             await qz.websocket.connect();
@@ -62,13 +48,10 @@ export const connectQZ = async (force: boolean = false): Promise<boolean> => {
 
             const printers = await qz.printers.find();
             console.log('Impresoras disponibles:', printers);
-            lastAttemptTime = 0; // Reset on success
         } catch (err) {
             // QZ Tray no está disponible — no es un error crítico
             connected = false;
             connectionPromise = null;
-            // Record failure time
-            lastAttemptTime = Date.now();
             throw err;
         }
     })();
@@ -102,7 +85,7 @@ export const disconnectQZ = async () => {
 
 export const printWithQZ = async (printerName: string, htmlContent: string) => {
     try {
-        const isConnected = await connectQZ(true);
+        const isConnected = await connectQZ();
         if (!isConnected) {
             throw new Error('QZ Tray no está disponible. Verifique que la aplicación esté abierta y la impresora conectada.');
         }
