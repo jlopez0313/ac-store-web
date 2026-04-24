@@ -208,7 +208,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
                 </div>
             </div>
 
-            <Modal show={show} closeable={true} title="Gestionar Usuario">
+            <Modal show={show} onClose={() => onToggleModal(false)} closeable={true} title="Gestionar Usuario">
                 <Form
                     id={id}
                     processing={processing}

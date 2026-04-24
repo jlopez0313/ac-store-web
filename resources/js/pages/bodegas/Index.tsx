@@ -225,7 +225,7 @@ export default function Index({ filters: initialFilters, estados, cuentas }: any
                 </div>
             </div>
 
-            <Modal show={show} closeable={true} title="Gestionar Bodega">
+            <Modal show={show} onClose={() => setShow(false)} closeable={true} title="Gestionar Bodega">
                 <Form
                     id={selectedId}
                     estados={estados}

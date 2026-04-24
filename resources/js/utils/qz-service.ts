@@ -28,52 +28,67 @@ const setupSecurity = () => {
 
 let connectionPromise: Promise<void> | null = null;
 
-export const connectQZ = async () => {
+export const connectQZ = async (): Promise<boolean> => {
     setupSecurity();
-    
+
     if (qz.websocket.isActive()) {
         connected = true;
-        return;
+        return true;
     }
 
-    if (connectionPromise) return connectionPromise;
+    if (connectionPromise) {
+        try { await connectionPromise; return qz.websocket.isActive(); } catch { return false; }
+    }
 
     connectionPromise = (async () => {
         try {
             await qz.websocket.connect();
             connected = true;
-            console.log('QZ Tray connected (with security)');
+            console.log('QZ Tray connected');
 
-            // List available printers
             const printers = await qz.printers.find();
-            console.log('--- Impresoras Disponibles (Copia el nombre exacto) ---');
-            console.log(printers);
-            console.log('---------------------------');
+            console.log('Impresoras disponibles:', printers);
         } catch (err) {
-            console.error('Error connecting to QZ Tray', err);
+            // QZ Tray no está disponible — no es un error crítico
+            connected = false;
             connectionPromise = null;
             throw err;
         }
     })();
 
-    return connectionPromise;
+    try {
+        await connectionPromise;
+        return true;
+    } catch {
+        return false; // Silently return false when QZ is not reachable
+    }
 };
 
 export const disconnectQZ = async () => {
-    if (!connected) return;
+    // Guard: only disconnect if the websocket is actually open
+    if (!qz.websocket.isActive()) {
+        connected = false;
+        connectionPromise = null;
+        return;
+    }
     try {
         await qz.websocket.disconnect();
         connected = false;
         connectionPromise = null;
         console.log('QZ Tray disconnected');
     } catch (err) {
-        console.error('Error disconnecting from QZ Tray', err);
+        // Ignore — connection may have already dropped
+        connected = false;
+        connectionPromise = null;
     }
 };
 
 export const printWithQZ = async (printerName: string, htmlContent: string) => {
     try {
-        await connectQZ();
+        const isConnected = await connectQZ();
+        if (!isConnected) {
+            throw new Error('QZ Tray no está disponible. Verifique que la aplicación esté abierta y la impresora conectada.');
+        }
         const config = qz.configs.create(printerName);
         const data = [
             {
@@ -84,7 +99,7 @@ export const printWithQZ = async (printerName: string, htmlContent: string) => {
         ];
         await qz.print(config, data);
     } catch (err) {
-        console.error('Detailed QZ Print Error:', err);
+        console.error('Error de impresión QZ:', err);
         throw err;
     }
 };

@@ -251,7 +251,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                 </div>
             </div>
 
-            <Modal show={show} closeable={true} title={selectedId ? 'Editar Muestra' : 'Registrar Distribución de Muestra'}>
+            <Modal show={show} onClose={() => setShow(false)} closeable={true} title={selectedId ? 'Editar Muestra' : 'Registrar Distribución de Muestra'}>
                 <Form
                     id={selectedId}
                     cuentas={cuentas}

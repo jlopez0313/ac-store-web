@@ -7,11 +7,14 @@ import { showAlert } from '@/plugins/sweetalert';
 import { router } from '@inertiajs/react';
 import axios from 'axios';
 import { ArrowLeftRight, ChevronRight, Loader2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 
 export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any) => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
+    const viewerOpenRef = useRef(false);
 
     // Form data
     const [selectedCuenta, setSelectedCuenta] = useState('');
@@ -27,6 +30,22 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
     const [destBodega, setDestBodega] = useState('');
     const [destEstanteria, setDestEstanteria] = useState('');
     const [cantidad, setCantidad] = useState('1');
+
+    const handleModalClose = useCallback(() => {
+        if (!viewerOpenRef.current) {
+            onClose();
+        }
+    }, [onClose]);
+
+    const openViewer = (foto: string) => {
+        viewerOpenRef.current = true;
+        setViewerImage(foto);
+    };
+
+    const closeViewer = () => {
+        viewerOpenRef.current = false;
+        setViewerImage(null);
+    };
 
     // Options
     const [referencias, setReferencias] = useState<any[]>(referenciasInit || []);
@@ -175,8 +194,12 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
     // Formatted list for references selector
     const referenciasOptions = referencias.map((r) => ({ id: r.id, display: `${r.codigo} - ${r.descripcion}` }));
 
+    const selectedRefData = useMemo(() => {
+        return referencias.find((r: any) => String(r.id) === String(selectedRef));
+    }, [referencias, selectedRef]);
+
     return (
-        <Modal show={isOpen} onClose={onClose} closeable={true} title="Realizar Traslado de Mercancía" maxWidth="2xl">
+        <Modal show={isOpen} onClose={handleModalClose} closeable={true} title="Realizar Traslado de Mercancía" maxWidth="2xl">
             <div className="space-y-6 p-6">
                 {/* Stepper Header */}
                 <div className="relative flex items-center justify-between px-10">
@@ -248,22 +271,35 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                             </Button>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
-                            <SelectField
-                                name="originBodega"
-                                title="Bodega de Origen"
-                                item={{ idx: 'id', value: 'nombre' }}
-                                lista={originBodegasDisponibles}
-                                value={originBodega}
-                                onChange={(v) => {
-                                    setOriginBodega(v as string);
-                                    setOriginEstanteria('');
-                                    setOriginTalla('');
-                                }}
-                                error={''}
-                            />
+                        <div className="grid grid-cols-[120px_1fr] gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+                            <div 
+                                className="flex h-[120px] w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white"
+                                onClick={() => selectedRefData?.foto && openViewer(selectedRefData.foto)}
+                            >
+                                {selectedRefData?.foto ? (
+                                    <img src={`/storage/${selectedRefData.foto}`} alt="" className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="text-center text-[10px] text-slate-400">Sin foto</div>
+                                )}
+                            </div>
+                            <div className="space-y-4">
+                                <SelectField
+                                    name="originBodega"
+                                    title="Bodega de Origen"
+                                    item={{ idx: 'id', value: 'nombre' }}
+                                    lista={originBodegasDisponibles}
+                                    value={originBodega}
+                                    onChange={(v) => {
+                                        setOriginBodega(v as string);
+                                        setOriginEstanteria('');
+                                        setOriginTalla('');
+                                    }}
+                                    error={''}
+                                />
+                            </div>
+                        </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                                 <SelectField
                                     name="originEstanteria"
                                     title="Estantería"
@@ -289,7 +325,6 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                                     error={''}
                                 />
                             </div>
-                        </div>
 
                         {selectedOriginItem && (
                             <Button
@@ -383,6 +418,12 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                     </div>
                 )}
             </div>
+            
+            <ViewerModal 
+                show={!!viewerImage} 
+                image={viewerImage} 
+                onClose={closeViewer} 
+            />
         </Modal>
     );
 };

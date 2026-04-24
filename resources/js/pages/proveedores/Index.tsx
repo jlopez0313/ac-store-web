@@ -180,7 +180,7 @@ export default function Index({ filters: initialFilters, cuentas, tipos_document
                 </div>
             </div>
 
-            <Modal show={show} closeable={true} title="Gestionar Proveedor">
+            <Modal show={show} onClose={() => onToggleModal(false)} closeable={true} title="Gestionar Proveedor">
                 <Form
                     id={id}
                     cuentas={cuentas}

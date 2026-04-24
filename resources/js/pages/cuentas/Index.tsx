@@ -182,7 +182,7 @@ export default function Index({ filters: initialFilters, estados, default_accoun
 				</div>
 			</div>
 
-			<Modal show={show} closeable={true} title="Gestionar Cuenta">
+			<Modal show={show} onClose={() => onToggleModal(false)} closeable={true} title="Gestionar Cuenta">
 				<Form
 					id={id}
 					estados={estados}

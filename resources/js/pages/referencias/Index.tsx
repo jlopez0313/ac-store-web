@@ -225,7 +225,7 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
                 </div>
             </div>
 
-            <Modal show={show} closeable={true} title="Gestionar Referencia">
+            <Modal show={show} onClose={() => onToggleModal(false)} closeable={true} title="Gestionar Referencia">
                 <Form
                     id={id}
                     cuentas={cuentas}

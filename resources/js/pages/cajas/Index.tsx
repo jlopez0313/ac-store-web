@@ -9,6 +9,7 @@ import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import { Layers, Search as SearchIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import { TallarCajaModal } from './TallarCajaModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -23,6 +24,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 
     const [selectedCaja, setSelectedCaja] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
 
     const [filters, setFilters] = useState({
         search: initialFilters?.search || '',
@@ -62,6 +64,22 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
     };
 
     const columns = [
+        {
+            name: 'Foto',
+            width: '70px',
+            cell: (row: any) => (
+                <div 
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-slate-50 transition-transform hover:scale-110"
+                    onClick={() => setViewerImage(row.referencia_foto)}
+                >
+                    {row.referencia_foto ? (
+                        <img src={`/storage/${row.referencia_foto}`} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-slate-100 text-[10px] text-slate-400">N/A</div>
+                    )}
+                </div>
+            ),
+        },
         {
             name: 'Código',
             selector: (row: any) => row.referencia_codigo,
@@ -199,6 +217,12 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
                 caja={selectedCaja}
                 bodegas={bodegas}
                 onSuccess={() => fetchData()}
+            />
+
+            <ViewerModal 
+                show={!!viewerImage} 
+                image={viewerImage} 
+                onClose={() => setViewerImage(null)} 
             />
         </AppLayout>
     );

@@ -181,7 +181,7 @@ export default function Index({ filters: initialFilters }: any) {
                 </div>
             </div>
 
-            <Modal show={show} closeable={true} title="Gestionar Marca">
+            <Modal show={show} onClose={() => setShow(false)} closeable={true} title="Gestionar Marca">
                 <Form
                     id={selectedId}
                     processing={loading}

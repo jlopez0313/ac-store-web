@@ -205,7 +205,7 @@ export default function Index({ filters: initialFilters, tipos_control, tipos_mu
                 </div>
             </div>
 
-            <Modal show={show} closeable={true} title="Gestionar Categoría">
+            <Modal show={show} onClose={() => setShow(false)} closeable={true} title="Gestionar Categoría">
                 <Form
                     id={selectedId}
                     tipos_control={tipos_control}

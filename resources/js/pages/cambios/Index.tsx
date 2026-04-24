@@ -188,7 +188,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                 </div>
             </div>
 
-            <Modal show={show} closeable={true} title="Registrar Nuevo Cambio" maxWidth="4xl">
+            <Modal show={show} onClose={() => setShow(false)} closeable={true} title="Registrar Nuevo Cambio" maxWidth="4xl">
                 <Form
                     cuentas={cuentas}
                     locals={locals}

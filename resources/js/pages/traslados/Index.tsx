@@ -7,6 +7,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { ArrowLeftRight, Search } from 'lucide-react';
 import { useState } from 'react';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import { TransferModal } from './TransferModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,6 +22,7 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
     } = lista;
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
 
     const handleSearch = (search?: string, page?: number, perPage?: number) => {
         router.visit(
@@ -34,6 +36,22 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
     };
 
     const columns = [
+        {
+            name: 'Foto',
+            width: '70px',
+            cell: (row: any) => (
+                <div 
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-slate-50 transition-transform hover:scale-110"
+                    onClick={() => setViewerImage(row.referencia_foto)}
+                >
+                    {row.referencia_foto ? (
+                        <img src={`/storage/${row.referencia_foto}`} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-slate-100 text-[10px] text-slate-400">N/A</div>
+                    )}
+                </div>
+            ),
+        },
         {
             name: 'Producto',
             grow: 1.5,
@@ -150,6 +168,12 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
             </div>
 
             <TransferModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} cuentas={cuentas} referenciasInit={referencias} />
+            
+            <ViewerModal 
+                show={!!viewerImage} 
+                image={viewerImage} 
+                onClose={() => setViewerImage(null)} 
+            />
         </AppLayout>
     );
 }

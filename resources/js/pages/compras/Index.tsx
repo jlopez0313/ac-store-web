@@ -385,7 +385,7 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                 </div>
             </div>
 
-            <Modal show={show} closeable={true} title={id ? `Factura de Compra #${id}` : `Nueva Factura de Compra #${next_id}`}>
+            <Modal show={show} onClose={() => onToggleModal(false)} closeable={true} title={id ? `Factura de Compra #${id}` : `Nueva Factura de Compra #${next_id}`}>
                 <Form
                     id={id}
                     proveedores={proveedores}

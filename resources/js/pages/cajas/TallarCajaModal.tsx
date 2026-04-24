@@ -1,15 +1,19 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Modal } from '@/components/ui/Modal';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import { showAlert } from '@/plugins/sweetalert';
 import { router } from '@inertiajs/react';
 import { Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 	const [sizedWarehouse, setSizedWarehouse] = useState('');
 	const [sizedRows, setSizedRows] = useState<{ size: string, qty: string, estanteria_id: string }[]>([]);
+	const [viewerImage, setViewerImage] = useState<string | null>(null);
+	const viewerOpenRef = useRef(false);
 
 	useEffect(() => {
 		if (isOpen && caja) {
@@ -27,7 +31,6 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 					return { size: sizeLabel, qty: '', estanteria_id: '' };
 				});
 			} else {
-				// Fallback typical sizes
 				initialRows = Array.from({ length: 15 }, (_, i) => ({ size: String(34 + i), qty: '', estanteria_id: '' }));
 			}
 			setSizedRows(initialRows);
@@ -43,6 +46,22 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 	};
 
 	const sizedTotal = sizedRows.reduce((sum, row) => sum + (parseInt(row.qty) || 0), 0);
+
+	const openViewer = (image: string) => {
+		viewerOpenRef.current = true;
+		setViewerImage(image);
+	};
+
+	const closeViewer = () => {
+		viewerOpenRef.current = false;
+		setViewerImage(null);
+	};
+
+	const handleModalClose = () => {
+		if (!viewerOpenRef.current) {
+			onClose();
+		}
+	};
 
 	const submit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -86,29 +105,48 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 	return (
 		<Modal
 			show={isOpen}
-			onClose={onClose}
+			onClose={handleModalClose}
 			closeable={true}
-			title="Tallar producto de caja"
-			subtitle={`${caja.referencia_codigo} — ${caja.referencia_descripcion}`}
+			title={`Tallar Caja #${caja?.referencia_codigo}`}
 			maxWidth="2xl"
 		>
 			<form onSubmit={submit} className="flex flex-col h-[80vh]">
 				<div className="p-6 flex-1 overflow-y-auto space-y-4">
-					<div className="bg-slate-50 p-4 rounded-lg flex items-center justify-between border border-slate-100">
-						<div>
-							<p className="text-[10px] uppercase font-bold text-slate-400">Disponible en caja</p>
-							<p className="text-xl font-black text-slate-900">{caja.cantidad} pares</p>
+					<div className="grid grid-cols-[120px_1fr] gap-6 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+						<div 
+							className="flex h-[120px] w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white"
+							onClick={() => caja?.referencia_foto && openViewer(caja.referencia_foto)}
+						>
+							{caja?.referencia_foto ? (
+								<img src={`/storage/${caja.referencia_foto}`} alt="" className="h-full w-full object-cover" />
+							) : (
+								<div className="text-center text-[10px] text-slate-400">Sin foto</div>
+							)}
 						</div>
-						<div className="w-64">
-							<SelectField
-								item={{ idx: 'id', value: 'nombre' }}
-								name="sizedWarehouse"
-								title="Bodega de destino"
-								lista={bodegas}
-								value={sizedWarehouse}
-								onChange={(v) => setSizedWarehouse(v as string)}
-								error={""}
-							/>
+						<div className="space-y-2">
+							<div className="flex items-center justify-between">
+								<span className="text-sm font-semibold text-slate-700">{caja.referencia_descripcion}</span>
+								<Badge variant="outline" className="font-mono">
+									SKU: {caja.referencia_codigo}
+								</Badge>
+							</div>
+							<div className="bg-white p-4 rounded-lg flex items-center justify-between border border-slate-100">
+								<div>
+									<p className="text-[10px] uppercase font-bold text-slate-400">Disponible en caja</p>
+									<p className="text-xl font-black text-slate-900">{caja.cantidad} pares</p>
+								</div>
+								<div className="w-64">
+									<SelectField
+										item={{ idx: 'id', value: 'nombre' }}
+										name="sizedWarehouse"
+										title="Bodega de destino"
+										lista={bodegas}
+										value={sizedWarehouse}
+										onChange={(v) => setSizedWarehouse(v as string)}
+										error={""}
+									/>
+								</div>
+							</div>
 						</div>
 					</div>
 
@@ -169,6 +207,11 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 					</div>
 				</div>
 			</form>
+			<ViewerModal 
+				show={!!viewerImage} 
+				image={viewerImage} 
+				onClose={closeViewer} 
+			/>
 		</Modal>
 	);
 };
