@@ -2,7 +2,9 @@ import { Modal } from '@/components/ui/Modal';
 import { FormButtons } from '@/components/ui/form/FormButtons';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tag } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 
 interface BulkDiscountModalProps {
     isOpen: boolean;
@@ -22,6 +24,8 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
     processing
 }) => {
     const [newDiscounts, setNewDiscounts] = useState<Record<number, string>>({});
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
+    const viewerOpenRef = useRef(false);
 
     // Group items by reference
     const groupedItems = useMemo(() => {
@@ -77,11 +81,27 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
         return Math.max(0, originalPrice - discount);
     };
 
+    const handleModalClose = useCallback(() => {
+        if (!viewerOpenRef.current) {
+            onClose();
+        }
+    }, [onClose]);
+
+    const openViewer = useCallback((foto: string) => {
+        viewerOpenRef.current = true;
+        setViewerImage(foto);
+    }, []);
+
+    const closeViewer = useCallback(() => {
+        viewerOpenRef.current = false;
+        setViewerImage(null);
+    }, []);
+
     return (
         <Modal
             show={isOpen}
             closeable={true}
-            onClose={onClose}
+            onClose={handleModalClose}
             title="Descuento Masivo por Referencia"
             maxWidth="5xl"
         >
@@ -98,8 +118,9 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
             >
                 <div className="overflow-x-auto overflow-y-auto max-h-[500px] border border-border rounded-2xl shadow-sm custom-scrollbar">
                     <Table>
-                        <TableHeader className="bg-muted/50 sticky top-0 z-10 backdrop-blur-sm">
+                        <TableHeader className="bg-muted/50 sticky top-0 z-10 backdrop-blur-sm shadow-sm">
                             <TableRow>
+                                <TableHead className="w-16 font-bold text-foreground">Foto</TableHead>
                                 <TableHead className="font-bold text-foreground">Referencia</TableHead>
                                 <TableHead className="w-30 text-center font-bold text-foreground">Cant. Total</TableHead>
                                 <TableHead className="w-32 text-right font-bold text-foreground">Precio Venta</TableHead>
@@ -116,13 +137,25 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                                 const total = newPrice * group.totalInvoiceQuantity;
 
                                 return (
-                                    <TableRow key={group.producto_id} className="hover:bg-muted/20 transition-colors">
+                                    <TableRow key={group.producto_id} className="hover:bg-muted/10 transition-colors">
+                                        <TableCell>
+                                            <div 
+                                                className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-100 bg-slate-50 transition-transform hover:scale-110 active:scale-95"
+                                                onClick={() => group.producto?.foto && openViewer(group.producto.foto)}
+                                            >
+                                                {group.producto?.foto ? (
+                                                    <img src={group.producto.foto} alt="" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <div className="flex h-full w-full items-center justify-center bg-slate-100 text-[8px] text-slate-400">N/A</div>
+                                                )}
+                                            </div>
+                                        </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
                                                 <span className="font-mono font-black text-indigo-600 text-xs">
                                                     {group.producto?.codigo}
                                                 </span>
-                                                <span className="text-[11px] text-muted-foreground truncate max-w-[200px]">
+                                                <span className="text-[11px] text-muted-foreground truncate max-w-[180px]" title={group.producto?.descripcion}>
                                                     {group.producto?.descripcion}
                                                 </span>
                                             </div>
@@ -132,10 +165,10 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                                                 <span className="text-sm text-muted-foreground font-medium">{group.totalInvoiceQuantity} ud.</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right text-muted-foreground text-sm">
+                                        <TableCell className="text-right text-muted-foreground text-sm font-mono">
                                             ${group.originalPrice.toLocaleString()}
                                         </TableCell>
-                                        <TableCell className="text-right text-muted-foreground text-sm">
+                                        <TableCell className="text-right text-muted-foreground text-sm font-mono">
                                             ${group.currentPrice.toLocaleString()}
                                         </TableCell>
                                         <TableCell>
@@ -144,24 +177,24 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                                                 value={newDiscount}
                                                 onChange={(e) => handleDiscountChange(group.producto_id, e.target.value)}
                                                 placeholder="0"
-                                                className="w-full px-3 py-1.5 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all text-center font-bold text-foreground"
+                                                className="w-full px-3 py-1.5 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-center font-bold text-foreground"
                                             />
                                         </TableCell>
-                                        <TableCell className="text-right font-medium text-indigo-600">
+                                        <TableCell className="text-right font-medium text-indigo-600 font-mono">
                                             ${newPrice.toLocaleString()}
                                         </TableCell>
-                                        <TableCell className="text-right pr-6 font-medium text-foreground">
+                                        <TableCell className="text-right pr-6 font-medium text-foreground font-mono">
                                             ${total.toLocaleString()}
                                         </TableCell>
                                     </TableRow>
                                 );
                             })}
                             {groupedItems.length > 0 && (
-                                <TableRow className="bg-muted/50 hover:bg-muted/50 font-medium border-t-2 border-border">
-                                    <TableCell colSpan={6} className="text-right text-muted-foreground uppercase text-[10px]">
+                                <TableRow className="bg-muted/30 hover:bg-muted/30 font-medium border-t-2 border-border">
+                                    <TableCell colSpan={7} className="text-right text-muted-foreground uppercase text-[10px] tracking-wider">
                                         Total tras Descuentos Masivos:
                                     </TableCell>
-                                    <TableCell className="text-right pr-6 text-indigo-700">
+                                    <TableCell className="text-right pr-6 text-indigo-700 font-bold text-lg font-mono">
                                         ${groupedItems.reduce((acc, group) => {
                                             const newDiscount = newDiscounts[group.producto_id] || '';
                                             const newPrice = calculateNewPrice(group.originalPrice, newDiscount);
@@ -174,20 +207,28 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                     </Table>
                 </div>
 
-                <div className="pt-4 flex justify-between items-center text-sm text-muted-foreground">
-                    <p className="flex items-center gap-2 italic">
-                        <Tag className="h-4 w-4" />
+                <div className="pt-4 flex flex-col md:flex-row md:justify-between md:items-center gap-4 text-sm text-muted-foreground border-t border-border mt-2">
+                    <p className="flex items-center gap-2 italic text-slate-500">
+                        <Tag className="h-4 w-4 text-indigo-500" />
                         Los descuentos se aplican sobre el precio de venta original.
                     </p>
-                    <FormButtons
-                        processing={processing}
-                        reset={onClose}
-                        buttons={{ cancel: true, submit: true }}
-                        labels={{ cancel: 'Cancelar', submit: 'Aplicar Descuentos' }}
-                        submitDisabled={Object.values(newDiscounts).every(v => v === '')}
-                    />
+                    <div className="w-full md:w-auto">
+                        <FormButtons
+                            processing={processing}
+                            reset={onClose}
+                            buttons={{ cancel: true, submit: true }}
+                            labels={{ cancel: 'Cancelar', submit: 'Aplicar Descuentos' }}
+                            submitDisabled={Object.values(newDiscounts).every(v => v === '')}
+                        />
+                    </div>
                 </div>
             </form>
+
+            <ViewerModal
+                show={!!viewerImage}
+                onClose={closeViewer}
+                image={viewerImage}
+            />
         </Modal>
     );
 };
