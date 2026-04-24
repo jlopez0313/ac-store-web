@@ -10,7 +10,9 @@ class QzController extends Controller
 {
     public function sign(Request $request)
     {
-        $toSign = $request->input('request');
+        // Use raw input to ensure no framework-level string manipulation occurs
+        $json = json_decode($request->getContent(), true);
+        $toSign = $json['request'] ?? null;
         
         if (!$toSign) {
              return response()->json(['error' => 'No request data provided'], 400);
@@ -22,13 +24,14 @@ class QzController extends Controller
         }
 
         $privateKey = openssl_get_privatekey(file_get_contents($keyPath));
-        $signature = '';
-        
-        // QZ Tray 2.1+ defaults to SHA-512
-        openssl_sign($toSign, $signature, $privateKey, OPENSSL_ALGO_SHA512);
+        if (!$privateKey) {
+            return response()->json(['error' => 'Invalid private key'], 500);
+        }
 
-        // Debug logging (optional, can be removed after testing)
-        // \Log::info('QZ Signing', ['toSign' => $toSign, 'algo' => 'SHA512']);
+        $signature = '';
+        // Try SHA1 first, if it fails we will try SHA512. 
+        // Many QZ Tray 2.x versions still expect SHA1 for the signature of the payload.
+        openssl_sign($toSign, $signature, $privateKey, OPENSSL_ALGO_SHA1);
 
         if (PHP_MAJOR_VERSION < 8) {
             openssl_free_key($privateKey);
