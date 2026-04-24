@@ -308,7 +308,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                     e.preventDefault();
                     submit();
                 }}
-                className="bg-background flex h-[700px] flex-col overflow-hidden"
+                className="bg-background flex h-[80dvh] max-h-[700px] flex-col overflow-hidden"
             >
                 {/* Header / Search Area */}
                 <div className="bg-background space-y-4 border-b p-6">
@@ -390,20 +390,20 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                 <button
                                     key={r.id}
                                     onClick={() => handleSelectRef(r)}
-                                    className="group flex w-full cursor-pointer items-center justify-between rounded-xl p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    className="group flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
                                 >
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
+                                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                                        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 flex items-center justify-center">
                                             {r.foto ? (
                                                 <img src={`/storage/${r.foto}`} alt="Thumb" className="h-full w-full object-cover" />
                                             ) : (
                                                 <ImageIcon className="h-4 w-4 text-slate-300" />
                                             )}
                                         </div>
-                                        <div className="space-y-0.5">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-foreground font-bold">{r.codigo}</span>
-                                                <span className="text-foreground max-w-[300px] truncate font-medium uppercase">{r.descripcion}</span>
+                                        <div className="min-w-0 space-y-0.5">
+                                            <div className="flex min-w-0 items-center gap-1.5">
+                                                <span className="text-foreground flex-shrink-0 font-bold">{r.codigo}</span>
+                                                <span className="text-foreground min-w-0 truncate font-medium uppercase">{r.descripcion}</span>
                                             </div>
                                             <div className="mt-1 flex gap-1.5">
                                                 <Badge
