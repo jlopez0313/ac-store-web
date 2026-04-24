@@ -64,11 +64,10 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                     <div className="flex flex-col items-end gap-2 text-right">
                         <Badge
                             variant="outline"
-                            className={`px-3 py-1 text-xs ${
-                                factura.estado === 'cerrada'
+                            className={`px-3 py-1 text-xs ${factura.estado === 'cerrada'
                                     ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
                                     : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                            }`}
+                                }`}
                         >
                             {factura.estado === 'cerrada' ? 'Cerrada' : 'Abierta'}
                         </Badge>
@@ -98,7 +97,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                             variant="destructive"
                                             size="sm"
                                             onClick={onBulkDelete}
-                                            className="h-10 rounded-xl bg-red-600 px-4 font-bold text-white shadow-lg shadow-red-100 transition-all hover:bg-red-700 active:scale-95"
+                                            className="h-10 rounded-xl bg-red-600 px-4 font-bold text-white transition-all hover:bg-red-700 active:scale-95"
                                         >
                                             Eliminar
                                         </Button>
@@ -108,7 +107,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                     <Button
                                         size="sm"
                                         onClick={onAddProduct}
-                                        className="h-10 bg-indigo-600 px-4 text-white shadow-lg shadow-indigo-100 transition-all hover:bg-indigo-700 active:scale-95"
+                                        className="h-10 bg-indigo-600 px-4 text-white transition-all hover:bg-indigo-700 active:scale-95"
                                     >
                                         <Plus className="mr-2 h-4 w-4" />
                                         Agregar Producto
