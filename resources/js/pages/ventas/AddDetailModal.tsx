@@ -75,6 +75,8 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                 setSelectedBodegaId(null);
                 setSelectedTalla(null);
             }
+        } else {
+            setViewerImage(null);
         }
     }, [isOpen, referencia]);
 

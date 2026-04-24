@@ -13,6 +13,7 @@ import { Plus, ShoppingCart } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AddDetailModal } from './AddDetailModal';
 import { CreateModal } from './CreateModal';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 
 // Sub-components
 import { InvoiceDetailHeader } from './InvoiceDetailHeader';
@@ -43,6 +44,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
     const [selectedRef, setSelectedRef] = useState<any>(null);
     const [selectedDetailIds, setSelectedDetailIds] = useState<number[]>([]);
     const detailContainerRef = useRef<HTMLDivElement>(null);
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
 
     // Auto-scroll to details on mobile when selection changes
     useEffect(() => {
@@ -52,6 +54,8 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                 detailContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
         }
+        // Ensure viewer is closed when switching invoices
+        setViewerImage(null);
     }, [selectedFactura?.id]);
 
     const fetchData = useCallback(
@@ -345,6 +349,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                     onUpdatePrice={handleUpdatePrice}
                                     onDeleteDetail={handleDeleteDetail}
                                     onViewInvoice={(id) => handleSearch(id.toString())}
+                                    onViewImage={setViewerImage}
                                 />
                             </>
                         ) : (
@@ -388,6 +393,12 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                     setSelectedFactura({ ...selectedFactura, detalles: updatedDetalles });
                     fetchData();
                 }}
+            />
+
+            <ViewerModal 
+                show={!!viewerImage} 
+                image={viewerImage} 
+                onClose={() => setViewerImage(null)} 
             />
         </AppLayout>
     );

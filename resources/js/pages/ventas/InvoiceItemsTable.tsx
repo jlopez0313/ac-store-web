@@ -3,7 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { Edit, ExternalLink, Package, RefreshCcw, Tag, Trash, Warehouse } from 'lucide-react';
+import { Edit, ExternalLink, Image as ImageIcon, Package, RefreshCcw, Tag, Trash, Warehouse } from 'lucide-react';
 import React from 'react';
 
 interface InvoiceItemsTableProps {
@@ -16,6 +16,7 @@ interface InvoiceItemsTableProps {
     onUpdatePrice: (detalle: any) => void;
     onDeleteDetail: (id: number) => void;
     onViewInvoice?: (id: number) => void;
+    onViewImage?: (image: string) => void;
 }
 
 export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
@@ -28,6 +29,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
     onUpdatePrice,
     onDeleteDetail,
     onViewInvoice,
+    onViewImage,
 }) => {
     const getPriceHighlight = (detalle: any) => {
         const sugerido = Number(detalle.precio_sugerido || 0);
@@ -56,7 +58,8 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                     />
                                 )}
                             </TableHead>
-                            <TableHead className="w-32 font-bold text-slate-700 dark:text-slate-300">Ref</TableHead>
+                            <TableHead className="w-16 font-bold text-slate-700 dark:text-slate-300">Foto</TableHead>
+                            <TableHead className="w-28 font-bold text-slate-700 dark:text-slate-300">Ref</TableHead>
                             <TableHead className="font-bold text-slate-700 dark:text-slate-300">Producto</TableHead>
                             <TableHead className="w-56 font-bold text-slate-700 dark:text-slate-300">Ubicación</TableHead>
                             <TableHead className="w-20 font-bold text-slate-700 dark:text-slate-300">Cant.</TableHead>
@@ -81,6 +84,19 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                             onCheckedChange={() => onToggleSelectDetail(detalle.id)}
                                         />
                                     )}
+                                </TableCell>
+                                <TableCell>
+                                    <button
+                                        type="button"
+                                        onClick={() => detalle.producto?.foto && onViewImage?.(detalle.producto.foto)}
+                                        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-slate-100 bg-slate-50 transition-transform hover:scale-110 active:scale-95 dark:border-slate-800 dark:bg-slate-900"
+                                    >
+                                        {detalle.producto?.foto ? (
+                                            <img src={detalle.producto.foto} alt="Thumb" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <ImageIcon className="h-4 w-4 text-slate-300" />
+                                        )}
+                                    </button>
                                 </TableCell>
                                 <TableCell>
                                     <span className="rounded-md border border-indigo-100 bg-indigo-50 px-2 py-1 font-mono text-sm font-black text-indigo-600 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-400">

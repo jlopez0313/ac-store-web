@@ -42,6 +42,8 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 	useEffect(() => {
 		if (isOpen && factura) {
 			fetchDetails(1, perPage);
+		} else if (!isOpen) {
+			setViewerImage(null);
 		}
 	}, [isOpen, factura]);
 
