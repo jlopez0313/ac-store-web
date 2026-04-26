@@ -17,6 +17,7 @@ class Muestra extends Model
         'etiquetas',
         'cuenta_id',
         'estado',
+        'impreso',
     ];
 
     protected $casts = [

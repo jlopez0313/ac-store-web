@@ -164,6 +164,16 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
               ]
             : []),
         {
+            name: 'Impreso',
+            cell: (row: any) => (
+                <Badge variant={row.impreso ? 'default' : 'secondary'}>
+                    {row.impreso ? 'Sí' : 'No'}
+                </Badge>
+            ),
+            sortable: true,
+            width: '100px',
+        },
+        {
             name: 'Registrado por',
             selector: (row: any) => row.creado_por,
         },

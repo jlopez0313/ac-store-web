@@ -21,6 +21,14 @@ class CuentaObserver
             WHERE cuenta_id = {$cuenta->id}
         ");
 
+        $muestraViewName = "vista_muestras_cuenta_{$cuenta->id}";
+        DB::statement("
+            CREATE OR REPLACE VIEW `{$muestraViewName}` AS
+            SELECT Referencia, Descripcion, Talla, CodigoBarras, LocalDestino, FechaCreacion
+            FROM vista_muestras
+            WHERE cuenta_id = {$cuenta->id}
+        ");
+
         // MySQL User Automation
         $dbName = DB::getDatabaseName();
         $rawName = str_replace(' ', '', $cuenta->nombre);
@@ -34,6 +42,7 @@ class CuentaObserver
                 DB::statement("DROP USER IF EXISTS '{$username}'@'%'");
                 DB::statement("CREATE USER '{$username}'@'%' WITH mysql_native_password IDENTIFIED BY '{$password}'");
                 DB::statement("GRANT SELECT ON `{$dbName}`.`{$viewName}` TO '{$username}'@'%'");
+                DB::statement("GRANT SELECT ON `{$dbName}`.`{$muestraViewName}` TO '{$username}'@'%'");
                 DB::statement("FLUSH PRIVILEGES");
                 \Log::info("MySQL user created: {$username} with access to {$viewName}");
             } catch (\Exception $e) {
@@ -49,6 +58,9 @@ class CuentaObserver
     {
         $viewName = "vista_etiquetas_cuenta_{$cuenta->id}";
         DB::statement("DROP VIEW IF EXISTS `{$viewName}`");
+
+        $muestraViewName = "vista_muestras_cuenta_{$cuenta->id}";
+        DB::statement("DROP VIEW IF EXISTS `{$muestraViewName}`");
 
         // MySQL User cleanup
         $rawName = str_replace(' ', '', $cuenta->nombre);

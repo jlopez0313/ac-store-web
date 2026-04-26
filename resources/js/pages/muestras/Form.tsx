@@ -3,6 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormButtons } from '@/components/ui/form/FormButtons';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/use-auth';
 import { showAlert } from '@/plugins/sweetalert';
 import { useForm } from '@inertiajs/react';
@@ -16,6 +17,7 @@ type ThisForm = {
     variante: string;
     etiquetas: string[];
     cuenta_id: string;
+    impreso: boolean;
 };
 
 export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetItem, onReload }: any) => {
@@ -36,6 +38,7 @@ export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetI
         variante: '',
         etiquetas: [],
         cuenta_id: isSuperAdmin ? '' : user?.cuenta_id?.toString() || '',
+        impreso: false,
     });
 
     // Load existing item if editing
@@ -50,6 +53,7 @@ export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetI
                     variante: item.variante,
                     etiquetas: item.etiquetas,
                     cuenta_id: item.cuenta.id.toString(),
+                    impreso: !!item.impreso,
                 });
                 // Need to trigger ref loading
             });
@@ -236,6 +240,17 @@ export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetI
                                 error={errors.inventario_id}
                             />
                         )}
+
+                        <div className="flex items-center space-x-2">
+                            <Switch
+                                id="impreso"
+                                checked={data.impreso}
+                                onCheckedChange={(checked: boolean) => setData('impreso', checked)}
+                            />
+                            <Label htmlFor="impreso" className="text-sm font-medium cursor-pointer">
+                                ¿Ya fue impreso?
+                            </Label>
+                        </div>
                     </div>
 
                     {selectedInv && selectedRef?.categoria?.subdivision_stock && (
