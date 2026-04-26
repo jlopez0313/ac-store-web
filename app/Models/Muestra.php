@@ -22,7 +22,19 @@ class Muestra extends Model
 
     protected $casts = [
         'etiquetas' => 'array',
+        'impreso' => 'boolean',
     ];
+
+    protected static function booted()
+    {
+        static::created(function ($muestra) {
+            // Mark all other samples of this account as printed
+            self::where('cuenta_id', $muestra->cuenta_id)
+                ->where('id', '!=', $muestra->id)
+                ->where('impreso', false)
+                ->update(['impreso' => true]);
+        });
+    }
 
     public function local()
     {

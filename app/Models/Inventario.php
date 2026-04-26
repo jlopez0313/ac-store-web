@@ -5,10 +5,13 @@ namespace App\Models;
 use App\Traits\Blameable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Referencia;
 
 class Inventario extends Model
 {
     use HasFactory, Blameable;
+
+    protected static $wipePerformed = false;
     
     protected static function booted()
     {
@@ -29,9 +32,18 @@ class Inventario extends Model
             }
 
             if ($stockIncreased) {
-                // Ensure we don't cause an infinite loop and only update if necessary
+                if (!static::$wipePerformed) {
+                    // Mark ALL references of this account as printed
+                    Referencia::where('cuenta_id', $inventario->cuenta_id)
+                        ->where('impreso', false)
+                        ->update(['impreso' => true]);
+                    
+                    static::$wipePerformed = true;
+                }
+
+                // Mark current reference as NOT printed
                 $referencia = $inventario->referencia;
-                if ($referencia && $referencia->impreso) {
+                if ($referencia) {
                     $referencia->update(['impreso' => false]);
                 }
             }
