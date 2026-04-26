@@ -370,43 +370,69 @@ class ImportarSistemaViejoJob implements ShouldQueue
     }
 
     // ─────────────────────────────────────────────────────
-    // 3. USERS LOCALES (tipo 1 y 2)
+    // 3. USERS LOCALES
+    // Fuente primaria: hoja LOCALES (Id_Ubicacion, Ubicacion, Activo)
+    // Fuente secundaria: hoja USUARIOS tipo=1 (para obtener NIT/email si existe)
     // ─────────────────────────────────────────────────────
     private function importarUsersLocales(): void
     {
-        $rows = $this->loadSheet('USUARIOS');
-        if ($rows->isEmpty()) {
-            $this->log('  Hoja USUARIOS no encontrada o vacía');
+        // Construir lookup nit/email desde USUARIOS tipo=1 por nombre normalizado
+        $nitPorNombre = [];  // nombre_norm => nit
+        $emailPorNombre = [];
+        $rowsUsuarios = $this->loadSheet('USUARIOS');
+        foreach ($rowsUsuarios as $i => $row) {
+            if ($i === 0) {
+                continue;
+            }
+            [$nombre, $nit, , , $email, , $tipo] = array_pad($row->toArray(), 7, null);
+            if ((int) $tipo !== 1 || !$nombre) {
+                continue;
+            }
+            $norm = strtoupper(trim($nombre));
+            $nitPorNombre[$norm] = trim((string) $nit);
+            if ($email) {
+                $emailPorNombre[$norm] = trim($email);
+            }
+        }
 
+        // Fuente principal: hoja LOCALES
+        $rowsLocales = $this->loadSheet('LOCALES');
+        if ($rowsLocales->isEmpty()) {
+            $this->log('  Hoja LOCALES no encontrada o vacía');
             return;
         }
 
         $insertados = 0;
-        foreach ($rows as $i => $row) {
+        foreach ($rowsLocales as $i => $row) {
             if ($i === 0) {
                 continue;
             }
-            [$nombre, $nit, , , $email, , $tipo, $orden] = array_pad($row->toArray(), 8, null);
-            // Solo tipo 1 = vendedores/locales. Tipo 2 = proveedores (van en importarProveedores)
-            if (!$nombre || (int) $tipo !== 1) {
+            [$idUbicacion, $ubicacion, $activo] = array_pad($row->toArray(), 3, null);
+            if (!$idUbicacion || !$ubicacion) {
                 continue;
             }
 
-            $nombre = strtoupper(trim($nombre));
-            $nit = trim((string) $nit);
-            $username = preg_replace('/[^a-z0-9]/', '_', strtolower($nombre));
+            // Nombre normalizado: NICOLAS_QUINTERO → NICOLAS QUINTERO
+            $nombreNorm = strtoupper(str_replace('_', ' ', trim($ubicacion)));
+            $nit = $nitPorNombre[$nombreNorm] ?? '';
+            $email = $emailPorNombre[$nombreNorm] ?? null;
+            $username = preg_replace('/[^a-z0-9]/', '_', strtolower($nombreNorm));
             $emailUso = $email ?: ($username . '@sistema.local');
+            $estado = $activo ? 1 : 0;
 
             if (!$this->dryRun) {
+                // Buscar por username o por nombre exacto (evitar duplicados en re-runs)
                 $existing = DB::table('users')
                     ->where('cuenta_id', $this->cuentaId)
-                    ->where('username', $username)
+                    ->where(function ($q) use ($username, $nombreNorm) {
+                        $q->where('username', $username)->orWhere('name', $nombreNorm);
+                    })
                     ->first();
 
                 if ($existing) {
-                    $this->mapUsers[$nit] = $existing->id;
-                    if ($orden !== null) {
-                        $this->mapLocales[(int) $orden] = $existing->id;
+                    $this->mapLocales[(int) $idUbicacion] = $existing->id;
+                    if ($nit) {
+                        $this->mapUsers[$nit] = $existing->id;
                     }
                     continue;
                 }
@@ -419,12 +445,12 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
                 $userId = DB::table('users')->insertGetId([
                     'cuenta_id' => $this->cuentaId,
-                    'name' => $nombre,
+                    'name' => $nombreNorm,
                     'username' => $usernameUnico,
-                    'documento' => $nit,
+                    'documento' => $nit ?: null,
                     'email' => $emailUso,
                     'password' => Hash::make($nit ?: 'cambiar123'),
-                    'estado' => 1,
+                    'estado' => $estado,
                     'precio_suscripcion' => config('constants.suscripciones.default_user_price'),
                     'email_verified_at' => now(),
                     'created_at' => now(),
@@ -439,24 +465,24 @@ class ImportarSistemaViejoJob implements ShouldQueue
                     ]);
                 }
 
-                $this->mapUsers[$nit] = $userId;
-                if ($orden !== null) {
-                    $this->mapLocales[(int) $orden] = $userId;
+                $this->mapLocales[(int) $idUbicacion] = $userId;
+                if ($nit) {
+                    $this->mapUsers[$nit] = $userId;
                 }
                 ++$insertados;
             } else {
                 $fakeId = 50000 + $insertados;
-                $this->mapUsers[$nit] = $fakeId;
-                if ($orden !== null) {
-                    $this->mapLocales[(int) $orden] = $fakeId;
+                $this->mapLocales[(int) $idUbicacion] = $fakeId;
+                if ($nit) {
+                    $this->mapUsers[$nit] = $fakeId;
                 }
                 ++$insertados;
             }
         }
 
-        $this->log("  {$insertados} users creados / " . count($this->mapUsers) . ' mapeados');
+        $this->log("  {$insertados} locales creados como users / " . count($this->mapLocales) . ' mapeados');
         if ($insertados > 0 && !$this->dryRun) {
-            $this->log('  ⚠ Password inicial = Nit/Cédula del usuario');
+            $this->log('  ⚠ Password inicial = NIT del local, o "cambiar123" si no tiene NIT');
         }
     }
 
@@ -1104,17 +1130,17 @@ class ImportarSistemaViejoJob implements ShouldQueue
     // ─────────────────────────────────────────────────────
     private function importarVentas(): void
     {
-        // Reconstruir mapLocales desde hoja LOCALES (Id_Ubicacion → userId)
         $this->buildMapLocalesFromSheet();
 
         $rows = $this->loadSheet('FACTURAS_VENTAS');
         if ($rows->isEmpty()) {
             $this->log('  Hoja FACTURAS_VENTAS no encontrada o vacía');
-
             return;
         }
 
-        $insertados = 0;
+        $insertados = $omitidos = 0;
+        $abiertasCount = 0;
+
         foreach ($rows as $i => $row) {
             if ($i === 0) {
                 continue;
@@ -1125,20 +1151,29 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 continue;
             }
 
+            // Saltar si ya existe (re-run)
+            if (isset($this->mapVentas[$idViejo])) {
+                continue;
+            }
+
             $fechaVenta = $this->parsearFecha($fecha);
             $localUserId = $this->mapLocales[(int) $localId] ?? $this->userPorDefecto;
             $vendedorId = $this->mapUsers[trim((string) $vendedorNit)] ?? $this->userPorDefecto;
+            $estado = $cerrada ? 'cerrada' : 'abierta';
+            if (!$cerrada) {
+                ++$abiertasCount;
+            }
 
             if (!$this->dryRun) {
                 $this->mapVentas[$idViejo] = DB::table('ventas')->insertGetId([
                     'cuenta_id' => $this->cuentaId,
-                    'user_id' => $localUserId,    // local receptor
+                    'user_id' => $localUserId,
                     'fecha' => $fechaVenta ? date('Y-m-d', strtotime($fechaVenta)) : now()->toDateString(),
-                    'estado' => $cerrada ? 'cerrada' : 'abierta',
+                    'estado' => $estado,
                     'observaciones' => $obs,
                     'subtotal' => 0,
                     'total' => 0,
-                    'creado_por' => $vendedorId,  // vendedor que registró
+                    'creado_por' => $vendedorId,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -1148,17 +1183,17 @@ class ImportarSistemaViejoJob implements ShouldQueue
             ++$insertados;
         }
 
-        $this->log("  {$insertados} cabeceras insertadas");
+        $this->log("  {$insertados} cabeceras insertadas ({$abiertasCount} abiertas) / {$omitidos} ya existían");
         $this->log('  Leyendo detalles de venta desde INVENTARIO...');
 
-        $di = $do = 0;
+        $di = $do = $doSinRef = $doSinVenta = 0;
         $totales = [];
         $batch = [];
         $now = now();
 
         DB::beginTransaction();
         try {
-            $this->iterarCsvInventario(function ($row, $index) use (&$totales, &$di, &$do, &$batch, $now) {
+            $this->iterarCsvInventario(function ($row, $index) use (&$totales, &$di, &$do, &$doSinRef, &$doSinVenta, &$batch, $now) {
                 if ($index === 1) {
                     return;
                 }
@@ -1174,9 +1209,15 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
                 $ventaId = $this->mapVentas[$fv] ?? null;
                 $refId = $this->mapReferencias[$ref] ?? null;
-                if (!$ventaId || !$refId) {
-                    ++$do;
 
+                if (!$ventaId) {
+                    ++$doSinVenta;
+                    ++$do;
+                    return;
+                }
+                if (!$refId) {
+                    ++$doSinRef;
+                    ++$do;
                     return;
                 }
 
@@ -1195,7 +1236,6 @@ class ImportarSistemaViejoJob implements ShouldQueue
                         'precio_unitario' => $precio,
                         'subtotal' => $subtotal,
                         'estado' => 'vendido',
-                        'email_verified_at' => now(),
                         'creado_por' => $this->userPorDefecto ?: null,
                         'created_at' => $now,
                         'updated_at' => $now,
@@ -1231,7 +1271,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
             throw $e;
         }
 
-        $this->log("  Detalles: {$di} insertados | {$do} omitidos");
+        $this->log("  Detalles: {$di} insertados | {$do} omitidos (sin_venta={$doSinVenta}, sin_ref={$doSinRef})");
     }
 
     // ─────────────────────────────────────────────────────
@@ -1311,10 +1351,10 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
             $ref = $row[2] ?? null;
             $talla = (string) ($row[4] ?? '');
-            $derecho = strtolower(trim((string) ($row[22] ?? '')));
-            $izquierdo = strtolower(trim((string) ($row[23] ?? '')));
-            $isDer = ($derecho === 'true' || $derecho === '1');
-            $isIzq = ($izquierdo === 'true' || $izquierdo === '1');
+            $derecho = $row[22] ?? '';
+            $izquierdo = $row[23] ?? '';
+            $isDer = $derecho === true || $derecho === 1 || strtolower((string) $derecho) === 'true' || $derecho === '1';
+            $isIzq = $izquierdo === true || $izquierdo === 1 || strtolower((string) $izquierdo) === 'true' || $izquierdo === '1';
 
             if (!$isDer && !$isIzq) {
                 return;
@@ -1444,47 +1484,43 @@ class ImportarSistemaViejoJob implements ShouldQueue
         $rows = $this->loadSheet('LOCALES');
         if ($rows->isEmpty()) {
             $this->log('  Hoja LOCALES no encontrada — usando mapeo existente');
-
             return;
         }
 
-        // Resetear map para evitar mapeos incorrectos por Orden_de_ingreso
-        $this->mapLocales = [];
+        // Si el mapa ya viene cargado desde importarUsersLocales, solo completar
+        // los que falten consultando la DB
+        if (empty($this->mapLocales)) {
+            $dbUsers = DB::table('users')
+                ->where('cuenta_id', $this->cuentaId)
+                ->select('id', 'name')
+                ->get();
 
-        // Crear lookup nombre→userId desde usuarios en DB
-        $dbUsers = DB::table('users')
-            ->where('cuenta_id', $this->cuentaId)
-            ->select('id', 'name')
-            ->get();
-
-        $usersByName = [];
-        foreach ($dbUsers as $u) {
-            $usersByName[strtoupper(trim($u->name))] = $u->id;
-        }
-
-        $matched = 0;
-        foreach ($rows as $i => $row) {
-            if ($i === 0) {
-                continue;
-            }
-            [$idUbicacion, $ubicacion] = array_pad($row->toArray(), 2, null);
-            if (!$idUbicacion || !$ubicacion) {
-                continue;
+            $usersByName = [];
+            foreach ($dbUsers as $u) {
+                $usersByName[strtoupper(trim($u->name))] = $u->id;
             }
 
-            // Normalizar: NICOLAS_QUINTERO → NICOLAS QUINTERO
-            $nombreNorm = strtoupper(str_replace('_', ' ', trim($ubicacion)));
-            $userId = $usersByName[$nombreNorm] ?? null;
-
-            if ($userId) {
-                $this->mapLocales[(int) $idUbicacion] = $userId;
-                ++$matched;
-            } else {
-                $this->mapLocales[(int) $idUbicacion] = $this->userPorDefecto;
+            foreach ($rows as $i => $row) {
+                if ($i === 0) {
+                    continue;
+                }
+                [$idUbicacion, $ubicacion] = array_pad($row->toArray(), 2, null);
+                if (!$idUbicacion || !$ubicacion) {
+                    continue;
+                }
+                $nombreNorm = strtoupper(str_replace('_', ' ', trim($ubicacion)));
+                $userId = $usersByName[$nombreNorm] ?? null;
+                if ($userId) {
+                    $this->mapLocales[(int) $idUbicacion] = $userId;
+                } else {
+                    $this->log("  WARN: local '{$nombreNorm}' (id={$idUbicacion}) sin usuario → userPorDefecto");
+                    $this->mapLocales[(int) $idUbicacion] = $this->userPorDefecto;
+                }
             }
         }
 
-        $this->log("  Locales mapeados: " . count($this->mapLocales) . " total, {$matched} con usuario");
+        $conUser = count(array_filter($this->mapLocales, fn($id) => $id !== $this->userPorDefecto));
+        $this->log("  Locales mapeados: " . count($this->mapLocales) . " total, {$conUser} con usuario propio");
     }
 
     // ─────────────────────────────────────────────────────

@@ -145,7 +145,7 @@ class ImportacionController extends Controller
         $solo = $request->input('solo', '');
 
         // Validar cada paso individual
-        $pasosValidos = ['categorias', 'marcas', 'users_locales', 'proveedores', 'bodegas', 'referencias', 'inventario', 'traslados', 'compras', 'ventas'];
+        $pasosValidos = ['categorias', 'marcas', 'users_locales', 'proveedores', 'bodegas', 'referencias', 'inventario', 'traslados', 'compras', 'ventas', 'muestras'];
         if ($solo) {
             $pasosSolicitados = array_map('trim', explode(',', $solo));
             foreach ($pasosSolicitados as $p) {
@@ -172,7 +172,7 @@ class ImportacionController extends Controller
             return response()->json(['error' => 'Archivo Excel no encontrado. ¿Se completó el upload?'], 422);
         }
 
-        $jobKey = 'importacion_'.$uploadId;
+        $jobKey = 'importacion_' . $uploadId;
 
         // Estado inicial en cache
         Cache::put($jobKey, [
