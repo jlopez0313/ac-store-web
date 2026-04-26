@@ -1,0 +1,13 @@
+﻿
+Warning: Version warning: Imagick was compiled against ImageMagick version 1808 but version 1810 is loaded. Imagick will run but may behave surprisingly in Unknown on line 0
+
+  GET|HEAD        api/referencias api.referencias.index ÔÇ║ Api\ReferenciasConÔÇª
+  POST            api/referencias api.referencias.store ÔÇ║ Api\ReferenciasConÔÇª
+  GET|HEAD        api/referencias/next-code api.referencias.next-code ÔÇ║ Api\ReferenciaÔÇª
+  POST            api/referencias/search api.referencias.search ÔÇ║ Api\ReferenciaSeÔÇª
+  GET|HEAD        api/referencias/{referencia} api.referencias.show ÔÇ║ Api\ÔÇª
+  PUT|PATCH       api/referencias/{referencia} api.referencias.update ÔÇ║ Api\ReÔÇª
+  DELETE          api/referencias/{referencia} api.referencias.destroy ÔÇ║ Api\RefÔÇª
+
+    Showing [7] routes
+

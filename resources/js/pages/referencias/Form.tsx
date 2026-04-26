@@ -48,14 +48,14 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
 
         try {
             await onStore(
-                () => ({ url: route('referencias.store') }),
+                () => ({ url: route('api.referencias.store') }),
                 // We target 'update' but we need to pass a special config to the api call
                 // if we are doing this generically in the hook.
                 // However, if the hook uses axios.post for the update internally if it detects a File object or FormData,
                 // it will work. Our useCrudPage hook needs to handle this natively.
                 // Let's ensure we use a POST request with the _method spoof since it's an upload
                 () => ({
-                    url: route('referencias.update', { referencia: id }),
+                    url: route('api.referencias.update', { referencia: id }),
                     method: 'post', // Force POST for Laravel FormData
                 }),
                 payload,
@@ -89,7 +89,7 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
             return;
         }
         const getItem = async () => {
-            const item: any = await onGetItem(() => ({ url: route('referencias.show', { referencia: id }) }), {});
+            const item: any = await onGetItem({ id }, {});
             if (item) {
                 setData({
                     codigo: item.codigo,
