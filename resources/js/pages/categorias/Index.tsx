@@ -212,12 +212,12 @@ export default function Index({ filters: initialFilters, tipos_control, tipos_mu
                     tipos_muestras={tipos_muestras}
                     processing={loading}
                     onClose={() => setShow(false)}
-                    onStore={async (data: any) => {
+                    onStore={async (storeFn: any, updateFn: any, data: any) => {
                         try {
                             if (selectedId) {
-                                await axios.put(route('api.categorias.update', { categoria: selectedId }), data);
+                                await axios.put(updateFn({ id: selectedId }).url, data);
                             } else {
-                                await axios.post(route('api.categorias.store'), data);
+                                await axios.post(storeFn().url, data);
                             }
                             setShow(false);
                             fetchData();
@@ -226,8 +226,8 @@ export default function Index({ filters: initialFilters, tipos_control, tipos_mu
                             showAlert('error', error.response?.data?.error || 'Error al procesar');
                         }
                     }}
-                    onGetItem={async (id: number) => {
-                        const res = await axios.get(route('api.categorias.show', { categoria: id }));
+                    onGetItem={async (showFn: any) => {
+                        const res = await axios.get(showFn({ id: selectedId }).url);
                         return res.data.data;
                     }}
                     onReload={() => fetchData()}

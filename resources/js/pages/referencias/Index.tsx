@@ -239,7 +239,7 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
                             fetchData();
                         })
                     }
-                    onGetItem={(params: any) => onGetItem((p: any) => ({ url: route('api.referencias.show', { referencia: p.id }) }), params)}
+                    onGetItem={onGetItem}
                     onReload={fetchData}
                 />
             </Modal>

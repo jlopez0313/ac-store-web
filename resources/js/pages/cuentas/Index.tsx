@@ -194,7 +194,7 @@ export default function Index({ filters: initialFilters, estados, default_accoun
 							fetchData();
 						})
 					}
-					onGetItem={(params: any) => onGetItem((p: any) => ({ url: route('api.cuentas.show', { cuenta: p.id }) }), params)}
+					onGetItem={onGetItem}
 					onReload={fetchData}
 					default_account_price={default_account_price}
 				/>

@@ -399,7 +399,7 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                             fetchData();
                         })
                     }
-                    onGetItem={(params: any) => onGetItem((p: any) => ({ url: route('api.compras.show', { compra: p.id }) }), params)}
+                    onGetItem={onGetItem}
                     onReload={fetchData}
                     onSuccess={(factura: any) => {
                         setSelectedFactura(factura);

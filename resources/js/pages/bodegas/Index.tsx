@@ -232,12 +232,12 @@ export default function Index({ filters: initialFilters, estados, cuentas }: any
                     cuentas={cuentas}
                     processing={loading}
                     setIsOpen={setShow}
-                    onStore={async (data: any) => {
+                    onStore={async (storeFn: any, updateFn: any, data: any) => {
                         try {
                             if (selectedId) {
-                                await axios.put(route('api.bodegas.update', { bodega: selectedId }), data);
+                                await axios.put(updateFn({ id: selectedId }).url, data);
                             } else {
-                                await axios.post(route('api.bodegas.store'), data);
+                                await axios.post(storeFn().url, data);
                             }
                             setShow(false);
                             fetchData();
@@ -246,8 +246,8 @@ export default function Index({ filters: initialFilters, estados, cuentas }: any
                             showAlert('error', error.response?.data?.error || 'Error al procesar');
                         }
                     }}
-                    onGetItem={async (id: number) => {
-                        const res = await axios.get(route('api.bodegas.show', { bodega: id }));
+                    onGetItem={async (showFn: any) => {
+                        const res = await axios.get(showFn({ id: selectedId }).url);
                         return res.data.data;
                     }}
                     onReload={() => fetchData()}

@@ -186,12 +186,12 @@ export default function Index({ filters: initialFilters }: any) {
                     id={selectedId}
                     processing={loading}
                     onClose={() => setShow(false)}
-                    onStore={async (data: any) => {
+                    onStore={async (storeFn: any, updateFn: any, data: any) => {
                         try {
                             if (selectedId) {
-                                await axios.put(route('api.marcas.update', { marca: selectedId }), data);
+                                await axios.put(updateFn({ id: selectedId }).url, data);
                             } else {
-                                await axios.post(route('api.marcas.store'), data);
+                                await axios.post(storeFn().url, data);
                             }
                             setShow(false);
                             fetchData();
@@ -200,8 +200,8 @@ export default function Index({ filters: initialFilters }: any) {
                             showAlert('error', error.response?.data?.error || 'Error al procesar');
                         }
                     }}
-                    onGetItem={async (id: number) => {
-                        const res = await axios.get(route('api.marcas.show', { marca: id }));
+                    onGetItem={async (showFn: any) => {
+                        const res = await axios.get(showFn({ id: selectedId }).url);
                         return res.data.data;
                     }}
                     onReload={() => fetchData()}

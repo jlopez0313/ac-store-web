@@ -193,7 +193,7 @@ export default function Index({ filters: initialFilters, cuentas, tipos_document
                             fetchData();
                         })
                     }
-                    onGetItem={(params: any) => onGetItem((p: any) => ({ url: route('api.proveedores.show', { proveedor: p.id }) }), params)}
+                    onGetItem={onGetItem}
                     onReload={fetchData}
                 />
             </Modal>

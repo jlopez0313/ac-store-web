@@ -219,7 +219,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
                             fetchData();
                         })
                     }
-                    onGetItem={(params: any) => onGetItem((p: any) => ({ url: route('api.usuarios.show', { usuario: p.id }) }), params)}
+                    onGetItem={onGetItem}
                     onReload={fetchData}
                     roles={roles}
                     cuentas={cuentas}
