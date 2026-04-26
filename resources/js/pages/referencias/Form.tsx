@@ -36,7 +36,7 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
         categoria_id: '',
         cuenta_id: isSuperAdmin ? '' : (user?.cuenta_id?.toString() || ''),
         foto: null,
-        impreso: true,
+        impreso: false,
     });
 
     const submit: FormEventHandler = async (e) => {
