@@ -20,17 +20,17 @@ interface PrintData {
     footer?: string;
 }
 
-function generateBarcodeDataUrl(value: string): string {
-    const canvas = document.createElement('canvas');
+function generateBarcodeSvg(value: string): string {
     try {
-        JsBarcode(canvas, value, {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        JsBarcode(svg, value, {
             format: 'CODE128',
-            width: 2,
-            height: 60,
-            displayValue: false,   // text rendered in HTML below, not on canvas
-            margin: 5,
+            width: 1.5,
+            height: 40,
+            displayValue: false,
+            margin: 0,
         });
-        return canvas.toDataURL('image/png');
+        return svg.outerHTML;
     } catch {
         return '';
     }
@@ -40,39 +40,52 @@ function buildTicketHtml(item: PrintItem, facturaId: number, localName: string, 
     const now = new Date();
     const fecha = now.toLocaleDateString('es-CO');
     const hora = now.toLocaleTimeString('es-CO');
-    const barcodeUrl = generateBarcodeDataUrl(item.producto.codigo);
+    const barcodeSvg = generateBarcodeSvg(item.producto.codigo);
 
     return `
         <div class="ticket">
-            <div class="row">
-                <span><b>REF ${item.producto.codigo} </b></span>
-                <span><b>EST ${item.estanteria_nombre.substring(0, 4)} </b></span>
-                <span><b>FAC ${facturaId} </b></span>
-            </div>
-            <div class="row header-labels">
-                <span>Cant</span>
-                <span>Descripción</span>
-                <span>Talla</span>
-            </div>
-            <div class="row values">
-                <span class="cant">${item.cantidad}</span>
-                <span class="desc">${item.producto.descripcion}</span>
-                <span class="talla">${item.talla}</span>
-            </div>
-            <div class="row marca-bodega">
-                <span>${item.producto.marca}</span>
-                <span>${item.bodega_nombre}</span>
-            </div>
-            <div class="row local-info">
-                <div>
-                    <div>${localName}</div>
-                    <div>${fecha}</div>
-                    <div>${hora}</div>
-                </div>
-                <div class="barcode">
-                    ${barcodeUrl ? `<img src="${barcodeUrl}" /><div class="barcode-text">${item.producto.codigo}</div>` : `<span>${item.producto.codigo}</span>`}
-                </div>
-            </div>
+            <table class="top-row">
+                <tr>
+                    <td class="col-ref"><b>REF ${item.producto.codigo}</b></td>
+                    <td class="col-est"><b>EST ${item.estanteria_nombre.substring(0, 6)}</b></td>
+                    <td class="col-fac"><b>FAC ${facturaId}</b></td>
+                </tr>
+            </table>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th class="col-cant">Cant</th>
+                        <th class="col-desc">Descripción</th>
+                        <th class="col-talla">Talla</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="values">
+                        <td class="col-cant">${item.cantidad}</td>
+                        <td class="col-desc">${item.producto.descripcion}</td>
+                        <td class="col-talla">${item.talla}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="bottom-row">
+                <tr>
+                    <td class="col-marca">${item.producto.marca}</td>
+                    <td class="col-bodega">${item.bodega_nombre}</td>
+                </tr>
+            </table>
+            <table class="info-row">
+                <tr>
+                    <td class="col-local">
+                        <div>${localName}</div>
+                        <div>${fecha}</div>
+                        <div>${hora}</div>
+                    </td>
+                    <td class="col-barcode">
+                        ${barcodeSvg ? `<div class="barcode-wrap">${barcodeSvg}</div>` : ''}
+                        <div class="barcode-code">${item.producto.codigo}</div>
+                    </td>
+                </tr>
+            </table>
             <div class="footer-banner">RECOGER MUESTRA</div>
             <div class="footer-text">${footer}</div>
         </div>
@@ -88,118 +101,89 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=302px">
     <title>Imprimir Tickets</title>
     <style>
-        @page {
-            margin: 0;
-            size: 80mm auto;
-        }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        @page { margin: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Courier New', monospace;
-            font-size: 13px;
-            width: 640px;
-            max-width: 640px;
-            overflow: hidden;
+            font-size: 11px;
+            width: 100%;
             color: #000;
         }
         .ticket {
-            padding: 4mm 3mm;
+            padding: 3mm 2mm;
             page-break-after: always;
             width: 100%;
-            max-width: 640px;
             overflow: hidden;
         }
-        .ticket:last-child {
-            page-break-after: auto;
-        }
-        .row {
-            display: flex;
-            justify-content: space-between;
+        .ticket:last-child { page-break-after: auto; }
+
+        /* All tables share same full-width, fixed layout */
+        table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
             margin-bottom: 2px;
         }
-        .row b {
-            font-size: 11px;
-        }
-        .header-labels {
-            margin-top: 6px;
-            font-size: 10px;
+        td, th { overflow: hidden; word-break: break-word; }
+
+        /* Top row: REF | EST | FAC */
+        .top-row .col-ref  { width: 40%; font-size: 10px; }
+        .top-row .col-est  { width: 30%; font-size: 10px; text-align: center; }
+        .top-row .col-fac  { width: 30%; font-size: 10px; text-align: right; }
+
+        /* Items table */
+        .items-table { margin-top: 4px; }
+        .items-table thead th {
+            font-size: 9px;
             font-weight: bold;
             border-bottom: 1px dashed #000;
             padding-bottom: 2px;
         }
-        .header-labels span:nth-child(1) { width: 35px; }
-        .header-labels span:nth-child(2) { flex: 1; text-align: center; }
-        .header-labels span:nth-child(3) { width: 45px; text-align: right; }
-        .values {
-            font-weight: bold;
-            padding: 4px 0;
-        }
-        .values .cant {
-            width: 35px;
-            font-size: 18px;
-        }
-        .values .desc {
-            flex: 1;
+        .items-table .col-cant  { width: 20%; }
+        .items-table .col-desc  { width: 55%; text-align: center; }
+        .items-table .col-talla { width: 25%; text-align: right; }
+        .items-table th.col-desc  { text-align: center; }
+        .items-table th.col-talla { text-align: right; }
+        .values td { padding: 3px 0; font-weight: bold; }
+        .values .col-cant  { font-size: 16px; }
+        .values .col-desc  { font-size: 11px; text-align: center; line-height: 1.3; }
+        .values .col-talla { font-size: 16px; text-align: right; }
+
+        /* Marca / Bodega row */
+        .bottom-row { margin-top: 4px; font-size: 11px; font-weight: bold; }
+        .bottom-row .col-marca  { width: 50%; }
+        .bottom-row .col-bodega { width: 50%; text-align: right; }
+
+        /* Local info + barcode */
+        .info-row { margin-top: 6px; }
+        .info-row .col-local  { width: 45%; font-size: 10px; font-weight: bold; vertical-align: bottom; }
+        .info-row .col-barcode { width: 55%; text-align: right; vertical-align: bottom; }
+        .barcode-wrap svg { width: 100%; height: auto; display: block; }
+        .barcode-code {
+            font-size: 9px;
+            font-family: 'Courier New', monospace;
             text-align: center;
-            font-size: 13px;
-            line-height: 1.3;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+            letter-spacing: 1px;
+            margin-top: 1px;
         }
-        .values .talla {
-            width: 45px;
-            text-align: right;
-            font-size: 18px;
-        }
-        .marca-bodega {
+
+        .footer-banner {
             margin-top: 6px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-        .local-info {
-            margin-top: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-        .local-info > div:first-child {
+            text-align: center;
             font-size: 12px;
             font-weight: bold;
-        }
-        .barcode img {
-            max-width: 100%;
-            width: auto;
-            height: auto;
-            display: block;
-        }
-        .barcode-text {
-            text-align: center;
-            font-size: 14px;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 1px;
-            margin-top: 2px;
-        }
-        .footer-banner {
-            margin-top: 8px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: bold;
             border: 2px solid #000;
-            padding: 4px 0;
+            padding: 3px 0;
             letter-spacing: 1px;
         }
         .footer-text {
-            margin-top: 4px;
+            margin-top: 3px;
             text-align: center;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
-            padding-bottom: 4px;
+            padding-bottom: 3px;
         }
     </style>
 </head>

@@ -113,10 +113,9 @@ export const printWithQZ = async (printerName: string, htmlContent: string) => {
             size: { width: 3.15, height: 0 },  // 80mm = 3.15 inches
             units: 'in',
             margins: 0,
-            density: 203,          // Standard 80mm thermal DPI
-            rasterize: true,       // Render HTML → bitmap before printing
             scaleContent: true,
         });
+
         const data = [
             {
                 type: 'html',
