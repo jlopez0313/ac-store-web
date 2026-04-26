@@ -26,7 +26,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 		if (!factura) return;
 		setLoading(true);
 		try {
-			const response = await axios.get(route('api.ventas.detalles', factura.id), {
+			const response = await axios.get(route('api.ventas.detalles', { venta: factura.id }), {
 				params: { page, per_page: pageSize }
 			});
 			setItems(response.data.data);

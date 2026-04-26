@@ -47,8 +47,8 @@ export const Form = ({ id, tipos_control, tipos_muestras, onClose, processing, o
 
 		try {
 			await onStore(
-				() => ({ url: route('categorias.store') }),
-				() => ({ url: route('categorias.update', { categoria: id }) }),
+				() => ({ url: route('api.categorias.store') }),
+				() => ({ url: route('api.categorias.update', { categoria: id }) }),
 				payload,
 				false,
 				(err: any) => {
@@ -76,7 +76,7 @@ export const Form = ({ id, tipos_control, tipos_muestras, onClose, processing, o
 		}
 		const getItem = async () => {
 			const item: any = await onGetItem(
-				() => ({ url: route('categorias.show', { categoria: id }) }),
+				() => ({ url: route('api.categorias.show', { categoria: id }) }),
 				{},
 			);
 			if (item) {

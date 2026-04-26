@@ -69,7 +69,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
 
         if (result.isConfirmed) {
             try {
-                await axios.delete(route('api.muestras_crud.destroy', { muestra_crud: id }));
+                await axios.delete(route('api.muestras_crud.destroy', { muestras_crud: id }));
                 showAlert('success', 'Registro eliminado correctamente');
                 fetchData();
             } catch (error: any) {
@@ -261,7 +261,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                     onStore={async (data: any) => {
                         try {
                             if (selectedId) {
-                                await axios.put(route('api.muestras_crud.update', { muestra_crud: selectedId }), data);
+                                await axios.put(route('api.muestras_crud.update', { muestras_crud: selectedId }), data);
                             } else {
                                 await axios.post(route('api.muestras_crud.store'), data);
                             }
@@ -273,7 +273,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                         }
                     }}
                     onGetItem={async (id: number) => {
-                        const res = await axios.get(route('api.muestras_crud.show', { muestra_crud: id }));
+                        const res = await axios.get(route('api.muestras_crud.show', { muestras_crud: id }));
                         return res.data.data;
                     }}
                     onReload={() => fetchData()}

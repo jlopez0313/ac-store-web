@@ -72,7 +72,7 @@ export default function Index({ filters: initialFilters }: any) {
 		setSelectedReferencia(referencia);
 		setActionLoading(true);
 		try {
-			const response = await axios.get(route('api.inventario.detail', referencia.id));
+			const response = await axios.get(route('api.inventario.detail', { referencia: referencia.id }));
 			const details = response.data.data;
 
 			if (details.length === 0) {

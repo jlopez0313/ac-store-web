@@ -27,8 +27,8 @@ export const Form = ({ id, estados, cuentas, setIsOpen, processing, onStore, onG
 		e.preventDefault();
 		try {
 			await onStore(
-				() => ({ url: route('bodegas.store') }),
-				() => ({ url: route('bodegas.update', { bodega: id }) }),
+				() => ({ url: route('api.bodegas.store') }),
+				() => ({ url: route('api.bodegas.update', { bodega: id }) }),
 				data,
 				false,
 				(err: any) => {
@@ -53,7 +53,7 @@ export const Form = ({ id, estados, cuentas, setIsOpen, processing, onStore, onG
 		}
 		const getItem = async () => {
 			const item: any = await onGetItem(
-				() => ({ url: route('bodegas.show', { bodega: id }) }),
+				() => ({ url: route('api.bodegas.show', { bodega: id }) }),
 				{},
 			);
 			if (item) {

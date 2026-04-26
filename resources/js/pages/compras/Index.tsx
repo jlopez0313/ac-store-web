@@ -100,7 +100,7 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
     );
 
     const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(null, (params: any) => ({
-        url: route('api.compras.destroy', params.id),
+        url: route('api.compras.destroy', { compra: params.id }),
     }));
 
     return (
@@ -399,7 +399,7 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                             fetchData();
                         })
                     }
-                    onGetItem={(params: any) => onGetItem(() => ({ url: route('api.compras.show', params.id) }), {})}
+                    onGetItem={(params: any) => onGetItem((p: any) => ({ url: route('api.compras.show', { compra: p.id }) }), params)}
                     onReload={fetchData}
                     onSuccess={(factura: any) => {
                         setSelectedFactura(factura);

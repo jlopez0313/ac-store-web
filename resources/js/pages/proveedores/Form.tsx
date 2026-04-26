@@ -32,8 +32,8 @@ export const Form = ({ id, tiposDocs, cuentas, onClose, processing, onStore, onG
 
 		try {
 			await onStore(
-				() => ({ url: route('proveedores.store') }),
-				() => ({ url: route('proveedores.update', { proveedore: id }) }), // proveedore is the default route binding variable
+				() => ({ url: route('api.proveedores.store') }),
+				() => ({ url: route('api.proveedores.update', { proveedor: id }) }), // proveedor is the parameter
 				data,
 				false,
 				(err: any) => {
@@ -60,7 +60,7 @@ export const Form = ({ id, tiposDocs, cuentas, onClose, processing, onStore, onG
 		}
 		const getItem = async () => {
 			const item: any = await onGetItem(
-				() => ({ url: route('proveedores.show', { proveedore: id }) }),
+				() => ({ url: route('api.proveedores.show', { proveedor: id }) }),
 				{},
 			);
 			if (item) {

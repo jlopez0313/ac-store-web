@@ -36,7 +36,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
     const fetchDetails = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(route('api.inventario.detail', referencia.id));
+            const response = await axios.get(route('api.inventario.detail', { referencia: referencia.id }));
             setDetails(response.data.data);
         } catch (error) {
             console.error('Error fetching inventory details:', error);

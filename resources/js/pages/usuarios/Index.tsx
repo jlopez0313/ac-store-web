@@ -54,7 +54,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
 
     const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(
         null, // We handle data locally
-        (params: any) => ({ url: route('api.usuarios.destroy', params.id) }),
+        (params: any) => ({ url: route('api.usuarios.destroy', { usuario: params.id }) }),
     );
 
     const handleSearch = (search: string) => {
@@ -219,7 +219,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
                             fetchData();
                         })
                     }
-                    onGetItem={() => onGetItem(() => ({ url: route('api.usuarios.show', { usuario: id }) }), {})}
+                    onGetItem={(params: any) => onGetItem((p: any) => ({ url: route('api.usuarios.show', { usuario: p.id }) }), params)}
                     onReload={fetchData}
                     roles={roles}
                     cuentas={cuentas}

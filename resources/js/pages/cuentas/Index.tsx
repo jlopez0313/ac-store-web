@@ -51,7 +51,7 @@ export default function Index({ filters: initialFilters, estados, default_accoun
 
 	const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(
 		null,
-		(params: any) => ({ url: route('api.cuentas.destroy', params.id) })
+		(params: any) => ({ url: route('api.cuentas.destroy', { cuenta: params.id }) })
 	);
 
 	const handleSearch = (search: string) => {
@@ -194,7 +194,7 @@ export default function Index({ filters: initialFilters, estados, default_accoun
 							fetchData();
 						})
 					}
-					onGetItem={(params: any) => onGetItem(() => ({ url: route('api.cuentas.show', params.id) }), {})}
+					onGetItem={(params: any) => onGetItem((p: any) => ({ url: route('api.cuentas.show', { cuenta: p.id }) }), params)}
 					onReload={fetchData}
 					default_account_price={default_account_price}
 				/>

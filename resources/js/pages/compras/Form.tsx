@@ -35,8 +35,8 @@ export const Form = ({ id, proveedores, cuentas, onClose, processing, onStore, o
 
 		try {
 			const response = await onStore(
-				() => ({ url: route('compras.store') }),
-				() => ({ url: route('compras.update', { compra: id }) }),
+				() => ({ url: route('api.compras.store') }),
+				() => ({ url: route('api.compras.update', { compra: id }) }),
 				data,
 				false,
 				(err: any) => {
@@ -72,7 +72,7 @@ export const Form = ({ id, proveedores, cuentas, onClose, processing, onStore, o
 		}
 		const getItem = async () => {
 			const item: any = await onGetItem(
-				() => ({ url: route('compras.show', { compra: id }) }),
+				() => ({ url: route('api.compras.show', { compra: id }) }),
 				{},
 			);
 			if (item) {

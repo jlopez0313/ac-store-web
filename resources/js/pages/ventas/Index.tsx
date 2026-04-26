@@ -362,7 +362,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                                     await printWithQZ(auth.user.nombre_impresora, pages[i]);
 
                                                     if (type === 'pendientes') {
-                                                        await axios.post(route('api.ventas.mark_printed', freshFactura.id), {
+                                                        await axios.post(route('api.ventas.mark_printed', { venta: freshFactura.id }), {
                                                             detalle_ids: [item.id],
                                                         });
                                                         // Update local state incrementally so UI reflects progress
@@ -375,7 +375,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                             } else {
                                                 printReceipts(printData);
                                                 if (type === 'pendientes') {
-                                                    await axios.post(route('api.ventas.mark_printed', freshFactura.id), {
+                                                    await axios.post(route('api.ventas.mark_printed', { venta: freshFactura.id }), {
                                                         detalle_ids: items.map((d: any) => d.id),
                                                     });
                                                     const updatedDetalles = detalles.map((d: any) =>

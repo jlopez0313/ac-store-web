@@ -55,7 +55,7 @@ export default function Index({ filters: initialFilters, cuentas, tipos_document
     }, [filters.page, filters.per_page, filters.sort_field, filters.sort_order]);
 
     const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(null, (params: any) => ({
-        url: route('api.proveedores.destroy', params.id),
+        url: route('api.proveedores.destroy', { proveedor: params.id }),
     }));
 
     const handleSearch = (search: string) => {
@@ -193,7 +193,7 @@ export default function Index({ filters: initialFilters, cuentas, tipos_document
                             fetchData();
                         })
                     }
-                    onGetItem={(params: any) => onGetItem(() => ({ url: route('api.proveedores.show', params.id) }), {})}
+                    onGetItem={(params: any) => onGetItem((p: any) => ({ url: route('api.proveedores.show', { proveedor: p.id }) }), params)}
                     onReload={fetchData}
                 />
             </Modal>

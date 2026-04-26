@@ -191,7 +191,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                 processing={applying}
                 onApply={(discounts) => {
                     router.post(
-                        route('api.ventas.bulk_discounts', factura.id),
+                        route('api.ventas.bulk_discounts', { venta: factura.id }),
                         {
                             discounts,
                         },
