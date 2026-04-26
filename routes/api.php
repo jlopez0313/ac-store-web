@@ -53,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('ventas/{venta}/cerrar', [App\Http\Controllers\Api\VentasController::class, 'closeVenta'])->name('api.ventas.cerrar');
     Route::post('ventas/{venta}/mark-printed', [App\Http\Controllers\Api\VentasController::class, 'markPrinted'])->name('api.ventas.mark_printed');
     Route::get('search-references', [App\Http\Controllers\Api\VentasController::class, 'searchReferences'])->name('api.ventas.search_references');
+    Route::get('ventas-locales', [App\Http\Controllers\Api\VentasController::class, 'getLocalesWithInvoices'])->name('api.ventas.locales_with_invoices');
 
     // Traslados
     Route::prefix('traslados')->group(function () {

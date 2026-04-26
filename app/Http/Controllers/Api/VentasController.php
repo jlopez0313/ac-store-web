@@ -31,13 +31,25 @@ class VentasController extends Controller
             } else {
                 $query->where('cuenta_id', $user->cuenta_id);
             }
+        } else if ($request->filled('cuenta_id')) {
+            $query->where('cuenta_id', $request->cuenta_id);
+        }
+
+        if ($request->filled('local_id')) {
+            $query->where('user_id', $request->local_id);
         }
 
         if ($request->filled('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->whereHas('local', function ($lq) use ($request) {
-                    $lq->where('name', 'like', '%' . $request->search . '%');
-                })->orWhere('id', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                // Prioritize Exact ID if numeric, otherwise search local name
+                if (is_numeric($search)) {
+                    $q->where('id', $search);
+                } else {
+                    $q->whereHas('local', function ($lq) use ($search) {
+                        $lq->where('name', 'like', '%' . $search . '%');
+                    });
+                }
             });
         }
 
@@ -428,6 +440,7 @@ class VentasController extends Controller
                 ->get();
 
             foreach ($detalles as $detalle) {
+                /** @var VentaDetalle $detalle */
                 $base_price = $detalle->inventario->precio_venta ?? 0;
                 $new_precio_unitario = max(0, $base_price - $discount_value);
                 
@@ -472,5 +485,24 @@ class VentasController extends Controller
         $paginated = $query->paginate($perPage);
 
         return VentaDetalleResource::collection($paginated);
+    }
+
+    public function getLocalesWithInvoices(Request $request)
+    {
+        $user = auth()->user();
+        $isSuper = $user->role === 'superadmin';
+        $cuenta_id = $isSuper ? $request->cuenta_id : $user->cuenta_id;
+
+        if (!$cuenta_id) {
+            return response()->json(['data' => []]);
+        }
+
+        $locals = \App\Models\User::role('local')
+            ->whereHas('ventas', function ($q) use ($cuenta_id) {
+                $q->where('cuenta_id', $cuenta_id);
+            })
+            ->get(['id', 'name']);
+
+        return response()->json(['data' => $locals]);
     }
 }

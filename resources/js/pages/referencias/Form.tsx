@@ -21,7 +21,7 @@ type ThisForm = {
 };
 
 export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onStore, onGetItem, onReload }: any) => {
-    const { isSuperAdmin } = useAuth();
+    const { user, isSuperAdmin } = useAuth();
 
     // Previews the currently selected file or the absolute URL from the backend
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
         marca_id: '',
         descripcion: '',
         categoria_id: '',
-        cuenta_id: '',
+        cuenta_id: isSuperAdmin ? '' : (user?.cuenta_id?.toString() || ''),
         foto: null,
     });
 
@@ -84,11 +84,8 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
             setImagePreview(null);
             if (fileInputRef.current) fileInputRef.current.value = '';
             
-            // Fetch next consecutive code
-            axios.get(route('api.referencias.next-code'))
-                .then((res: any) => setData('codigo', res.data.next_code))
-                .catch((err: any) => console.error('Error fetching next code', err));
-                
+            // If user is not superadmin, account is already set in useForm init
+            // but if they are superadmin, we wait for them to select an account
             return;
         }
         const getItem = async () => {
@@ -108,6 +105,15 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
         };
         getItem();
     }, [id]);
+
+    // Fetch next consecutive code when account changes (only for new records)
+    useEffect(() => {
+        if (!id && data.cuenta_id) {
+            axios.get(route('api.referencias.next-code'), { params: { cuenta_id: data.cuenta_id } })
+                .then((res: any) => setData('codigo', res.data.next_code))
+                .catch((err: any) => console.error('Error fetching next code', err));
+        }
+    }, [id, data.cuenta_id]);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

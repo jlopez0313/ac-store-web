@@ -38,7 +38,11 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
         search: initialFilters?.search || '',
         per_page: initialFilters?.per_page || 25,
         page: initialFilters?.page || 1,
+        cuenta_id: '',
+        local_id: '',
     });
+
+    const [dynamicLocales, setDynamicLocales] = useState<any[]>([]);
 
     const [selectedFactura, setSelectedFactura] = useState<any>(null);
     const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -86,9 +90,31 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
         [filters, selectedFactura],
     );
 
+    // Fetch dynamic locales based on account
+    useEffect(() => {
+        const fetchLocales = async () => {
+            const cuentaId = auth.user.role !== 'superadmin' ? auth.user.cuenta_id : filters.cuenta_id;
+            if (!cuentaId && auth.user.role === 'superadmin') {
+                setDynamicLocales([]);
+                return;
+            }
+
+            try {
+                const res = await axios.get(route('api.ventas.locales_with_invoices'), {
+                    params: { cuenta_id: filters.cuenta_id || auth.user.cuenta_id },
+                });
+                setDynamicLocales(res.data.data);
+            } catch (err) {
+                console.error('Error fetching locales:', err);
+            }
+        };
+
+        if (isAdmin) fetchLocales();
+    }, [filters.cuenta_id, auth.user.cuenta_id]);
+
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page]);
+    }, [filters.page, filters.per_page, filters.cuenta_id, filters.local_id]);
 
     const handleSearch = (value: string) => {
         setFilters((prev) => ({ ...prev, search: value, page: 1 }));
@@ -233,6 +259,11 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                         loading={loading}
                         meta={meta}
                         onPageChange={(page: number) => setFilters((f) => ({ ...f, page }))}
+                        onFilterChange={(newFilters: any) => setFilters((f) => ({ ...f, ...newFilters, page: 1 }))}
+                        cuentas={cuentas}
+                        dynamicLocales={dynamicLocales}
+                        isSuperAdmin={auth.user.role === 'superadmin'}
+                        isAdmin={isAdmin}
                     />
 
                     <div className="space-y-6 lg:col-span-3" ref={detailContainerRef}>

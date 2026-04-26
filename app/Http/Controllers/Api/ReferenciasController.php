@@ -11,9 +11,22 @@ use Illuminate\Support\Facades\Storage;
 
 class ReferenciasController extends Controller
 {
-    public function getNextCode()
+    public function getNextCode(Request $request)
     {
-        $lastCode = Referencia::orderByRaw('CAST(codigo AS UNSIGNED) DESC')->first();
+        $query = Referencia::query();
+        
+        // Filter by provided account ID (useful for Superadmins)
+        if ($request->filled('cuenta_id')) {
+            $query->where('cuenta_id', $request->cuenta_id);
+        } else {
+            // Fallback to user's account if they aren't superadmin
+            $user = auth()->user();
+            if ($user->role !== 'superadmin') {
+                $query->where('cuenta_id', $user->cuenta_id);
+            }
+        }
+
+        $lastCode = $query->orderByRaw('CAST(codigo AS UNSIGNED) DESC')->first();
         
         if (!$lastCode) {
             return response()->json(['next_code' => '000001']);

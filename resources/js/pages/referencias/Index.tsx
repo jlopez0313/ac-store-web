@@ -62,7 +62,7 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
 
     const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(
         null, // We handle data locally
-        (params: any) => ({ url: route('api.referencias.destroy', params.id) }),
+        (params: any) => ({ url: route('api.referencias.destroy', { referencia: params.id }) }),
     );
 
     const handleSearch = (search: string) => {
@@ -239,7 +239,7 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
                             fetchData();
                         })
                     }
-                    onGetItem={(params: any) => onGetItem(() => ({ url: route('api.referencias.show', params.id) }), {})}
+                    onGetItem={(params: any) => onGetItem(() => ({ url: route('api.referencias.show', { referencia: params.id }) }), {})}
                     onReload={fetchData}
                 />
             </Modal>
