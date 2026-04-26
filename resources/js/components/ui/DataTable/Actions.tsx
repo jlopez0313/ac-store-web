@@ -28,7 +28,7 @@ export const ActionsColumn = (actions: Action[], moreActions: Action[]) => {
 					return (
 						<button
 							key={idx}
-							className="p-2 rounded hover:bg-gray-200 cursor-pointer"
+							className="p-2 rounded cursor-pointer text-slate-600 hover:bg-gray-200 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-600 dark:hover:text-white transition-colors"
 							title={action.title}
 							onClick={() =>
 								action.action(row.id, row)

@@ -26,42 +26,62 @@ const setupSecurity = () => {
     securitySetup = true;
 };
 
-let connectionPromise: Promise<void> | null = null;
+let connectionPromise: Promise<boolean> | null = null;
 
 export const connectQZ = async (): Promise<boolean> => {
     setupSecurity();
 
+    // If qz is already active (ready to send data), we can return true
     if (qz.websocket.isActive()) {
-        connected = true;
-        return true;
+        try {
+            // Test if it's really active by checking one property if accessible
+            // or just rely on the fact that if it's been through our connectionPromise, it's ready.
+            if (connected) return true;
+        } catch (e) {
+            // Fall through to reconnect
+        }
     }
 
     if (connectionPromise) {
-        try { await connectionPromise; return qz.websocket.isActive(); } catch { return false; }
+        try {
+            await connectionPromise;
+            return true;
+        } catch (err) {
+            // If failed, continue to attempt a new connection
+            connectionPromise = null;
+        }
     }
 
     connectionPromise = (async () => {
         try {
+            // Using qz.websocket.connect() directly
+            // Note: connect() rejects if already connecting, so the connectionPromise 
+            // guard above is important.
             await qz.websocket.connect();
             connected = true;
             console.log('QZ Tray connected');
-
+            
+            // Optional: log printers to verify connection is operational
             const printers = await qz.printers.find();
             console.log('Impresoras disponibles:', printers);
-        } catch (err) {
-            // QZ Tray no está disponible — no es un error crítico
+            
+            return true;
+        } catch (err: any) {
             connected = false;
             connectionPromise = null;
-            throw err;
+            
+            // If it says "already exists", we consider it a success
+            if (err?.message?.includes('already exists')) {
+                connected = true;
+                return true;
+            }
+            
+            console.warn('QZ Tray connection failed:', err.message || err);
+            return false;
         }
     })();
 
-    try {
-        await connectionPromise;
-        return true;
-    } catch {
-        return false; // Silently return false when QZ is not reachable
-    }
+    return connectionPromise;
 };
 
 export const disconnectQZ = async () => {
