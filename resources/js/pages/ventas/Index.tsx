@@ -7,6 +7,7 @@ import { confirmDialog, showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
 import { printCuadre } from '@/utils/printCuadre';
 import { printReceipts } from '@/utils/printReceipt';
+import { printWithQZ } from '@/utils/qz-service';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Plus, ShoppingCart } from 'lucide-react';
@@ -288,12 +289,18 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         }
 
                                         if (type === 'cuadre') {
-                                            printCuadre({
+                                            const cuadreData = {
                                                 facturaId: freshFactura.id,
                                                 localName,
                                                 vendedor: freshFactura.vendedor || auth.user.name,
                                                 items: detalles,
-                                            });
+                                            };
+                                            if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                                                const html = printCuadre(cuadreData, true) as string;
+                                                await printWithQZ(auth.user.nombre_impresora, html);
+                                            } else {
+                                                printCuadre(cuadreData);
+                                            }
                                             return;
                                         }
 
@@ -309,11 +316,17 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                             items = detalles;
                                         }
 
-                                        printReceipts({
+                                        const printData = {
                                             facturaId: freshFactura.id,
                                             localName,
                                             items,
-                                        });
+                                        };
+                                        if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                                            const html = printReceipts(printData, true) as string;
+                                            await printWithQZ(auth.user.nombre_impresora, html);
+                                        } else {
+                                            printReceipts(printData);
+                                        }
 
                                         if (type === 'pendientes') {
                                             try {
