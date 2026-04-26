@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { getPrintRequestsRef, onValue, removePrintRequest, type PrintRequest } from '@/lib/firebase';
 import { showAlert } from '@/plugins/sweetalert';
-import { printReceipts } from '@/utils/printReceipt';
+import { buildReceiptPageHtml, printReceipts } from '@/utils/printReceipt';
 import { connectQZ, disconnectQZ, printWithQZ } from '@/utils/qz-service';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -98,17 +98,15 @@ export function PrintNotificationBell({ cuentaId }: Props) {
                     return;
                 }
 
-                const html = printReceipts(
-                    {
+                if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                    const pages = buildReceiptPageHtml({
                         facturaId: venta.id,
                         localName: venta.local?.name || '',
                         items: pendientes,
-                    },
-                    true,
-                ) as string;
-
-                if (auth.user.impresion_principal && auth.user.nombre_impresora) {
-                    await printWithQZ(auth.user.nombre_impresora, html);
+                    });
+                    for (const pageHtml of pages) {
+                        await printWithQZ(auth.user.nombre_impresora, pageHtml);
+                    }
                 } else {
                     printReceipts({
                         facturaId: venta.id,

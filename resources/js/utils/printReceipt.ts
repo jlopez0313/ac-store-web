@@ -92,17 +92,7 @@ function buildTicketHtml(item: PrintItem, facturaId: number, localName: string, 
     `;
 }
 
-export function printReceipts(data: PrintData, returnHtml = false): string | void {
-    const footer = data.footer || import.meta.env.VITE_APP_NAME || ' / WhatsApp / 300 000 0000';
-    const ticketsHtml = data.items.map((item) => buildTicketHtml(item, data.facturaId, data.localName, footer)).join('');
-
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Imprimir Tickets</title>
-    <style>
+const TICKET_CSS = `
         @page { margin: 0; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -113,13 +103,9 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
         }
         .ticket {
             padding: 3mm 2mm;
-            page-break-after: always;
             width: 100%;
             overflow: hidden;
         }
-        .ticket:last-child { page-break-after: auto; }
-
-        /* All tables share same full-width, fixed layout */
         table {
             width: 100%;
             table-layout: fixed;
@@ -127,13 +113,9 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
             margin-bottom: 2px;
         }
         td, th { overflow: hidden; word-break: break-word; }
-
-        /* Top row: REF | EST | FAC */
         .top-row .col-ref  { width: 40%; font-size: 10px; }
         .top-row .col-est  { width: 30%; font-size: 10px; text-align: center; }
         .top-row .col-fac  { width: 30%; font-size: 10px; text-align: right; }
-
-        /* Items table */
         .items-table { margin-top: 4px; }
         .items-table thead th {
             font-size: 9px;
@@ -150,13 +132,9 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
         .values .col-cant  { font-size: 16px; }
         .values .col-desc  { font-size: 11px; text-align: center; line-height: 1.3; }
         .values .col-talla { font-size: 16px; text-align: right; }
-
-        /* Marca / Bodega row */
         .bottom-row { margin-top: 4px; font-size: 11px; font-weight: bold; }
         .bottom-row .col-marca  { width: 50%; }
         .bottom-row .col-bodega { width: 50%; text-align: right; }
-
-        /* Local info + barcode */
         .info-row { margin-top: 6px; }
         .info-row .col-local  { width: 45%; font-size: 10px; font-weight: bold; vertical-align: bottom; }
         .info-row .col-barcode { width: 55%; text-align: right; vertical-align: bottom; }
@@ -168,7 +146,6 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
             letter-spacing: 1px;
             margin-top: 1px;
         }
-
         .footer-banner {
             margin-top: 6px;
             text-align: center;
@@ -185,12 +162,35 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
             font-weight: bold;
             padding-bottom: 3px;
         }
-    </style>
+`;
+
+function wrapHtml(bodyContent: string, title = 'Ticket'): string {
+    return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <style>${TICKET_CSS}</style>
 </head>
 <body>
-    ${ticketsHtml}
+    ${bodyContent}
 </body>
 </html>`;
+}
+
+/** Returns one full HTML document per item — use for QZ so each item = one print job + one cut */
+export function buildReceiptPageHtml(data: PrintData): string[] {
+    const footer = data.footer || import.meta.env.VITE_APP_NAME || ' / WhatsApp / 300 000 0000';
+    return data.items.map((item) =>
+        wrapHtml(buildTicketHtml(item, data.facturaId, data.localName, footer))
+    );
+}
+
+export function printReceipts(data: PrintData, returnHtml = false): string | void {
+    const footer = data.footer || import.meta.env.VITE_APP_NAME || ' / WhatsApp / 300 000 0000';
+    const ticketsHtml = data.items.map((item) => buildTicketHtml(item, data.facturaId, data.localName, footer)).join('');
+
+    const html = wrapHtml(ticketsHtml);
 
     if (returnHtml) {
         return html;

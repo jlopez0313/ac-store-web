@@ -6,7 +6,7 @@ import { createPrintRequest } from '@/lib/firebase';
 import { confirmDialog, showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
 import { printCuadre } from '@/utils/printCuadre';
-import { printReceipts } from '@/utils/printReceipt';
+import { buildReceiptPageHtml, printReceipts } from '@/utils/printReceipt';
 import { printWithQZ } from '@/utils/qz-service';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -322,8 +322,10 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                             items,
                                         };
                                         if (auth.user.impresion_principal && auth.user.nombre_impresora) {
-                                            const html = printReceipts(printData, true) as string;
-                                            await printWithQZ(auth.user.nombre_impresora, html);
+                                            const pages = buildReceiptPageHtml(printData);
+                                            for (const pageHtml of pages) {
+                                                await printWithQZ(auth.user.nombre_impresora, pageHtml);
+                                            }
                                         } else {
                                             printReceipts(printData);
                                         }

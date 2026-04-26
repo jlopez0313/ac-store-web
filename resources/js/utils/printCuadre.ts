@@ -30,13 +30,12 @@ export function printCuadre(data: CuadreData, returnHtml = false): string | void
         .map(
             (d) => `
             <tr>
-                <td colspan="4" style="font-size:11px;padding:3px 0 0;font-weight:bold;">${d.producto.descripcion}</td>
+                <td colspan="3" style="font-size:10px;padding:3px 0 0;font-weight:bold;word-break:break-word;">${d.producto.descripcion}</td>
             </tr>
             <tr>
-                <td style="padding:0 0 4px;">${d.producto.codigo}</td>
-                <td></td>
-                <td style="text-align:center;">${d.talla}</td>
-                <td style="text-align:right;">${fmt(d.precio_unitario)}</td>
+                <td style="padding:0 0 4px;font-size:10px;">${d.producto.codigo}</td>
+                <td style="text-align:center;font-size:10px;">${d.talla}</td>
+                <td style="text-align:right;font-size:10px;">${fmt(d.precio_unitario)}</td>
             </tr>`,
         )
         .join('');
@@ -45,31 +44,45 @@ export function printCuadre(data: CuadreData, returnHtml = false): string | void
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=302px">
     <title>Cuadre Factura #${data.facturaId}</title>
     <style>
-        @page { margin: 0; size: 80mm auto; }
+        @page { margin: 0; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', monospace; font-size: 13px; width: 640px; max-width: 640px; overflow: hidden; color: #000; }
-        .ticket { padding: 4mm 3mm; width: 100%; max-width: 640px; overflow: hidden; }
-        .center { text-align: center; }
-        .bold { font-weight: bold; }
-        h2 { font-size: 15px; text-align: center; margin-bottom: 2px; }
-        h3 { font-size: 14px; text-align: center; margin-bottom: 4px; }
-        .info { font-size: 11px; text-align: center; margin-bottom: 2px; }
-        .divider { border-top: 1px dashed #000; margin: 6px 0; }
-        .field { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px; }
-        .field b { min-width: 80px; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th { text-align: left; font-size: 11px; font-weight: bold; border-bottom: 1px dashed #000; padding-bottom: 2px; }
-        th:nth-child(3), th:nth-child(4) { text-align: center; }
-        th:last-child { text-align: right; }
-        .totals { margin-top: 6px; }
-        .totals .field { font-weight: bold; font-size: 13px; }
-        .grand-totals { border-top: 2px solid #000; margin-top: 4px; padding-top: 4px; }
-        .grand-totals .field { font-size: 14px; }
-        .disclaimer { margin-top: 8px; text-align: center; font-size: 12px; font-weight: bold; line-height: 1.4; }
-        .footer-text { margin-top: 6px; text-align: center; font-size: 11px; font-weight: bold; }
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            width: 100%;
+            color: #000;
+        }
+        .ticket { padding: 3mm 2mm; width: 100%; overflow: hidden; }
+        h2 { font-size: 13px; text-align: center; margin-bottom: 2px; }
+        h3 { font-size: 12px; text-align: center; margin-bottom: 3px; }
+        .info { font-size: 10px; text-align: center; margin-bottom: 2px; }
+        .divider { border-top: 1px dashed #000; margin: 5px 0; }
+        table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+        .field-table td { font-size: 11px; padding: 1px 0; overflow: hidden; word-break: break-word; }
+        .field-table .label { width: 45%; font-weight: bold; }
+        .field-table .value { width: 55%; text-align: right; }
+        .items-table th {
+            font-size: 10px;
+            font-weight: bold;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 2px;
+            text-align: left;
+        }
+        .items-table th:nth-child(2) { text-align: center; }
+        .items-table th:nth-child(3) { text-align: right; }
+        .items-table td { overflow: hidden; word-break: break-word; }
+        .totals-table td { font-size: 11px; font-weight: bold; padding: 1px 0; }
+        .totals-table .label { width: 55%; }
+        .totals-table .value { width: 45%; text-align: right; }
+        .grand td { font-size: 13px; border-top: 2px solid #000; padding-top: 3px; }
+        .disclaimer { margin-top: 6px; text-align: center; font-size: 10px; font-weight: bold; line-height: 1.4; }
+        .footer-text { margin-top: 5px; text-align: center; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -80,18 +93,19 @@ export function printCuadre(data: CuadreData, returnHtml = false): string | void
 
         <div class="divider"></div>
 
-        <div class="field"><b>FACTURA</b><span>${data.facturaId}</span></div>
-        <div class="field"><b>VENDEDOR</b><span>${data.vendedor}</span></div>
+        <table class="field-table">
+            <tr><td class="label">FACTURA</td><td class="value">${data.facturaId}</td></tr>
+            <tr><td class="label">VENDEDOR</td><td class="value">${data.vendedor}</td></tr>
+        </table>
 
         <div class="divider"></div>
 
-        <table>
+        <table class="items-table">
             <thead>
                 <tr>
-                    <th>Ref</th>
-                    <th></th>
-                    <th>Talla</th>
-                    <th>Precio</th>
+                    <th style="width:35%;">Ref</th>
+                    <th style="width:20%;">Talla</th>
+                    <th style="width:45%;">Precio</th>
                 </tr>
             </thead>
             <tbody>
@@ -99,20 +113,19 @@ export function printCuadre(data: CuadreData, returnHtml = false): string | void
             </tbody>
         </table>
 
-        <div class="totals">
-            <div class="divider"></div>
-            <div class="field"><b>SUBTOTAL</b><span>${fmt(totalDinero)}</span></div>
-            <div class="field"><b>PARES</b><span>${totalPares}</span></div>
-        </div>
+        <div class="divider"></div>
 
-        <div class="grand-totals">
-            <div class="field"><b>TOTAL</b><span>${fmt(totalDinero)}</span></div>
-            <div class="field"><b>PARES</b><span>${totalPares}</span></div>
-        </div>
+        <table class="totals-table">
+            <tr><td class="label">SUBTOTAL</td><td class="value">${fmt(totalDinero)}</td></tr>
+            <tr><td class="label">PARES</td><td class="value">${totalPares}</td></tr>
+        </table>
+        <table class="totals-table grand">
+            <tr><td class="label">TOTAL</td><td class="value">${fmt(totalDinero)}</td></tr>
+            <tr><td class="label">PARES</td><td class="value">${totalPares}</td></tr>
+        </table>
 
         <div class="disclaimer">Conserve el Sticker o Factura para realizar cambios o garant&iacute;as (15) d&iacute;as.</div>
         ${footer ? `<div class="footer-text">${footer}</div>` : ''}
-    </div>
     </div>
 </body>
 </html>`;
