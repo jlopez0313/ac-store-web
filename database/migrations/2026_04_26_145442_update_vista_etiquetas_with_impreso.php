@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -18,7 +17,7 @@ return new class extends Migration
                 c.id AS cuenta_id,
                 c.nombre AS Cuenta,
                 COALESCE(m.nombre, 'N/A') AS Marca,
-                COALESCE(r.descripcion, '') AS Descripcion,
+                CAST(COALESCE(r.descripcion, '') AS CHAR(255)) AS Descripcion,
                 i.talla AS Talla,
                 CASE
                     WHEN r.sistema_viejo = 1 THEN r.codigo
