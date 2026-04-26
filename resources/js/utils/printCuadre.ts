@@ -50,8 +50,8 @@ export function printCuadre(data: CuadreData, returnHtml = false): string | void
     <style>
         @page { margin: 0; size: 80mm auto; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', monospace; font-size: 12px; width: 302px; max-width: 302px; overflow: hidden; color: #000; }
-        .ticket { padding: 4mm 3mm; width: 100%; max-width: 302px; overflow: hidden; }
+        body { font-family: 'Courier New', monospace; font-size: 13px; width: 640px; max-width: 640px; overflow: hidden; color: #000; }
+        .ticket { padding: 4mm 3mm; width: 100%; max-width: 640px; overflow: hidden; }
         .center { text-align: center; }
         .bold { font-weight: bold; }
         h2 { font-size: 15px; text-align: center; margin-bottom: 2px; }

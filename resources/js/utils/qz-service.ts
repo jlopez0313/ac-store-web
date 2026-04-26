@@ -110,10 +110,12 @@ export const printWithQZ = async (printerName: string, htmlContent: string) => {
             throw new Error('QZ Tray no está disponible. Verifique que la aplicación esté abierta y la impresora conectada.');
         }
         const config = qz.configs.create(printerName, {
-            size: { width: 3.15, height: 0 },  // 80mm = 3.15 inches; height 0 = auto
+            size: { width: 3.15, height: 0 },  // 80mm = 3.15 inches
             units: 'in',
             margins: 0,
-            scaleContent: false,
+            density: 203,          // Standard 80mm thermal DPI
+            rasterize: true,       // Render HTML → bitmap before printing
+            scaleContent: true,
         });
         const data = [
             {

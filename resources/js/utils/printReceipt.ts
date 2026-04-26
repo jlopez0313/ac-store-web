@@ -26,10 +26,8 @@ function generateBarcodeDataUrl(value: string): string {
         JsBarcode(canvas, value, {
             format: 'CODE128',
             width: 2,
-            height: 50,
-            displayValue: true,
-            fontSize: 14,
-            font: 'Courier New',
+            height: 60,
+            displayValue: false,   // text rendered in HTML below, not on canvas
             margin: 5,
         });
         return canvas.toDataURL('image/png');
@@ -72,7 +70,7 @@ function buildTicketHtml(item: PrintItem, facturaId: number, localName: string, 
                     <div>${hora}</div>
                 </div>
                 <div class="barcode">
-                    ${barcodeUrl ? `<img src="${barcodeUrl}" />` : `<span>${item.producto.codigo}</span>`}
+                    ${barcodeUrl ? `<img src="${barcodeUrl}" /><div class="barcode-text">${item.producto.codigo}</div>` : `<span>${item.producto.codigo}</span>`}
                 </div>
             </div>
             <div class="footer-banner">RECOGER MUESTRA</div>
@@ -104,9 +102,9 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
         }
         body {
             font-family: 'Courier New', monospace;
-            font-size: 12px;
-            width: 302px;
-            max-width: 302px;
+            font-size: 13px;
+            width: 640px;
+            max-width: 640px;
             overflow: hidden;
             color: #000;
         }
@@ -114,7 +112,7 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
             padding: 4mm 3mm;
             page-break-after: always;
             width: 100%;
-            max-width: 302px;
+            max-width: 640px;
             overflow: hidden;
         }
         .ticket:last-child {
@@ -178,6 +176,14 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
             max-width: 100%;
             width: auto;
             height: auto;
+            display: block;
+        }
+        .barcode-text {
+            text-align: center;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            margin-top: 2px;
         }
         .footer-banner {
             margin-top: 8px;
