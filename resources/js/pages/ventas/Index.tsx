@@ -352,27 +352,41 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                             localName,
                                             items,
                                         };
-                                        if (auth.user.impresion_principal && auth.user.nombre_impresora) {
-                                            const pages = buildReceiptPageHtml(printData);
-                                            for (const pageHtml of pages) {
-                                                await printWithQZ(auth.user.nombre_impresora, pageHtml);
-                                            }
-                                        } else {
-                                            printReceipts(printData);
-                                        }
+                                        try {
+                                            if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                                                const pages = buildReceiptPageHtml(printData);
+                                                let currentDetalles = [...detalles];
 
-                                        if (type === 'pendientes') {
-                                            try {
-                                                await axios.post(route('api.ventas.mark_printed', freshFactura.id), {
-                                                    detalle_ids: items.map((d: any) => d.id),
-                                                });
-                                                const updatedDetalles = detalles.map((d: any) =>
-                                                    items.find((i: any) => i.id === d.id) ? { ...d, impreso: true } : d,
-                                                );
-                                                setSelectedFactura({ ...freshFactura, detalles: updatedDetalles });
-                                            } catch {
-                                                showAlert('error', 'Error al marcar ítems como impresos.');
+                                                for (let i = 0; i < pages.length; i++) {
+                                                    const item = items[i];
+                                                    await printWithQZ(auth.user.nombre_impresora, pages[i]);
+
+                                                    if (type === 'pendientes') {
+                                                        await axios.post(route('api.ventas.mark_printed', freshFactura.id), {
+                                                            detalle_ids: [item.id],
+                                                        });
+                                                        // Update local state incrementally so UI reflects progress
+                                                        currentDetalles = currentDetalles.map(d => 
+                                                            d.id === item.id ? { ...d, impreso: true } : d
+                                                        );
+                                                        setSelectedFactura({ ...freshFactura, detalles: currentDetalles });
+                                                    }
+                                                }
+                                            } else {
+                                                printReceipts(printData);
+                                                if (type === 'pendientes') {
+                                                    await axios.post(route('api.ventas.mark_printed', freshFactura.id), {
+                                                        detalle_ids: items.map((d: any) => d.id),
+                                                    });
+                                                    const updatedDetalles = detalles.map((d: any) =>
+                                                        items.find((i: any) => i.id === d.id) ? { ...d, impreso: true } : d,
+                                                    );
+                                                    setSelectedFactura({ ...freshFactura, detalles: updatedDetalles });
+                                                }
                                             }
+                                        } catch (error: any) {
+                                            console.error('Print failure:', error);
+                                            showAlert('error', 'Error al imprimir: ' + (error.message || 'Verifique la conexión de la impresora.'));
                                         }
                                     }}
                                 />

@@ -85,7 +85,7 @@ export function printCuadre(data: CuadreData, returnHtml = false): string | void
         .footer-text { margin-top: 5px; text-align: center; font-size: 10px; font-weight: bold; }
     </style>
 </head>
-<body>
+<body onload="window.print()">
     <div class="ticket">
         <h2>PENDIENTES X CANCELAR</h2>
         <h3>${data.localName}</h3>

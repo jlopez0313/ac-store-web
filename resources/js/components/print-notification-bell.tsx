@@ -104,8 +104,12 @@ export function PrintNotificationBell({ cuentaId }: Props) {
                         localName: venta.local?.name || '',
                         items: pendientes,
                     });
-                    for (const pageHtml of pages) {
-                        await printWithQZ(auth.user.nombre_impresora, pageHtml);
+                    for (let i = 0; i < pages.length; i++) {
+                        const item = pendientes[i];
+                        await printWithQZ(auth.user.nombre_impresora, pages[i]);
+                        await axios.post(route('api.ventas.mark_printed', venta.id), {
+                            detalle_ids: [item.id],
+                        });
                     }
                 } else {
                     printReceipts({
@@ -113,11 +117,10 @@ export function PrintNotificationBell({ cuentaId }: Props) {
                         localName: venta.local?.name || '',
                         items: pendientes,
                     });
+                    await axios.post(route('api.ventas.mark_printed', venta.id), {
+                        detalle_ids: pendientes.map((d: any) => d.id),
+                    });
                 }
-
-                await axios.post(route('api.ventas.mark_printed', venta.id), {
-                    detalle_ids: pendientes.map((d: any) => d.id),
-                });
             } else {
                 const { printCuadre } = await import('@/utils/printCuadre');
                 const html = printCuadre(
@@ -142,10 +145,11 @@ export function PrintNotificationBell({ cuentaId }: Props) {
                 }
             }
 
+            // Successfully printed everything, now remove the request
             if (request.key) await removePrintRequest(effectiveCuentaId, request.key);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error al imprimir:', error);
-            showAlert('error', 'Error al procesar la solicitud de impresión.');
+            showAlert('error', 'Error al imprimir: ' + (error.message || 'Verifique la conexión de la impresora.'));
         } finally {
             setProcessingKey(null);
         }

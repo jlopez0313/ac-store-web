@@ -172,7 +172,7 @@ function wrapHtml(bodyContent: string, title = 'Ticket'): string {
     <title>${title}</title>
     <style>${TICKET_CSS}</style>
 </head>
-<body>
+<body onload="window.print()">
     ${bodyContent}
 </body>
 </html>`;
