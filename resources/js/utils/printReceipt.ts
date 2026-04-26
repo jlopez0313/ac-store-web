@@ -90,6 +90,7 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=302px">
     <title>Imprimir Tickets</title>
     <style>
         @page {
@@ -104,13 +105,17 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
         body {
             font-family: 'Courier New', monospace;
             font-size: 12px;
-            width: 80mm;
+            width: 302px;
+            max-width: 302px;
+            overflow: hidden;
             color: #000;
         }
         .ticket {
             padding: 4mm 3mm;
             page-break-after: always;
-            width: 80mm;
+            width: 100%;
+            max-width: 302px;
+            overflow: hidden;
         }
         .ticket:last-child {
             page-break-after: auto;
@@ -170,7 +175,8 @@ export function printReceipts(data: PrintData, returnHtml = false): string | voi
             font-weight: bold;
         }
         .barcode img {
-            max-width: 140px;
+            max-width: 100%;
+            width: auto;
             height: auto;
         }
         .footer-banner {
