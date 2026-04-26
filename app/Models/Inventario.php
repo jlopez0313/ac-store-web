@@ -9,6 +9,34 @@ use Illuminate\Database\Eloquent\Model;
 class Inventario extends Model
 {
     use HasFactory, Blameable;
+    
+    protected static function booted()
+    {
+        static::saved(function ($inventario) {
+            // Check if stock increased or it's a new record with stock > 0
+            $isNew = $inventario->wasRecentlyCreated;
+            $stockIncreased = false;
+
+            if ($isNew) {
+                if ($inventario->stock > 0) {
+                    $stockIncreased = true;
+                }
+            } else if ($inventario->isDirty('stock')) {
+                $oldStock = $inventario->getOriginal('stock') ?? 0;
+                if ($inventario->stock > $oldStock) {
+                    $stockIncreased = true;
+                }
+            }
+
+            if ($stockIncreased) {
+                // Ensure we don't cause an infinite loop and only update if necessary
+                $referencia = $inventario->referencia;
+                if ($referencia && $referencia->impreso) {
+                    $referencia->update(['impreso' => false]);
+                }
+            }
+        });
+    }
 
     protected $fillable = [
         'cuenta_id',

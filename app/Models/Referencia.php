@@ -19,10 +19,12 @@ class Referencia extends Model
         'foto',
         'cuenta_id',
         'sistema_viejo',
+        'impreso',
     ];
 
     protected $casts = [
         'sistema_viejo' => 'boolean',
+        'impreso' => 'boolean',
     ];
 
     public function marca()

@@ -3,6 +3,7 @@ import { FormButtons } from '@/components/ui/form/FormButtons';
 import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Label } from '@/components/ui/label';
+import { SwitchField } from '@/components/ui/form/SwitchField';
 import { useAuth } from '@/hooks/use-auth';
 import { showAlert } from '@/plugins/sweetalert';
 import { useForm } from '@inertiajs/react';
@@ -17,6 +18,7 @@ type ThisForm = {
     categoria_id: string;
     cuenta_id: string;
     foto: File | null;
+    impreso: boolean;
     _method?: string; // For Laravel form method spoofing with file uploads
 };
 
@@ -34,6 +36,7 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
         categoria_id: '',
         cuenta_id: isSuperAdmin ? '' : (user?.cuenta_id?.toString() || ''),
         foto: null,
+        impreso: true,
     });
 
     const submit: FormEventHandler = async (e) => {
@@ -98,6 +101,7 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
                     categoria_id: item.categoria_id ?? item.categoria?.id ?? '',
                     cuenta_id: item.cuenta_id ?? item.cuenta?.id ?? '',
                     foto: null, // Don't set the old file object, just the preview
+                    impreso: !!item.impreso,
                 });
                 setImagePreview(item.foto); // Backend URL
                 if (fileInputRef.current) fileInputRef.current.value = '';
@@ -185,6 +189,16 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
                                 value={data.descripcion}
                                 onChange={(val) => setData('descripcion', val as string)}
                                 error={errors.descripcion}
+                            />
+                        </div>
+
+                        <div className="col-span-1">
+                            <SwitchField
+                                name="impreso"
+                                title="¿Ya está impreso?"
+                                checked={data.impreso}
+                                onChange={(val) => setData('impreso', val)}
+                                processing={processing}
                             />
                         </div>
 

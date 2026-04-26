@@ -88,9 +88,9 @@ class ReferenciasController extends Controller
             'codigo' => 'required|string|max:255|unique:referencias,codigo',
             'marca_id' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'categoria_id' => 'required|exists:categorias,id',
             'foto' => 'nullable|image', // Max 2MB
             'cuenta_id' => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
+            'impreso' => 'nullable|boolean',
         ]);
 
         if (!auth()->user()->hasRole('superadmin')) {
@@ -131,9 +131,9 @@ class ReferenciasController extends Controller
             'codigo' => 'required|string|max:255|unique:referencias,codigo,' . $referencia->id,
             'marca_id' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'categoria_id' => 'required|exists:categorias,id',
             'foto' => 'nullable|image',
             'cuenta_id' => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
+            'impreso' => 'nullable|boolean',
         ]);
 
         if (!auth()->user()->hasRole('superadmin')) {
