@@ -16,7 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Carga masiva de fotos', href: '#' },
 ];
 
-const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB por chunk
+const CHUNK_SIZE = 3 * 1024 * 1024; // 3MB por chunk
 
 export default function BulkPhotos({ cuentas }: { cuentas: any[] }) {
     const [selectedCuenta, setSelectedCuenta] = useState<string>('');
@@ -47,7 +47,7 @@ export default function BulkPhotos({ cuentas }: { cuentas: any[] }) {
         setLoading(true);
         setResults(null);
         setProgress(0);
-        
+
         const uploadId = Date.now().toString() + Math.random().toString(36).substring(2, 7);
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
@@ -98,9 +98,9 @@ export default function BulkPhotos({ cuentas }: { cuentas: any[] }) {
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </Link>
-                    <PageHeader 
-                        title="Carga masiva de fotos" 
-                        description="Sube un archivo ZIP con las fotos de las referencias. El nombre de cada archivo debe ser el código de la referencia." 
+                    <PageHeader
+                        title="Carga masiva de fotos"
+                        description="Sube un archivo ZIP con las fotos de las referencias. El nombre de cada archivo debe ser el código de la referencia."
                     />
                 </div>
 
@@ -153,8 +153,8 @@ export default function BulkPhotos({ cuentas }: { cuentas: any[] }) {
                             {loading && (
                                 <div className="space-y-2">
                                     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                                        <div 
-                                            className="h-full bg-primary transition-all duration-300" 
+                                        <div
+                                            className="h-full bg-primary transition-all duration-300"
                                             style={{ width: `${progress}%` }}
                                         />
                                     </div>
@@ -162,9 +162,9 @@ export default function BulkPhotos({ cuentas }: { cuentas: any[] }) {
                                 </div>
                             )}
 
-                            <Button 
-                                className="w-full" 
-                                onClick={handleUpload} 
+                            <Button
+                                className="w-full"
+                                onClick={handleUpload}
                                 disabled={loading || !selectedCuenta || !file}
                             >
                                 {loading ? (

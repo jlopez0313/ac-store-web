@@ -124,6 +124,14 @@ class ReferenciaFotoController extends Controller
                 ->where('codigo', $filename)
                 ->first();
 
+            // Fallback: Si no encuentra y es numérico, intentar con ceros a la izquierda (ej. "1" -> "000001")
+            if (!$referencia && is_numeric($filename)) {
+                $padded = str_pad($filename, 6, '0', STR_PAD_LEFT);
+                $referencia = Referencia::where('cuenta_id', $cuenta_id)
+                    ->where('codigo', $padded)
+                    ->first();
+            }
+
             if (!$referencia) {
                 $summary['skipped'][] = "$filename (referencia no encontrada)";
                 continue;
