@@ -11,6 +11,7 @@ import {
     Building2,
     FileText,
     Home,
+    Image as ImageIcon,
     Landmark,
     Package,
     Receipt,
@@ -59,6 +60,7 @@ export const NAV_ITEMS: NavItem[] = [
     { title: 'Marcas', url: '/marcas', icon: Award, roles: ['superadmin', 'admin', 'bodega'], group: 'admin' },
     { title: 'Bodegas', url: '/bodegas', icon: WarehouseIcon, roles: ['superadmin', 'admin', 'bodega'], group: 'admin' },
     { title: 'Proveedores', url: '/proveedores', icon: Building2, roles: ['superadmin', 'admin', 'bodega'], group: 'admin' },
+    { title: 'Fotos Masivas', url: '/referencias-bulk-photos', icon: ImageIcon, roles: ['superadmin'], group: 'admin' },
     { title: 'Usuarios', url: '/usuarios', icon: Users, roles: ['superadmin', 'admin'], group: 'admin' },
     { title: 'Opciones', url: '/opciones', icon: Settings, roles: ['superadmin', 'admin'], group: 'admin' },
 ];

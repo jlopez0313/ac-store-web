@@ -25,6 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('categorias', ApiCategoriasController::class)->names('api.categorias');
     Route::get('referencias/next-code', [ApiReferenciasController::class, 'getNextCode'])->name('api.referencias.next-code');
     Route::post('referencias/search', [ApiReferenciaSearchController::class, 'index'])->name('api.referencias.search');
+    Route::post('referencias/bulk-photos/chunk', [App\Http\Controllers\Api\ReferenciaFotoController::class, 'uploadChunk'])->name('api.referencias.bulk-photos.chunk');
+    Route::post('referencias/bulk-photos/process', [App\Http\Controllers\Api\ReferenciaFotoController::class, 'processZip'])->name('api.referencias.bulk-photos.process');
     Route::apiResource('referencias', ApiReferenciasController::class)->names('api.referencias');
     Route::apiResource('marcas', App\Http\Controllers\Api\MarcasController::class)->names('api.marcas');
     Route::apiResource('proveedores', ApiProveedoresController::class)->names('api.proveedores');

@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useCrudPage } from '@/hooks/useCrudPage';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
 import { Edit, Image as ImageIcon, Plus, Search as SearchIcon, Trash } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -191,6 +191,14 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
                                         error={undefined}
                                     />
                                 </div>
+                            )}
+                            {isSuperAdmin && (
+                                <Link href={route('referencias.bulk-photos')}>
+                                    <Button variant="outline">
+                                        <ImageIcon className="mr-2 h-5 w-5" />
+                                        Cargar Fotos (ZIP)
+                                    </Button>
+                                </Link>
                             )}
                             <Button onClick={() => onToggleModal(true)}>
                                 <Plus className="mr-2 h-5 w-5" />

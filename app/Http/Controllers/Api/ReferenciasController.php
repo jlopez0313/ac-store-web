@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\Storage;
 
 class ReferenciasController extends Controller
 {
+    public function bulkPhotos()
+    {
+        return \Inertia\Inertia::render('referencias/BulkPhotos', [
+            'cuentas' => \App\Models\Cuenta::orderBy('nombre')->get(['id', 'nombre']),
+        ]);
+    }
+
     public function getNextCode(Request $request)
     {
         $query = Referencia::query();

@@ -21,6 +21,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 
     Route::resource('referencias', ReferenciasController::class);
+    Route::get('referencias-bulk-photos', [ReferenciasController::class, 'bulkPhotos'])->name('referencias.bulk-photos');
     Route::get('referencias-busqueda', [App\Http\Controllers\ReferenciaSearchController::class, 'index'])->name('referencias.search');
     Route::resource('cuentas', CuentasController::class);
     Route::get('usuarios', [UsuariosController::class, 'index'])->name('usuarios.index');
