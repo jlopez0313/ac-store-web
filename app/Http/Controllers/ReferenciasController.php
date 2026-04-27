@@ -59,6 +59,13 @@ class ReferenciasController extends Controller
         ]);
     }
 
+    public function bulkPhotos()
+    {
+        return Inertia::render('referencias/BulkPhotos', [
+            'cuentas' => Cuenta::select('id', 'nombre')->orderBy('nombre')->get(),
+        ]);
+    }
+
     public function show(Referencia $referencia)
     {
         return response()->json(['data' => $referencia->load(['categoria', 'cuenta'])]);
