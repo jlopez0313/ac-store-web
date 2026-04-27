@@ -4,7 +4,7 @@ import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-const CHUNK_SIZE = 3 * 1024 * 1024;
+const CHUNK_SIZE = 5 * 1024 * 1024;
 
 const PASOS_MAESTROS = [
     { key: 'categorias', label: 'Categorías', icon: '📐' },
@@ -326,23 +326,22 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             onDragOver={
                                 necesitaExcel
                                     ? (e) => {
-                                          e.preventDefault();
-                                          setExcelDragOver(true);
-                                      }
+                                        e.preventDefault();
+                                        setExcelDragOver(true);
+                                    }
                                     : undefined
                             }
                             onDragLeave={necesitaExcel ? () => setExcelDragOver(false) : undefined}
-                            className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
-                                !necesitaExcel
+                            className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${!necesitaExcel
                                     ? 'border-gray-200 bg-gray-50 opacity-50 dark:border-gray-700 dark:bg-gray-800'
                                     : excelDragOver
-                                      ? 'cursor-pointer border-blue-400 bg-blue-50 dark:bg-blue-950/30'
-                                      : excelUploadDone
-                                        ? 'border-green-400 bg-green-50 dark:bg-green-950/30'
-                                        : excelFile
-                                          ? 'cursor-pointer border-amber-400 bg-amber-50 dark:bg-amber-950/30'
-                                          : 'cursor-pointer border-gray-300 bg-gray-50 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
-                            }`}
+                                        ? 'cursor-pointer border-blue-400 bg-blue-50 dark:bg-blue-950/30'
+                                        : excelUploadDone
+                                            ? 'border-green-400 bg-green-50 dark:bg-green-950/30'
+                                            : excelFile
+                                                ? 'cursor-pointer border-amber-400 bg-amber-50 dark:bg-amber-950/30'
+                                                : 'cursor-pointer border-gray-300 bg-gray-50 hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
+                                }`}
                         >
                             <input ref={excelRef} type="file" accept=".xlsx" className="hidden" onChange={handleExcelFile} />
 
@@ -428,23 +427,22 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             onDragOver={
                                 secInventario
                                     ? (e) => {
-                                          e.preventDefault();
-                                          setCsvDragOver(true);
-                                      }
+                                        e.preventDefault();
+                                        setCsvDragOver(true);
+                                    }
                                     : undefined
                             }
                             onDragLeave={secInventario ? () => setCsvDragOver(false) : undefined}
-                            className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
-                                !secInventario
+                            className={`rounded-lg border-2 border-dashed p-4 text-center transition-colors ${!secInventario
                                     ? 'border-gray-200 bg-gray-50 opacity-50 dark:border-gray-700 dark:bg-gray-800'
                                     : csvDragOver
-                                      ? 'cursor-pointer border-blue-400 bg-blue-50 dark:bg-blue-950/30'
-                                      : csvUploadDone
-                                        ? 'border-green-400 bg-green-50 dark:bg-green-950/30'
-                                        : csvFile
-                                          ? 'cursor-pointer border-amber-400 bg-amber-50 dark:bg-amber-950/30'
-                                          : 'cursor-pointer border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
-                            }`}
+                                        ? 'cursor-pointer border-blue-400 bg-blue-50 dark:bg-blue-950/30'
+                                        : csvUploadDone
+                                            ? 'border-green-400 bg-green-50 dark:bg-green-950/30'
+                                            : csvFile
+                                                ? 'cursor-pointer border-amber-400 bg-amber-50 dark:bg-amber-950/30'
+                                                : 'cursor-pointer border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
+                                }`}
                         >
                             <input ref={csvRef} type="file" accept=".csv" className="hidden" onChange={handleCsvFile} />
 
@@ -567,21 +565,20 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                         <button
                             onClick={iniciarProceso}
                             disabled={!estaListo || estaActivo || uploading}
-                            className={`w-full rounded-lg py-3 text-sm font-semibold transition-all ${
-                                !estaListo || estaActivo || uploading
+                            className={`w-full rounded-lg py-3 text-sm font-semibold transition-all ${!estaListo || estaActivo || uploading
                                     ? 'cursor-not-allowed bg-gray-200 text-gray-400 dark:bg-gray-700 dark:text-gray-500'
                                     : dryRun
-                                      ? 'bg-amber-500 text-white shadow-sm hover:bg-amber-600'
-                                      : 'bg-blue-600 text-white shadow-sm hover:bg-blue-700'
-                            }`}
+                                        ? 'bg-amber-500 text-white shadow-sm hover:bg-amber-600'
+                                        : 'bg-blue-600 text-white shadow-sm hover:bg-blue-700'
+                                }`}
                         >
                             {uploading
                                 ? '⬆ Subiendo archivos...'
                                 : estaActivo
-                                  ? '⏳ Procesando en background...'
-                                  : dryRun
-                                    ? '🔍 Simular importación'
-                                    : '🚀 Ejecutar importación'}
+                                    ? '⏳ Procesando en background...'
+                                    : dryRun
+                                        ? '🔍 Simular importación'
+                                        : '🚀 Ejecutar importación'}
                         </button>
 
                         {dryRun && !estaActivo && (
@@ -593,36 +590,34 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                         {/* Barra de progreso global */}
                         {progreso && (
                             <div
-                                className={`space-y-3 rounded-lg border p-4 ${
-                                    progreso.paso === 'error'
+                                className={`space-y-3 rounded-lg border p-4 ${progreso.paso === 'error'
                                         ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30'
                                         : progreso.paso === 'completado'
-                                          ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30'
-                                          : progreso.dry_run
-                                            ? 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30'
-                                            : 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30'
-                                }`}
+                                            ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30'
+                                            : progreso.dry_run
+                                                ? 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30'
+                                                : 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30'
+                                    }`}
                             >
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
                                         {progreso.paso === 'error'
                                             ? '❌ Error'
                                             : progreso.paso === 'completado'
-                                              ? progreso.dry_run
-                                                  ? '🔍 Simulación completada'
-                                                  : '✅ Completado'
-                                              : progreso.paso === 'encolado'
-                                                ? '⏳ En cola...'
-                                                : `⚙ ${progreso.paso}`}
+                                                ? progreso.dry_run
+                                                    ? '🔍 Simulación completada'
+                                                    : '✅ Completado'
+                                                : progreso.paso === 'encolado'
+                                                    ? '⏳ En cola...'
+                                                    : `⚙ ${progreso.paso}`}
                                     </span>
                                     <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{progreso.pct}%</span>
                                 </div>
 
                                 <div className="h-2.5 w-full rounded-full bg-gray-200 dark:bg-gray-700">
                                     <div
-                                        className={`h-2.5 rounded-full transition-all duration-500 ${
-                                            progreso.paso === 'error' ? 'bg-red-500' : progreso.paso === 'completado' ? 'bg-green-500' : 'bg-blue-500'
-                                        }`}
+                                        className={`h-2.5 rounded-full transition-all duration-500 ${progreso.paso === 'error' ? 'bg-red-500' : progreso.paso === 'completado' ? 'bg-green-500' : 'bg-blue-500'
+                                            }`}
                                         style={{ width: `${progreso.pct}%` }}
                                     />
                                 </div>

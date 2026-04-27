@@ -16,7 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Carga masiva de fotos', href: '#' },
 ];
 
-const CHUNK_SIZE = 3 * 1024 * 1024; // 3MB por chunk
+const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB por chunk
 
 export default function BulkPhotos({ cuentas }: { cuentas: any[] }) {
     const [selectedCuenta, setSelectedCuenta] = useState<string>('');
