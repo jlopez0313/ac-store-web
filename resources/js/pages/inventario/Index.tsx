@@ -4,16 +4,16 @@ import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/Modal';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import AppLayout from '@/layouts/app-layout';
 import { showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import { Edit, Eye, Image as ImageIcon, Search, Warehouse } from 'lucide-react';
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AdjustmentModal } from './AdjustmentModal';
 import { DetailModal } from './DetailModal';
-import { ViewerModal } from '@/components/ui/ViewerModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Panel principal', href: route('dashboard') },
@@ -25,7 +25,7 @@ export default function Index({ filters: initialFilters }: any) {
 	const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
 	const [loading, setLoading] = useState(true);
 	const [actionLoading, setActionLoading] = useState(false);
-	
+
 	const [filters, setFilters] = useState({
 		search: initialFilters?.search || '',
 		per_page: initialFilters?.per_page || 25,
@@ -132,7 +132,7 @@ export default function Index({ filters: initialFilters }: any) {
 			sortable: true,
 			sortField: 'codigo',
 			width: '140px',
-			cell: (row: any) => <span className="font-mono font-bold text-indigo-600">{row.codigo}</span>,
+			cell: (row: any) => <span className="font-bold">{row.codigo}</span>,
 		},
 		{
 			name: 'Producto',
@@ -198,28 +198,28 @@ export default function Index({ filters: initialFilters }: any) {
 				/>
 
 				<div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                    <div className="flex flex-1 max-w-sm gap-2">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                id="search-input"
-                                placeholder="Buscar por código, descripción, marca..."
-                                className="pl-9"
-                                defaultValue={filters.search}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-                            />
-                        </div>
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                handleSearch(val);
-                            }}
-                        >
-                            <Search className="h-4 w-4 mr-2" />
-                            Buscar
-                        </Button>
-                    </div>
+					<div className="flex flex-1 max-w-sm gap-2">
+						<div className="relative flex-1">
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+							<Input
+								id="search-input"
+								placeholder="Buscar por código, descripción, marca..."
+								className="pl-9"
+								defaultValue={filters.search}
+								onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+							/>
+						</div>
+						<Button
+							variant="secondary"
+							onClick={() => {
+								const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+								handleSearch(val);
+							}}
+						>
+							<Search className="h-4 w-4 mr-2" />
+							Buscar
+						</Button>
+					</div>
 					<div className="flex items-center gap-2">
 						<Badge variant="secondary" className="px-3 py-1 text-xs">
 							Total referencias: {meta.total}
@@ -241,11 +241,11 @@ export default function Index({ filters: initialFilters }: any) {
 						fetchPage={(page) => setFilters(prev => ({ ...prev, page }))}
 						setPageSize={(per_page) => setFilters(prev => ({ ...prev, per_page, page: 1 }))}
 						onSort={(column: any, sortOrder) => {
-							setFilters(prev => ({ 
-								...prev, 
-								sort_field: column.sortField, 
+							setFilters(prev => ({
+								...prev,
+								sort_field: column.sortField,
 								sort_order: sortOrder,
-								page: 1 
+								page: 1
 							}));
 						}}
 					/>

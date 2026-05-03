@@ -1,6 +1,7 @@
 import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { showAlert } from '@/plugins/sweetalert';
 import axios from 'axios';
@@ -17,6 +18,7 @@ type AddDetailForm = {
 };
 
 export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, onAdded }: any) => {
+	const [loading, setLoading] = useState(false);
 	const [addMode, setAddMode] = useState<'simple' | 'sized'>('simple');
 	const [simpleBoxes, setSimpleBoxes] = useState('1');
 	const [simplePairsPerBox, setSimplePairsPerBox] = useState('24');
@@ -78,6 +80,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 
 	const submit: FormEventHandler = async (e) => {
 		e.preventDefault();
+		setLoading(true);
 		try {
 			let payload: any;
 			if (addMode === 'simple') {
@@ -115,6 +118,8 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 		} catch (error) {
 			console.error('Error guardando detalle:', error);
 			showAlert('error', 'Error guardando el ítem. Verifica los datos.');
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -279,13 +284,13 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 					</Tabs>
 				</div>
 				<div className="px-6 py-4 bg-muted/30 border-t flex justify-end gap-3 flex-shrink-0">
-					<button type="button" onClick={onClose} className="px-4 py-2 border border-border rounded-md shadow-sm text-sm font-medium bg-background hover:bg-muted text-foreground">
+					<Button type="button" variant="outline" onClick={onClose} disabled={loading}>
 						Cancelar
-					</button>
-					<button type="submit" className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 flex items-center">
+					</Button>
+					<Button type="submit" loading={loading}>
 						<Plus className="w-4 h-4 mr-2" />
 						Agregar a factura
-					</button>
+					</Button>
 				</div>
 			</form>
 		</Modal>

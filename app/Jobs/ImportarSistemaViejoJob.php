@@ -443,13 +443,15 @@ class ImportarSistemaViejoJob implements ShouldQueue
                     $usernameUnico = $username . '_' . $suffix++;
                 }
 
+                $documentoFinal = (strlen($nit) >= 6) ? $nit : 'acstore123';
+
                 $userId = DB::table('users')->insertGetId([
                     'cuenta_id' => $this->cuentaId,
                     'name' => $nombreNorm,
                     'username' => $usernameUnico,
-                    'documento' => $nit ?: null,
+                    'documento' => $documentoFinal,
                     'email' => $emailUso,
-                    'password' => Hash::make($nit ?: 'cambiar123'),
+                    'password' => Hash::make($documentoFinal),
                     'estado' => $estado,
                     'precio_suscripcion' => config('constants.suscripciones.default_user_price'),
                     'email_verified_at' => now(),
@@ -482,7 +484,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
         $this->log("  {$insertados} locales creados como users / " . count($this->mapLocales) . ' mapeados');
         if ($insertados > 0 && !$this->dryRun) {
-            $this->log('  ⚠ Password inicial = NIT del local, o "cambiar123" si no tiene NIT');
+            $this->log('  ⚠ Password inicial = Documento del local, o "acstore123" si no tiene documento');
         }
     }
 

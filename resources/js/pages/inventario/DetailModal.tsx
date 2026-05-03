@@ -2,11 +2,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import axios from 'axios';
-import { Barcode, Edit, Info, Package, Tag, Warehouse } from 'lucide-react';
+import { Edit, Info, Package, Tag, Warehouse } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { AdjustmentModal } from './AdjustmentModal';
-import { ViewerModal } from '@/components/ui/ViewerModal';
 
 interface DetailModalProps {
     isOpen: boolean;
@@ -21,11 +21,15 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
     const [adjustmentOpen, setAdjustmentOpen] = useState(false);
     const [selectedShelf, setSelectedShelf] = useState<any>(null);
     const [viewerImage, setViewerImage] = useState<string | null>(null);
+    const [openBodegas, setOpenBodegas] = useState<Record<string, boolean>>({});
     const viewerOpenRef = useRef(false);
 
     const openViewer = (foto: string) => { viewerOpenRef.current = true; setViewerImage(foto); };
     const closeViewer = () => { viewerOpenRef.current = false; setViewerImage(null); };
     const handleModalClose = () => { if (!viewerOpenRef.current) onClose(); };
+    const toggleBodega = (bodega: string) => {
+        setOpenBodegas(prev => ({ ...prev, [bodega]: !prev[bodega] }));
+    };
 
     useEffect(() => {
         if (isOpen && referencia) {
@@ -166,32 +170,6 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                             </div>
                         </div>
 
-                        {!loading && details.length > 0 && (
-                            <div className="space-y-4">
-                                <h3 className="text-foreground flex items-center gap-2 text-sm font-medium uppercase">Resumen por Bodega</h3>
-                                <div className="flex flex-wrap gap-3">
-                                    {Object.entries(warehouseTotals).map(([bodega, total]: any) => (
-                                        <div
-                                            key={bodega}
-                                            className="bg-background border-border flex items-center gap-3 rounded-xl border px-4 py-2.5 shadow-xs"
-                                        >
-                                            <div className="bg-primary/10 rounded-lg p-1.5">
-                                                <Warehouse className="text-primary h-3.5 w-3.5" />
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-muted-foreground mb-1 text-[10px] leading-none font-medium uppercase">
-                                                    {bodega}
-                                                </span>
-                                                <span className="text-foreground text-xs leading-none font-medium">
-                                                    {total} <span className="text-muted-foreground text-[10px] font-medium">unidades</span>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
                         <div className="space-y-4">
                             <h3 className="text-foreground flex items-center gap-2 text-sm font-medium uppercase">Distribución por Bodega y Talla</h3>
 
@@ -204,76 +182,102 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                     No se encontraron registros detallados de inventario.
                                 </div>
                             ) : (
-                                <div className="bg-background border-border overflow-hidden rounded-2xl border shadow-sm">
-                                    <Table>
-                                        <TableHeader className="sticky top-0 z-10 bg-slate-50 shadow-sm">
-                                            <TableRow>
-                                                <TableHead className="text-foreground bg-muted/50 h-12 font-bold">Bodega / Estantería</TableHead>
-                                                <TableHead className="text-foreground bg-muted/50 h-12 text-center font-bold">Talla</TableHead>
-                                                <TableHead className="text-foreground bg-muted/50 h-12 text-center font-bold">Stock</TableHead>
-                                                <TableHead className="text-foreground bg-muted/50 h-12 text-right font-bold">Precio Costo</TableHead>
-                                                <TableHead className="text-foreground bg-muted/50 h-12 text-right font-bold">Precio Venta</TableHead>
-                                                <TableHead className="text-foreground bg-muted/50 h-12 pr-6 text-right font-bold">Acciones</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {details.map((item: any) => (
-                                                <TableRow key={item.id} className="hover:bg-muted/20 border-border/50 transition-colors">
-                                                    <TableCell>
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="bg-muted text-muted-foreground rounded-lg p-2">
-                                                                <Warehouse className="h-4 w-4" />
-                                                            </div>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-foreground text-sm font-medium">{item.bodega_nombre}</span>
-                                                                <span className="text-muted-foreground text-[10px] uppercase">
-                                                                    {item.estanteria_nombre}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-center">
-                                                        <Badge variant="outline" className="bg-background border-border font-mono">
-                                                            {item.talla}
+                                <div className="space-y-3">
+                                    {Object.entries(
+                                        details.reduce((acc: any, item: any) => {
+                                            const key = item.bodega_nombre;
+                                            if (!acc[key]) acc[key] = [];
+                                            acc[key].push(item);
+                                            return acc;
+                                        }, {})
+                                    ).map(([bodega, bodegaItems]: [string, any[]]) => {
+                                        const isOpen = !!openBodegas[bodega]; // Default collapsed
+                                        return (
+                                            <div key={bodega} className="bg-background border-border overflow-hidden rounded-2xl border shadow-sm">
+                                                <div
+                                                    className="bg-muted/30 flex cursor-pointer items-center justify-between border-b px-6 py-3 transition-colors hover:bg-muted/50"
+                                                    onClick={() => toggleBodega(bodega)}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Warehouse className={`h-5 w-5 transition-colors ${isOpen ? 'text-primary' : 'text-muted-foreground'}`} />
+                                                        <span className="text-sm font-bold uppercase tracking-wide">{bodega}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <Badge variant="secondary" className="font-bold">
+                                                            {bodegaItems.reduce((sum, i) => sum + Number(i.stock), 0)} unidades
                                                         </Badge>
-                                                    </TableCell>
-                                                    <TableCell className="text-center">
-                                                        <span className={`font-bold ${item.stock <= 0 ? 'text-red-500' : 'text-foreground'}`}>
-                                                            {item.stock}
-                                                        </span>
-                                                    </TableCell>
-                                                    <TableCell className="text-muted-foreground text-right font-medium">
-                                                        ${Number(item.precio_compra).toLocaleString()}
-                                                    </TableCell>
-                                                    <TableCell className="text-foreground text-right font-medium">
-                                                        ${Number(item.precio_venta).toLocaleString()}
-                                                    </TableCell>
-                                                    <TableCell className="pr-6 text-right">
-                                                        <div className="flex items-center justify-end gap-1">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="hover:bg-primary/10 h-8 w-8 cursor-pointer p-0"
-                                                                onClick={() => handleDownloadLabel(item)}
-                                                                title="Descargar Etiqueta"
-                                                            >
-                                                                <Barcode className="h-4 w-4 text-emerald-600" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="hover:bg-primary/10 h-8 w-8 cursor-pointer p-0"
-                                                                onClick={() => handleAdjust(item)}
-                                                                title="Ajustar"
-                                                            >
-                                                                <Edit className="text-primary h-4 w-4" />
-                                                            </Button>
+                                                        <div className={`text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                                                            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4"><path d="M3.13523 6.15803C3.3241 5.95657 3.64057 5.94637 3.84203 6.13523L7.5 9.56464L11.158 6.13523C11.3594 5.94637 11.6759 5.95657 11.8648 6.15803C12.0536 6.35949 12.0434 6.67597 11.842 6.86484L7.84199 10.6148C7.64491 10.7996 7.35509 10.7996 7.15801 10.6148L3.15801 6.86484C2.95655 6.67597 2.94635 6.35949 3.13523 6.15803Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg>
                                                         </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                                                    </div>
+                                                </div>
+                                                {isOpen && (
+                                                    <Table>
+                                                        <TableHeader className="bg-slate-50/50">
+                                                            <TableRow>
+                                                                <TableHead className="text-foreground h-10 font-bold">Estantería</TableHead>
+                                                                <TableHead className="text-foreground h-10 text-center font-bold">Talla</TableHead>
+                                                                <TableHead className="text-foreground h-10 text-center font-bold">Stock</TableHead>
+                                                                <TableHead className="text-foreground h-10 text-right font-bold">Costo</TableHead>
+                                                                <TableHead className="text-foreground h-10 text-right font-bold">Venta</TableHead>
+                                                                <TableHead className="text-foreground h-10 pr-6 text-right font-bold">Acciones</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {bodegaItems.map((item: any) => (
+                                                                <TableRow key={item.id} className="hover:bg-muted/20 border-border/50 transition-colors">
+                                                                    <TableCell className="text-xs font-medium uppercase text-muted-foreground">
+                                                                        {item.estanteria_nombre}
+                                                                    </TableCell>
+                                                                    <TableCell className="text-center">
+                                                                        <Badge variant="outline" className="bg-background border-border font-mono text-xs">
+                                                                            {item.talla}
+                                                                        </Badge>
+                                                                    </TableCell>
+                                                                    <TableCell className="text-center">
+                                                                        <span className={`text-sm font-bold ${item.stock <= 0 ? 'text-red-500' : 'text-foreground'}`}>
+                                                                            {item.stock}
+                                                                        </span>
+                                                                    </TableCell>
+                                                                    <TableCell className="text-muted-foreground text-right text-xs font-medium">
+                                                                        ${Number(item.precio_compra).toLocaleString()}
+                                                                    </TableCell>
+                                                                    <TableCell className="text-foreground text-right text-xs font-medium">
+                                                                        ${Number(item.precio_venta).toLocaleString()}
+                                                                    </TableCell>
+                                                                    <TableCell className="pr-6 text-right">
+                                                                        <div className="flex items-center justify-end gap-1">
+                                                                            {/*
+                                                                            
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                className="hover:bg-primary/10 h-7 w-7 cursor-pointer p-0"
+                                                                                onClick={() => handleDownloadLabel(item)}
+                                                                                title="Descargar Etiqueta"
+                                                                            >
+                                                                                <Barcode className="h-3.5 w-3.5 text-emerald-600" />
+                                                                            </Button>
+                                                                            */}
+                                                                            <Button
+                                                                                variant="ghost"
+                                                                                size="sm"
+                                                                                className="hover:bg-primary/10 h-7 w-7 cursor-pointer p-0"
+                                                                                onClick={() => handleAdjust(item)}
+                                                                                title="Ajustar"
+                                                                            >
+                                                                                <Edit className="text-primary h-3.5 w-3.5" />
+                                                                            </Button>
+                                                                        </div>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

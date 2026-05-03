@@ -20,7 +20,7 @@ class ReferenciaSearchController extends Controller
 
         // Apply filters based on role
         if ($isSuper) {
-            if ($request->filled('cuenta_id')) {
+            if ($request->filled('cuenta_id') && $request->cuenta_id !== 'all') {
                 $query->where('cuenta_id', $request->cuenta_id);
             }
         } elseif ($user->hasRole('local')) {

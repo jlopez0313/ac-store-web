@@ -91,6 +91,7 @@ class ReferenciasController extends Controller
         $validated = $request->validate([
             'codigo' => 'required|string|max:255|unique:referencias,codigo',
             'marca_id' => 'required|string|max:255',
+            'categoria_id' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'foto' => 'nullable|image', // Max 2MB
             'cuenta_id' => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
@@ -112,7 +113,7 @@ class ReferenciasController extends Controller
         $referencia = Referencia::create($validated);
 
         // Eager load relationships for the response
-        $referencia->load('categoria', 'cuenta');
+        $referencia->load('categoria', 'marca', 'cuenta');
 
         return new ReferenciaResource($referencia);
     }
@@ -122,7 +123,7 @@ class ReferenciasController extends Controller
      */
     public function show(Referencia $referencia)
     {
-        $referencia->load('categoria', 'cuenta');
+        $referencia->load('categoria', 'marca', 'cuenta');
         return new ReferenciaResource($referencia);
     }
 
@@ -138,6 +139,7 @@ class ReferenciasController extends Controller
         $validated = $request->validate([
             'codigo' => 'required|string|max:255|unique:referencias,codigo,' . $referencia->id,
             'marca_id' => 'required|string|max:255',
+            'categoria_id' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'foto' => 'nullable|image',
             'cuenta_id' => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
@@ -162,7 +164,7 @@ class ReferenciasController extends Controller
         }
 
         $referencia->update($validated);
-        $referencia->load('categoria', 'cuenta');
+        $referencia->load('categoria', 'marca', 'cuenta');
 
         return new ReferenciaResource($referencia);
     }

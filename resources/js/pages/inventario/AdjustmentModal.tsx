@@ -32,18 +32,47 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (isOpen && items.length > 0) {
-            setForm({
-                precio_compra: items[0].precio_compra || 0,
-                precio_venta: items[0].precio_venta || 0,
-                observacion: '',
-                detalles: items.map((item) => ({
+        if (isOpen && referencia) {
+            let initialDetails: { talla: string; stock: number }[] = [];
+            const jsonStr = referencia.categoria?.variaciones_json;
+
+            if (jsonStr) {
+                try {
+                    const parsed = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+                    if (Array.isArray(parsed)) {
+                        initialDetails = parsed.map((item: any) => {
+                            let sizeLabel = String(item);
+                            if (typeof item === 'object' && item !== null) {
+                                sizeLabel = String(item.text || item.nombre || item.talla || item.valor || Object.values(item)[0] || JSON.stringify(item));
+                            }
+                            // Buscar si existe en los items actuales
+                            const existing = items.find(i => String(i.talla) === sizeLabel);
+                            return {
+                                talla: sizeLabel,
+                                stock: existing ? Number(existing.stock) : 0
+                            };
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error parsing variations", e);
+                }
+            }
+
+            if (initialDetails.length === 0) {
+                initialDetails = items.map((item) => ({
                     talla: item.talla,
                     stock: item.stock,
-                })),
+                }));
+            }
+
+            setForm({
+                precio_compra: items[0]?.precio_compra || referencia.precio_compra || 0,
+                precio_venta: items[0]?.precio_venta || referencia.precio_venta || 0,
+                observacion: '',
+                detalles: initialDetails,
             });
         }
-    }, [isOpen, items]);
+    }, [isOpen, items, referencia]);
 
     const handleStockChange = (talla: string, value: string) => {
         const newStock = parseInt(value) || 0;

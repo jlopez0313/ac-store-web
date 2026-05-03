@@ -30,8 +30,8 @@ class MuestraResource extends JsonResource
             'inventario_id' => $this->inventario_id,
             'etiquetas' => $this->etiquetas,
             'estado' => $this->estado,
-            'bodega_original' => $this->inventario->estanteria->bodega->nombre ?? 'N/A',
-            'estante_original' => $this->inventario->estanteria->nombre ?? 'N/A',
+            'bodega_original' => $this->inventario?->estanteria?->bodega?->nombre ?? 'N/A',
+            'estante_original' => $this->inventario?->estanteria?->nombre ?? 'N/A',
             'cuenta' => [
                 'id' => $this->cuenta->id,
                 'nombre' => $this->cuenta->nombre,

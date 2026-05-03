@@ -18,6 +18,7 @@ class UserResource extends JsonResource
             'id'         => $this->id,
             'name'       => $this->name,
             'username'   => $this->username,
+            'documento'  => $this->documento,
             'email'      => $this->email,
             'role'       => $this->role,
             'cuenta_id'  => $this->cuenta_id,
@@ -45,6 +46,14 @@ class UserResource extends JsonResource
             ],
             'precio_suscripcion' => $this->precio_suscripcion,
             'fecha_vencimiento'  => $this->fecha_vencimiento?->toDateString(),
+            'bodegas'    => $this->whenLoaded('bodegas', function () {
+                return $this->bodegas->map(function ($bodega) {
+                    return [
+                        'id' => $bodega->id,
+                        'nombre' => $bodega->nombre,
+                    ];
+                });
+            }),
             'created_at' => $this->created_at?->toDateTimeString(),
         ];
     }

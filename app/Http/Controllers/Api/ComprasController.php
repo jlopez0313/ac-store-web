@@ -18,7 +18,7 @@ class ComprasController extends Controller
         $sortField = $request->input('sort_field', 'fecha_apertura');
         $sortOrder = $request->input('sort_order', 'desc');
 
-        $query = Compra::with(['cuenta', 'proveedor']);
+        $query = Compra::with(['cuenta', 'proveedor', 'detalles.producto']);
 
         if (!auth()->user()->hasRole('superadmin')) {
             $query->where('cuenta_id', auth()->user()->cuenta_id);
@@ -57,7 +57,7 @@ class ComprasController extends Controller
         }
 
         $compra = Compra::create($validated);
-        $compra->load('cuenta', 'proveedor');
+        $compra->load('cuenta', 'proveedor', 'detalles.producto');
 
         return new CompraResource($compra);
     }
@@ -67,7 +67,7 @@ class ComprasController extends Controller
      */
     public function show(Compra $compra)
     {
-        $compra->load('cuenta', 'proveedor');
+        $compra->load('cuenta', 'proveedor', 'detalles.producto');
         return new CompraResource($compra);
     }
 
@@ -91,7 +91,7 @@ class ComprasController extends Controller
         }
 
         $compra->update($validated);
-        $compra->load('cuenta', 'proveedor');
+        $compra->load('cuenta', 'proveedor', 'detalles.producto');
 
         return new CompraResource($compra);
     }

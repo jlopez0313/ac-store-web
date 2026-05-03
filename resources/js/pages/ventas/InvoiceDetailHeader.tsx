@@ -5,9 +5,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Label } from '@/components/ui/label';
 import { showAlert } from '@/plugins/sweetalert';
 import { router, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import { ChevronDown, FileText, Plus, Printer, ShoppingCart, Warehouse } from 'lucide-react';
 import React, { useState } from 'react';
 import { BulkDiscountModal } from './BulkDiscountModal';
+import { ReopenInvoiceModal } from './ReopenInvoiceModal';
 
 interface InvoiceDetailHeaderProps {
     factura: any;
@@ -18,6 +20,7 @@ interface InvoiceDetailHeaderProps {
     onAddProduct: () => void;
     onCloseFactura: () => void;
     onPrint: (type: 'pendientes' | 'cuadre' | 'factura') => void;
+    onUpdateFactura?: (factura: any) => void;
 }
 
 export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
@@ -29,11 +32,13 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
     onAddProduct,
     onCloseFactura,
     onPrint,
+    onUpdateFactura,
 }) => {
     const { time_restriction } = usePage().props as any;
     const { can_operate, is_holiday, schedule_today } = time_restriction || { can_operate: true, is_holiday: false, schedule_today: [] };
 
     const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+    const [isReopenModalOpen, setIsReopenModalOpen] = useState(false);
     const [applying, setApplying] = useState(false);
 
     const sameRefItemsCount = React.useMemo(() => {
@@ -163,15 +168,27 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                             </>
                         )}
                         {factura.estado === 'cerrada' && factura.detalles?.length > 0 && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => onPrint('factura')}
-                                className="h-10 w-full border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 md:w-auto active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                            >
-                                <Printer className="mr-2 h-4 w-4" />
-                                Imprimir Factura
-                            </Button>
+                            <>
+                                {isAdmin && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setIsReopenModalOpen(true)}
+                                        className="h-10 w-full border-amber-200 bg-amber-50 px-4 font-bold text-amber-700 transition-all hover:bg-amber-100 md:w-auto active:scale-95 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300 dark:hover:bg-amber-900"
+                                    >
+                                        Reabrir Factura
+                                    </Button>
+                                )}
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => onPrint('factura')}
+                                    className="h-10 w-full border-slate-200 px-4 font-bold text-slate-700 transition-all hover:bg-slate-50 md:w-auto active:scale-95 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                >
+                                    <Printer className="mr-2 h-4 w-4" />
+                                    Imprimir Factura
+                                </Button>
+                            </>
                         )}
                     </div>
                     <div className="text-right">
@@ -190,23 +207,35 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                 allInvoiceItems={factura.detalles || []}
                 processing={applying}
                 onApply={(discounts) => {
-                    router.post(
-                        route('api.ventas.bulk_discounts', { venta: factura.id }),
-                        {
+                    setApplying(true);
+                    axios
+                        .post(route('api.ventas.bulk_discounts', { venta: factura.id }), {
                             discounts,
-                        },
-                        {
-                            onStart: () => setApplying(true),
-                            onFinish: () => setApplying(false),
-                            onSuccess: () => {
-                                showAlert('success', 'Descuentos aplicados correctamente');
-                                setIsBulkModalOpen(false);
-                            },
-                            onError: () => {
-                                showAlert('error', 'Ocurrió un error al aplicar los descuentos');
-                            },
-                        },
-                    );
+                        })
+                        .then((response) => {
+                            showAlert('success', 'Descuentos aplicados correctamente');
+                            setIsBulkModalOpen(false);
+                            if (onUpdateFactura) {
+                                onUpdateFactura(response.data.data);
+                            }
+                            router.reload({ only: ['factura'] });
+                        })
+                        .catch(() => {
+                            showAlert('error', 'Ocurrió un error al aplicar los descuentos');
+                        })
+                        .finally(() => {
+                            setApplying(false);
+                        });
+                }}
+            />
+
+            <ReopenInvoiceModal
+                isOpen={isReopenModalOpen}
+                onClose={() => setIsReopenModalOpen(false)}
+                facturaId={factura.id}
+                onSuccess={() => {
+                    setIsReopenModalOpen(false);
+                    router.reload({ only: ['factura'] });
                 }}
             />
         </Card>

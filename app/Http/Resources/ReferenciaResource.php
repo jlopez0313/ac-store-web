@@ -29,6 +29,7 @@ class ReferenciaResource extends JsonResource
             'categoria' => [
                 'id' => $this->categoria->id ?? null,
                 'nombre' => $this->categoria->nombre ?? '',
+                'variaciones_json' => $this->categoria->variaciones_json ?? null,
             ],
             'cuenta' => $this->whenLoaded('cuenta'),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),

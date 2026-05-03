@@ -42,6 +42,7 @@ class DevolucionResource extends JsonResource
                     'codigo' => $this->producto->codigo,
                     'descripcion' => $this->producto->descripcion,
                     'marca' => $this->producto->marca,
+                    'foto' => $this->producto->foto,
                 ];
             }),
             'bodega' => $this->whenLoaded('bodega', function () {
@@ -56,7 +57,7 @@ class DevolucionResource extends JsonResource
                     'nombre' => $this->estanteria->nombre,
                 ];
             }),
-            'creator' => $this->whenLoaded('eliminador', function () {
+            'eliminador' => $this->whenLoaded('eliminador', function () {
                 return [
                     'id' => $this->eliminador->id,
                     'name' => $this->eliminador->name,

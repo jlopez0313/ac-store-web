@@ -117,4 +117,18 @@ class BodegasController extends Controller
 
         return response()->json(['data' => $accesos]);
     }
+
+    public function getList(Request $request)
+    {
+        $user = auth()->user();
+        $query = Bodega::where('estado', true)->orderBy('nombre');
+
+        if (!$user->hasRole('superadmin')) {
+            $query->where('cuenta_id', $user->cuenta_id);
+        } elseif ($request->filled('cuenta_id')) {
+            $query->where('cuenta_id', $request->cuenta_id);
+        }
+
+        return response()->json($query->get(['id', 'nombre as name']));
+    }
 }

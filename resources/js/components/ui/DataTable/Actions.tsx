@@ -25,6 +25,15 @@ export const ActionsColumn = (actions: Action[], moreActions: Action[]) => {
 						return null;
 					}
 
+					let isHidden = false;
+					if (typeof action.hide === 'function') {
+						isHidden = action.hide(row);
+					} else if (typeof action.hide === 'boolean') {
+						isHidden = action.hide;
+					}
+
+					if (isHidden) return null;
+
 					return (
 						<button
 							key={idx}

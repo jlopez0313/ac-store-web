@@ -3,13 +3,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import { Layers, Search as SearchIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { ViewerModal } from '@/components/ui/ViewerModal';
 import { TallarCajaModal } from './TallarCajaModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -68,7 +68,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
             name: 'Foto',
             width: '70px',
             cell: (row: any) => (
-                <div 
+                <div
                     className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-slate-50 transition-transform hover:scale-110"
                     onClick={() => setViewerImage(row.referencia_foto)}
                 >
@@ -85,7 +85,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
             selector: (row: any) => row.referencia_codigo,
             sortable: true,
             width: '120px',
-            cell: (row: any) => <span className="text-primary font-mono font-bold">{row.referencia_codigo}</span>,
+            cell: (row: any) => <span className="font-bold">{row.referencia_codigo}</span>,
         },
         {
             name: 'Producto',
@@ -115,22 +115,19 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
             cell: (row: any) => <span className="font-bold text-slate-900 dark:text-slate-100">{row.bodega_nombre}</span>,
         },
         {
-            name: 'Unid/Caja',
-            selector: (row: any) => row.pares_por_caja,
-            center: true,
-            width: '100px',
+            name: 'Total Cajas',
+            selector: (row: any) => Math.ceil(row.cantidad / row.pares_por_caja),
+            width: '120px',
         },
         {
-            name: 'Total Pares',
+            name: 'Total Unidades',
             selector: (row: any) => row.cantidad,
-            right: true,
             width: '120px',
-            cell: (row: any) => <span className="text-lg font-bold text-slate-900 dark:text-slate-100">{row.cantidad}</span>,
+            cell: (row: any) => <span className="font-bold text-slate-900 dark:text-slate-100">{row.cantidad}</span>,
         },
         {
             name: 'P. Costo',
             selector: (row: any) => row.precio_compra,
-            right: true,
             width: '120px',
             cell: (row: any) => (
                 <span className="font-semibold text-slate-600 dark:text-slate-400">${Number(row.precio_compra).toLocaleString()}</span>
@@ -139,7 +136,6 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
         {
             name: 'P. Venta',
             selector: (row: any) => row.precio_venta,
-            right: true,
             width: '120px',
             cell: (row: any) => <span className="font-semibold text-green-600">${Number(row.precio_venta).toLocaleString()}</span>,
         },
@@ -206,7 +202,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
                         paginationServer={true}
                         fetchPage={(page) => setFilters((prev) => ({ ...prev, page }))}
                         setPageSize={(size) => setFilters((prev) => ({ ...prev, per_page: size, page: 1 }))}
-                        onSort={() => {}}
+                        onSort={() => { }}
                     />
                 </div>
             </div>
@@ -219,10 +215,10 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
                 onSuccess={() => fetchData()}
             />
 
-            <ViewerModal 
-                show={!!viewerImage} 
-                image={viewerImage} 
-                onClose={() => setViewerImage(null)} 
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={() => setViewerImage(null)}
             />
         </AppLayout>
     );

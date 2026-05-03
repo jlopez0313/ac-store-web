@@ -70,7 +70,7 @@ class UsuariosController extends Controller
             'documento' => $validated['documento'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'cuenta_id' => $validated['cuenta_id'] ?? null,
+            'cuenta_id' => auth()->user()->hasRole('superadmin') ? ($validated['cuenta_id'] ?? null) : auth()->user()->cuenta_id,
             'estado' => $validated['estado'],
             'impresion_principal' => $validated['impresion_principal'] ?? false,
             'nombre_impresora' => $validated['nombre_impresora'] ?? null,
@@ -96,7 +96,7 @@ class UsuariosController extends Controller
      */
     public function show(User $usuario)
     {
-        return new UserResource($usuario->load(['roles', 'cuenta', 'ciudad.state.country']));
+        return new UserResource($usuario->load(['roles', 'cuenta', 'ciudad.state.country', 'bodegas']));
     }
 
     /**
@@ -125,7 +125,7 @@ class UsuariosController extends Controller
             'username' => $validated['username'],
             'documento' => $validated['documento'],
             'email' => $validated['email'],
-            'cuenta_id' => $request->has('cuenta_id') ? ($validated['cuenta_id'] ?? null) : $usuario->cuenta_id,
+            'cuenta_id' => auth()->user()->hasRole('superadmin') ? ($request->has('cuenta_id') ? ($validated['cuenta_id'] ?? null) : $usuario->cuenta_id) : auth()->user()->cuenta_id,
             'estado' => $validated['estado'],
             'impresion_principal' => $validated['impresion_principal'] ?? false,
             'nombre_impresora' => $validated['nombre_impresora'] ?? null,
@@ -156,5 +156,63 @@ class UsuariosController extends Controller
     {
         $usuario->delete();
         return response()->json(['message' => 'Usuario eliminado correctamente']);
+    }
+
+    public function getAccesos(Request $request, User $usuario)
+    {
+        $user = auth()->user();
+
+        // Security Check: Only superadmin or admin of the same account
+        if (!$user->hasRole('superadmin') && ($user->cuenta_id !== $usuario->cuenta_id || $user->role !== 'admin')) {
+            abort(403, 'No tienes permiso para gestionar los accesos de este usuario.');
+        }
+
+        // Must be a local user
+        if (!$usuario->hasRole('local')) {
+            abort(404, 'El usuario no tiene el rol local.');
+        }
+
+        // Get bodegas of the user's account
+        $query = \App\Models\Bodega::where('cuenta_id', $usuario->cuenta_id)->orderBy('nombre');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%")
+                    ->orWhere('direccion', 'like', "%{$search}%");
+            });
+        }
+
+        $perPage = $request->input('per_page', 25);
+        $paginated = $query->paginate($perPage);
+
+        // Get current access permissions for the target user (only for the paginated bodegas to be efficient)
+        $bodegaIds = $paginated->pluck('id');
+        $accesos = \App\Models\BodegaAcceso::where('user_id', $usuario->id)
+            ->whereIn('bodega_id', $bodegaIds)
+            ->get()->keyBy('bodega_id');
+
+        // Merge permissions into data
+        $lista = $paginated->map(function ($bodega) use ($accesos) {
+            $acceso = $accesos->get($bodega->id);
+            return [
+                'id' => $bodega->id,
+                'nombre' => $bodega->nombre,
+                'direccion' => $bodega->direccion,
+                'can_view' => $acceso ? (bool) $acceso->can_view : false,
+                'can_order' => $acceso ? (bool) $acceso->can_order : false,
+                'descuento' => $acceso ? (float) $acceso->descuento : 0,
+            ];
+        });
+
+        return response()->json([
+            'data' => $lista,
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ]
+        ]);
     }
 }

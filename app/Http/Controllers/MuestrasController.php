@@ -92,9 +92,9 @@ class MuestrasController extends Controller
         return response()->json(['data' => $stock]);
     }
 
-    public function show(Muestra $muestra)
+    public function show(Muestra $muestras_crud)
     {
-        return new MuestraResource($muestra->load(['local', 'referencia.categoria', 'cuenta', 'inventario.estanteria.bodega']));
+        return new MuestraResource($muestras_crud->load(['local', 'referencia.categoria', 'cuenta', 'inventario.estanteria.bodega']));
     }
 
     public function store(Request $request)
@@ -126,9 +126,9 @@ class MuestrasController extends Controller
         }
     }
 
-    public function update(Request $request, Muestra $muestra)
+    public function update(Request $request, Muestra $muestras_crud)
     {
-        if ($muestra->estado === 'vendido') {
+        if ($muestras_crud->estado === 'vendido') {
             return response()->json(['error' => 'No se puede editar una muestra que ya ha sido vendida.'], 422);
         }
 
@@ -142,20 +142,20 @@ class MuestrasController extends Controller
         ]);
 
         try {
-            return DB::transaction(function () use ($validated, $muestra) {
+            return DB::transaction(function () use ($validated, $muestras_crud) {
                 // Restore old inventory state
-                $oldInv = Inventario::with('referencia.categoria')->findOrFail($muestra->inventario_id);
-                $this->updateInventoryForMuestra($oldInv, $muestra->etiquetas, 'add');
+                $oldInv = Inventario::with('referencia.categoria')->findOrFail($muestras_crud->inventario_id);
+                $this->updateInventoryForMuestra($oldInv, $muestras_crud->etiquetas, 'add');
 
                 // Apply new inventory state
                 $newInv = Inventario::with('referencia.categoria')->findOrFail($validated['inventario_id']);
                 $this->updateInventoryForMuestra($newInv, $validated['etiquetas'], 'subtract');
 
-                $muestra->update($validated);
+                $muestras_crud->update($validated);
 
                 return response()->json([
                     'message' => 'Muestra actualizada correctamente',
-                    'muestra' => new MuestraResource($muestra)
+                    'muestra' => new MuestraResource($muestras_crud)
                 ]);
             });
         } catch (\Exception $e) {
@@ -163,15 +163,15 @@ class MuestrasController extends Controller
         }
     }
 
-    public function destroy(Muestra $muestra)
+    public function destroy(Muestra $muestras_crud)
     {
         try {
-            DB::transaction(function () use ($muestra) {
-                if ($muestra->estado !== 'vendido') {
-                    $inventario = Inventario::with('referencia.categoria')->findOrFail($muestra->inventario_id);
-                    $this->updateInventoryForMuestra($inventario, $muestra->etiquetas, 'add');
+            DB::transaction(function () use ($muestras_crud) {
+                if ($muestras_crud->estado !== 'vendido') {
+                    $inventario = Inventario::with('referencia.categoria')->findOrFail($muestras_crud->inventario_id);
+                    $this->updateInventoryForMuestra($inventario, $muestras_crud->etiquetas, 'add');
                 }
-                $muestra->delete();
+                $muestras_crud->delete();
             });
             return response()->json(['message' => 'Registro de muestra eliminado']);
         } catch (\Exception $e) {

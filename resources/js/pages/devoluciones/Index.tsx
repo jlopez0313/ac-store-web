@@ -5,11 +5,12 @@ import { DataGrid } from '@/components/ui/DataTable';
 import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Input } from '@/components/ui/input';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
-import { Search as SearchIcon, User as UserIcon, X } from 'lucide-react';
+import { Image as ImageIcon, Search as SearchIcon, User as UserIcon, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,6 +22,7 @@ export default function Index({ locals, filters: initialFilters }: any) {
     const [items, setItems] = useState<any[]>([]);
     const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
     const [loading, setLoading] = useState(true);
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
 
     const [filters, setFilters] = useState({
         local_id: initialFilters?.local_id || '',
@@ -74,10 +76,26 @@ export default function Index({ locals, filters: initialFilters }: any) {
 
     const columns = [
         {
+            name: 'Foto',
+            width: '70px',
+            cell: (row: any) => (
+                <div
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-slate-50 transition-transform hover:scale-110"
+                    onClick={() => setViewerImage(row.producto?.foto)}
+                >
+                    {row.producto?.foto ? (
+                        <img src={`/storage/${row.producto.foto}`} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                        <ImageIcon className="h-4 w-4 text-slate-300" />
+                    )}
+                </div>
+            ),
+        },
+        {
             name: 'Fecha',
             selector: (row: any) => row.fecha_devolucion,
             sortable: true,
-            width: '180px',
+            width: '100px',
             cell: (row: any) => (
                 <div className="flex flex-col">
                     <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -261,6 +279,12 @@ export default function Index({ locals, filters: initialFilters }: any) {
                     />
                 </div>
             </div>
+
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={() => setViewerImage(null)}
+            />
         </AppLayout>
     );
 }

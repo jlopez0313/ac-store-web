@@ -46,6 +46,9 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
     const [stockItems, setStockItems] = useState<any[]>([]);
     const [loading, setLoading] = useState<Record<string, boolean>>({});
     const [searchCode, setSearchCode] = useState('');
+    const [localAccesos, setLocalAccesos] = useState<any[]>([]);
+    const [selectedBodegaId, setSelectedBodegaId] = useState<string>('');
+    const [selectedEstanteriaId, setSelectedEstanteriaId] = useState<string>('');
 
     const { data, setData, errors, reset, setError, processing } = useForm<ThisForm>({
         local_id: '',
@@ -59,6 +62,12 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
         observacion: '',
     });
 
+    useEffect(() => {
+        if (!isSuperAdmin && user?.id && !data.local_id) {
+            setData('local_id', user.id.toString());
+        }
+    }, [isSuperAdmin, user?.id]);
+
     // Fetch references only for the chosen account
     useEffect(() => {
         if (data.cuenta_id && step >= 2) {
@@ -70,6 +79,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
     useEffect(() => {
         if (data.local_id && data.cuenta_id && step === 1) {
             fetchInvoices(data.local_id);
+            fetchLocalAccesos(data.local_id);
         }
     }, [data.local_id, data.cuenta_id, step]);
 
@@ -112,6 +122,16 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
         }
     };
 
+    const fetchLocalAccesos = async (localId: string) => {
+        try {
+            const res = await axios.get(route('api.usuarios.accesos', { usuario: localId, per_page: 100 }));
+            setLocalAccesos(res.data.data || []);
+        } catch (error) {
+            console.error('Error fetching local accesos:', error);
+            setLocalAccesos([]);
+        }
+    };
+
     const fetchReferences = async () => {
         setLoading((prev) => ({ ...prev, refs: true }));
         try {
@@ -125,6 +145,12 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
     };
 
     const fetchStock = async (refId: string) => {
+        if (!refId) {
+            setStockItems([]);
+            setSelectedBodegaId('');
+            setSelectedEstanteriaId('');
+            return;
+        }
         setLoading((prev) => ({ ...prev, stock: true }));
         try {
             const res = await axios.get(route('api.muestras.stock', { referencia_id: refId }));
@@ -148,24 +174,52 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
         return (data.precio_nuevo || 0) < (selectedDetalle?.precio_unitario || 0);
     }, [data.precio_nuevo, selectedDetalle]);
 
+    // Reactive pricing logic
+    useEffect(() => {
+        if (data.nuevo_inventario_id && localAccesos.length > 0) {
+            const selected = stockItems.find((i) => i.id?.toString() === data.nuevo_inventario_id);
+            if (selected) {
+                const basePrice = Number(selected.precio_venta || 0);
+                const acceso = localAccesos.find((a) => Number(a.id) === Number(selectedBodegaId));
+                const discount = Number(acceso?.descuento || 0);
+
+                let newPrice = Math.max(0, basePrice - discount);
+
+                // Ensure price is not lower than returned product
+                const returnedPrice = Number(selectedDetalle?.precio_unitario || 0);
+                if (newPrice < returnedPrice) {
+                    newPrice = returnedPrice;
+                }
+
+                if (newPrice !== data.precio_nuevo) {
+                    setData('precio_nuevo', newPrice);
+                }
+            }
+        }
+    }, [data.nuevo_inventario_id, localAccesos, selectedBodegaId, stockItems, selectedDetalle]);
+
     const submit: FormEventHandler = async (e) => {
         e.preventDefault();
+        setLoading((prev) => ({ ...prev, storing: true }));
         try {
-            await onStore(
-                () => ({ url: route('api.cambios.store') }),
-                null,
-                data,
-                false,
-                (err: any) => {
-                    if (err.response?.data?.error) {
-                        showAlert('error', err.response.data.error);
-                    }
-                },
-            );
+            await onStore(data);
+            showAlert('success', 'Cambio procesado exitosamente');
             onReload();
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
+            if (error.response?.data?.error) {
+                showAlert('error', error.response.data.error);
+            } else if (error.response?.data?.errors) {
+                const validationErrors = error.response.data.errors;
+                showAlert('error', Object.values(validationErrors).flat().join('\n'));
+            } else if (error.response?.data?.message) {
+                showAlert('error', error.response.data.message);
+            } else {
+                showAlert('error', 'Error al procesar el cambio');
+            }
+        } finally {
+            setLoading((prev) => ({ ...prev, storing: false }));
         }
     };
 
@@ -180,13 +234,12 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
                     {[1, 2, 3].map((i) => (
                         <div key={i} className="flex items-center">
                             <div
-                                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all ${
-                                    step === i
+                                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all ${step === i
                                         ? 'bg-indigo-600 text-white ring-4 ring-indigo-50 dark:ring-indigo-950'
                                         : step > i
-                                          ? 'bg-green-500 text-white'
-                                          : 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500'
-                                }`}
+                                            ? 'bg-green-500 text-white'
+                                            : 'bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500'
+                                    }`}
                             >
                                 {step > i ? <CheckCircle2 className="h-4 w-4" /> : i}
                             </div>
@@ -288,56 +341,56 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
                                 <div className="flex flex-col gap-2 pb-20">
                                     {loading.details
                                         ? [1, 2, 3].map((i) => (
-                                              <div
-                                                  key={i}
-                                                  className="h-16 animate-pulse rounded-xl border border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-800"
-                                              />
-                                          ))
+                                            <div
+                                                key={i}
+                                                className="h-16 animate-pulse rounded-xl border border-slate-100 bg-white dark:border-slate-700 dark:bg-slate-800"
+                                            />
+                                        ))
                                         : [...invoiceDetails]
-                                              .sort((a, b) => (a.producto?.codigo || '').localeCompare(b.producto?.codigo || ''))
-                                              .map((det) => (
-                                                  <button
-                                                      key={det.id}
-                                                      type="button"
-                                                      onClick={() => {
-                                                          setData('venta_detalle_id', det.id.toString());
-                                                          nextStep();
-                                                      }}
-                                                      className="group flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-indigo-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-indigo-500"
-                                                  >
-                                                      <div className="flex items-center gap-4">
-                                                          <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-110">
-                                                              {det.producto?.foto ? (
-                                                                  <img
-                                                                      src={
-                                                                          det.producto.foto.startsWith('http')
-                                                                              ? det.producto.foto
-                                                                              : `/storage/${det.producto.foto}`
-                                                                      }
-                                                                      alt={det.producto?.codigo}
-                                                                      className="h-full w-full object-cover"
-                                                                  />
-                                                              ) : (
-                                                                  <ShoppingBag className="h-5 w-5" />
-                                                              )}
-                                                          </div>
-                                                          <div>
-                                                              <p className="font-bold text-slate-900 uppercase transition-colors group-hover:text-indigo-700 dark:text-slate-100 dark:group-hover:text-indigo-400">
-                                                                  {det.producto?.codigo}
-                                                              </p>
-                                                              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                                                  Talla: <span className="text-slate-700 dark:text-slate-300">{det.talla}</span> |
-                                                                  Cant: <span className="text-slate-700 dark:text-slate-300">{det.cantidad}</span>
-                                                              </p>
-                                                          </div>
-                                                      </div>
-                                                      <div className="flex flex-col items-end text-right">
-                                                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                                              ${Number(det.precio_unitario).toLocaleString()}
-                                                          </p>
-                                                      </div>
-                                                  </button>
-                                              ))}
+                                            .sort((a, b) => (a.producto?.codigo || '').localeCompare(b.producto?.codigo || ''))
+                                            .map((det) => (
+                                                <button
+                                                    key={det.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setData('venta_detalle_id', det.id.toString());
+                                                        nextStep();
+                                                    }}
+                                                    className="group flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-indigo-400 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-indigo-500"
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-indigo-50 text-indigo-600 transition-transform group-hover:scale-110">
+                                                            {det.producto?.foto ? (
+                                                                <img
+                                                                    src={
+                                                                        det.producto.foto.startsWith('http')
+                                                                            ? det.producto.foto
+                                                                            : `/storage/${det.producto.foto}`
+                                                                    }
+                                                                    alt={det.producto?.codigo}
+                                                                    className="h-full w-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <ShoppingBag className="h-5 w-5" />
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-slate-900 uppercase transition-colors group-hover:text-indigo-700 dark:text-slate-100 dark:group-hover:text-indigo-400">
+                                                                {det.producto?.codigo}
+                                                            </p>
+                                                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                                Talla: <span className="text-slate-700 dark:text-slate-300">{det.talla}</span> |
+                                                                Cant: <span className="text-slate-700 dark:text-slate-300">{det.cantidad}</span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col items-end text-right">
+                                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                                                            ${Number(det.precio_unitario).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                </button>
+                                            ))}
                                 </div>
                             </div>
                         )}
@@ -366,7 +419,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-medium tracking-widest text-amber-800 uppercase">PRODUCTO A DEVOLVER</p>
-                                    <p className="text-sm font-black text-amber-900 dark:text-amber-300">
+                                    <p className="text-sm font-bold text-amber-900 dark:text-amber-300">
                                         {selectedDetalle?.producto?.codigo} (Talla {selectedDetalle?.talla})
                                     </p>
                                 </div>
@@ -396,34 +449,97 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
                                 />
 
                                 {data.nuevo_producto_id && (
-                                    <SelectField
-                                        name="nuevo_inventario_id"
-                                        title="Seleccionar Stock / Bodega"
-                                        required
-                                        error={errors.nuevo_inventario_id}
-                                        disabled={loading.stock}
-                                        value={data.nuevo_inventario_id}
-                                        onChange={(val) => {
-                                            const selected = stockItems.find((i) => i.id?.toString() === val);
-                                            setData((old) => ({
-                                                ...old,
-                                                nuevo_inventario_id: val as string,
-                                                precio_nuevo: Number(selected?.precio_venta || 0),
-                                                talla_nueva: selected?.talla || '',
-                                            }));
-                                        }}
-                                        lista={stockItems.map((i) => ({
-                                            id: i.id.toString(),
-                                            label: `Bodega: ${i.bodega_nombre} | Talla: ${i.talla} | Stock: ${i.stock} | Precio: $${Number(i.precio_venta).toLocaleString()}`,
-                                        }))}
-                                        item={{ idx: 'id', value: 'label' }}
-                                    />
+                                    <>
+                                        <SelectField
+                                            name="bodega_id"
+                                            title="Seleccionar Bodega"
+                                            required
+                                            disabled={loading.stock}
+                                            value={selectedBodegaId}
+                                            onChange={(val) => {
+                                                setSelectedBodegaId(val as string);
+                                                setSelectedEstanteriaId('');
+                                                setData('nuevo_inventario_id', '');
+                                                setData('precio_nuevo', 0);
+                                            }}
+                                            lista={Array.from(new Set(stockItems.map((i) => i.bodega_id))).map((id) => {
+                                                const item = stockItems.find((i) => i.bodega_id === id);
+                                                return { id: id.toString(), label: item?.bodega_nombre || 'Desconocida' };
+                                            })}
+                                            item={{ idx: 'id', value: 'label' }}
+                                        />
+
+                                        {selectedBodegaId && (
+                                            <SelectField
+                                                name="estanteria_id"
+                                                title="Seleccionar Estantería"
+                                                required
+                                                disabled={loading.stock}
+                                                value={selectedEstanteriaId}
+                                                onChange={(val) => {
+                                                    setSelectedEstanteriaId(val as string);
+                                                    setData('nuevo_inventario_id', '');
+                                                }}
+                                                lista={Array.from(
+                                                    new Set(
+                                                        stockItems
+                                                            .filter((i) => i.bodega_id?.toString() === selectedBodegaId)
+                                                            .map((i) => i.estanteria_id),
+                                                    ),
+                                                ).map((id) => {
+                                                    const item = stockItems.find((i) => i.estanteria_id === id);
+                                                    return { id: id?.toString() ?? 'null', label: item?.estanteria_nombre || 'General' };
+                                                })}
+                                                item={{ idx: 'id', value: 'label' }}
+                                            />
+                                        )}
+
+                                        {selectedEstanteriaId && (
+                                            <SelectField
+                                                name="nuevo_inventario_id"
+                                                title="Seleccionar Talla / Stock"
+                                                required
+                                                error={errors.nuevo_inventario_id}
+                                                disabled={loading.stock}
+                                                value={data.nuevo_inventario_id}
+                                                onChange={(val) => {
+                                                    const selected = stockItems.find((i) => i.id?.toString() === val);
+                                                    if (selected) {
+                                                        setData((old) => ({
+                                                            ...old,
+                                                            nuevo_inventario_id: val as string,
+                                                            talla_nueva: selected.talla || '',
+                                                        }));
+                                                    }
+                                                }}
+                                                lista={stockItems
+                                                    .filter((i) => 
+                                                        i.bodega_id?.toString() === selectedBodegaId &&
+                                                        (i.estanteria_id?.toString() ?? 'null') === selectedEstanteriaId
+                                                    )
+                                                    .map((i) => ({
+                                                        id: i.id.toString(),
+                                                        label: `Talla: ${i.talla} (Disponible: ${i.stock})`,
+                                                    }))}
+                                                item={{ idx: 'id', value: 'label' }}
+                                            />
+                                        )}
+                                    </>
                                 )}
                             </div>
 
                             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 dark:border-slate-700 dark:bg-slate-800/30">
                                 {selectedNuevoInv ? (
                                     <div className="w-full space-y-4">
+                                        <div className="flex flex-col gap-1 px-1">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase">
+                                                Sugerido: <span className="text-slate-600 dark:text-slate-300">${Number(selectedNuevoInv.precio_venta || 0).toLocaleString()}</span>
+                                            </span>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase">
+                                                Descuento: <span className="text-amber-600">-${Number(localAccesos.find(a => Number(a.id) === Number(selectedBodegaId))?.descuento || 0).toLocaleString()}</span>
+                                            </span>
+                                        </div>
+
                                         <InputField
                                             name="precio_nuevo"
                                             title="Confirmar Valor Venta"
@@ -566,7 +682,7 @@ export const Form = ({ cuentas, locals, onClose, onStore, onReload }: any) => {
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <FormButtons
-                                        processing={processing}
+                                        processing={processing || !!loading.storing}
                                         reset={() => setStep(1)}
                                         buttons={{ submit: true }}
                                         labels={{ submit: 'PROCESAR CAMBIO' }}

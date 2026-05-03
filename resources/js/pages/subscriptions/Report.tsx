@@ -1,14 +1,14 @@
-import { CreditCard, Users, DollarSign, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataGrid } from '@/components/ui/DataTable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+import { AlertCircle, CheckCircle2, CreditCard, DollarSign, Users } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Panel principal', href: route('dashboard') },
@@ -127,7 +127,7 @@ export default function Report() {
                 <div className="grid gap-4 md:grid-cols-3">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Suscripciones Cuentas</CardTitle>
+                            <CardTitle className="text-sm font-medium">Bodegas Suscritas</CardTitle>
                             <CreditCard className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
@@ -137,17 +137,17 @@ export default function Report() {
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Suscripciones Locales</CardTitle>
+                            <CardTitle className="text-sm font-medium">Locales Suscritos</CardTitle>
                             <Users className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">${Number(stats.locales).toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground">Total proyectado usuarios locales activos</p>
+                            <p className="text-xs text-muted-foreground">Total usuarios locales con suscripción activa</p>
                         </CardContent>
                     </Card>
                     <Card className="bg-primary/5 border-primary/20">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Recaudación</CardTitle>
+                            <CardTitle className="text-sm font-medium">Ingresos Proyectados</CardTitle>
                             <DollarSign className="h-4 w-4 text-primary" />
                         </CardHeader>
                         <CardContent>
@@ -158,17 +158,17 @@ export default function Report() {
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
-                    <SubscriptionsSection 
-                        title="Gestión de Cuentas" 
-                        description="Listado de empresas y sus planes" 
+                    <SubscriptionsSection
+                        title="Gestión de Cuentas"
+                        description="Listado de empresas y sus planes"
                         icon={CreditCard}
                         typeActive="cuenta_activa"
                         typeInactive="cuenta_inactiva"
                         columns={accountColumns}
                     />
-                    <SubscriptionsSection 
-                        title="Usuarios Locales" 
-                        description="Cuentas individuales de locales" 
+                    <SubscriptionsSection
+                        title="Usuarios Locales"
+                        description="Cuentas individuales de locales"
                         icon={Users}
                         typeActive="usuario_activo"
                         typeInactive="usuario_inactiva"
@@ -262,11 +262,11 @@ function SubscriptionTable({ type, columns }: { type: string, columns: any[] }) 
                 fetchPage={(page) => setFilters(prev => ({ ...prev, page }))}
                 setPageSize={(per_page) => setFilters(prev => ({ ...prev, per_page, page: 1 }))}
                 onSort={(column: any, sortOrder) => {
-                    setFilters(prev => ({ 
-                        ...prev, 
-                        sort_field: column.sortField, 
+                    setFilters(prev => ({
+                        ...prev,
+                        sort_field: column.sortField,
                         sort_order: sortOrder,
-                        page: 1 
+                        page: 1
                     }));
                 }}
             />

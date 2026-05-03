@@ -50,10 +50,11 @@ class CajasController extends Controller
     public function tallar(Request $request, Caja $caja)
     {
         $request->validate([
+            'estanteria_id' => 'nullable|exists:estanterias,id',
             'tallas' => 'required|array|min:1',
             'tallas.*.size' => 'required',
             'tallas.*.qty' => 'required|integer|min:1',
-            'tallas.*.estanteria_id' => 'required|exists:estanterias,id',
+            'tallas.*.estanteria_id' => 'nullable|exists:estanterias,id',
         ]);
 
         $totalTallado = collect($request->tallas)->sum('qty');
@@ -66,13 +67,19 @@ class CajasController extends Controller
             DB::beginTransaction();
 
             foreach ($request->tallas as $item) {
+                $estanteriaId = $request->input('estanteria_id') ?: ($item['estanteria_id'] ?? null);
+
+                if (!$estanteriaId) {
+                    throw new \Exception("No se ha especificado la estantería de destino para la talla " . $item['size']);
+                }
+
                 // 1. Update or create Inventory record
                 $inventario = Inventario::firstOrCreate(
                     [
                         'cuenta_id' => $caja->cuenta_id,
                         'referencia_id' => $caja->referencia_id,
                         'talla' => $item['size'],
-                        'estanteria_id' => $item['estanteria_id'],
+                        'estanteria_id' => $estanteriaId,
                     ],
                     [
                         'stock' => 0,
@@ -92,7 +99,7 @@ class CajasController extends Controller
                     'bodega_origen_id' => $caja->bodega_id,
                     'estanteria_origen_id' => null, // NULL for boxes
                     'bodega_destino_id' => $inventario->estanteria->bodega_id,
-                    'estanteria_destino_id' => $item['estanteria_id'],
+                    'estanteria_destino_id' => $estanteriaId,
                     'cantidad' => $item['qty'],
                     'user_id' => auth()->id(),
                 ]);

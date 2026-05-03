@@ -1,4 +1,5 @@
 import { Modal } from '@/components/ui/Modal';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import { Badge } from '@/components/ui/badge';
 import { FormButtons } from '@/components/ui/form/FormButtons';
 import { SelectField } from '@/components/ui/form/SelectField';
@@ -7,7 +8,6 @@ import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { AlertCircle, Box, Image as ImageIcon, Minus, Plus, Search, Warehouse } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ViewerModal } from '@/components/ui/ViewerModal';
 
 export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, bodega_accesos, onAdded }: any) => {
     const { auth, time_restriction } = usePage().props as any;
@@ -155,7 +155,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
     const fetchStock = async (ref: any) => {
         setLoadingStock(true);
         try {
-            const response = await axios.get(`/api/muestras/stock`, {
+            const response = await axios.get(route('api.inventario.stock'), {
                 params: { referencia_id: ref.id },
             });
             setAllStock(response.data.data || []);
@@ -220,8 +220,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 
         allStock.forEach((s) => {
             if (s.type === 'muestra') {
-                if (!['admin', 'bodega', 'superadmin'].includes(auth.user.role)) return;
-
+                // If it's in the stock list, it's either because user is admin or it belongs to this local
                 if (!groups['muestras']) {
                     groups['muestras'] = {
                         id: 'muestras',
@@ -267,8 +266,13 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                 precio_ajustado: adjustedPrice,
             });
         });
-        return Object.values(groups);
-    }, [allStock, bodega_accesos, factura, permittedBodegaIds]);
+        const result = Object.values(groups);
+        return result.sort((a: any, b: any) => {
+            if (a.is_muestra_group) return -1;
+            if (b.is_muestra_group) return 1;
+            return 0;
+        });
+    }, [allStock, bodega_accesos, factura, permittedBodegaIds, auth.user.role]);
 
     const canSubmit = Object.keys(quantities).length > 0;
     const submit = async () => {
@@ -329,294 +333,299 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                 maxWidth="3xl"
                 className="max-h-[95vh] overflow-y-auto"
             >
-            <form
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    submit();
-                }}
-                className="bg-background flex h-[80dvh] max-h-[700px] flex-col overflow-hidden"
-            >
-                {/* Header / Search Area */}
-                <div className="bg-background space-y-4 border-b p-6">
-                    {mode === 'search' ? (
-                        <>
-                            <div className="relative">
-                                <Search className="absolute top-1/2 left-3 z-10 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                                <input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Buscar por código, marca o descripción..."
-                                    className="bg-muted/50 border-border focus:ring-ring focus:border-ring text-foreground w-full rounded-xl border py-2.5 pr-4 pl-10 font-medium transition-all focus:ring-2 focus:outline-none"
-                                />
-                            </div>
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        submit();
+                    }}
+                    className="bg-background flex h-[80dvh] max-h-[700px] flex-col overflow-hidden"
+                >
+                    {/* Header / Search Area */}
+                    <div className="bg-background space-y-4 border-b p-6">
+                        {mode === 'search' ? (
+                            <>
+                                <div className="relative">
+                                    <Search className="absolute top-1/2 left-3 z-10 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        placeholder="Buscar por código, marca o descripción..."
+                                        className="bg-muted/50 border-border focus:ring-ring focus:border-ring text-foreground w-full rounded-xl border py-2.5 pr-4 pl-10 font-medium transition-all focus:ring-2 focus:outline-none"
+                                    />
+                                </div>
 
-                            <div className="flex gap-4">
-                                <div className="flex-1">
-                                    <SelectField
-                                        name="bodega_id"
-                                        title="Bodega"
-                                        value={selectedBodegaId || ''}
-                                        onChange={(val) => setSelectedBodegaId(val ? parseInt(val as string) : null)}
-                                        lista={bodegas?.filter((b: any) => permittedBodegaIds.has(b.id)) || []}
-                                        item={{ idx: 'id', value: 'nombre' }}
-                                        placeholder="Todas las bodegas"
-                                        error={undefined}
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <SelectField
-                                        name="talla"
-                                        title="Talla"
-                                        value={selectedTalla || ''}
-                                        onChange={(val) => setSelectedTalla((val as string) || null)}
-                                        lista={availableTallas}
-                                        item="value"
-                                        placeholder="Todas las tallas"
-                                        error={undefined}
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
-                                    {selectedRef?.foto ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => openViewer(selectedRef.foto)}
-                                        className="h-full w-full overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 transition-transform hover:scale-[1.02]"
-                                    >
-                                        <img src={`/storage/${selectedRef.foto}`} alt="Product" className="h-full w-full object-cover" />
-                                    </button>                                    ) : (
-                                        <ImageIcon className="h-6 w-6 text-slate-300" />
-                                    )}
-                                </div>
-                                <div className="space-y-0.5">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-foreground text-xl font-bold">{selectedRef?.codigo}</span>
-                                        <Badge variant="outline" className="text-muted-foreground h-5 border px-2 text-[10px] font-bold uppercase">
-                                            {typeof selectedRef?.marca === 'object' ? selectedRef.marca.nombre : selectedRef?.marca || 'N/A'}
-                                        </Badge>
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <SelectField
+                                            name="bodega_id"
+                                            title="Bodega"
+                                            value={selectedBodegaId || ''}
+                                            onChange={(val) => setSelectedBodegaId(val ? parseInt(val as string) : null)}
+                                            lista={bodegas?.filter((b: any) => permittedBodegaIds.has(b.id)) || []}
+                                            item={{ idx: 'id', value: 'nombre' }}
+                                            placeholder="Todas las bodegas"
+                                            error={undefined}
+                                        />
                                     </div>
-                                    <h3 className="text-muted-foreground text-[13px] font-bold uppercase">{selectedRef?.descripcion}</h3>
+                                    <div className="flex-1">
+                                        <SelectField
+                                            name="talla"
+                                            title="Talla"
+                                            value={selectedTalla || ''}
+                                            onChange={(val) => setSelectedTalla((val as string) || null)}
+                                            lista={availableTallas}
+                                            item="value"
+                                            placeholder="Todas las tallas"
+                                            error={undefined}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                            <button
-                                onClick={() => setMode('search')}
-                                className="text-muted-foreground hover:text-foreground bg-muted/50 border-border flex items-center gap-1 rounded-xl border px-3 py-2 text-xs font-bold transition-colors"
-                            >
-                                ← Volver
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Content Area */}
-                <div className="flex-1 overflow-y-auto" ref={scrollRef} onScroll={handleScroll}>
-                    {mode === 'search' ? (
-                        <div className="divide-y divide-slate-100 p-2">
-                            {displayResults.map((r: any) => (
-                                <div
-                                    key={r.id}
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => handleSelectRef(r)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSelectRef(r)}
-                                    className="group flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                            </>
+                        ) : (
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
+                                        {selectedRef?.foto ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => openViewer(selectedRef.foto)}
+                                                className="h-full w-full overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 transition-transform hover:scale-[1.02]"
+                                            >
+                                                <img src={`/storage/${selectedRef.foto}`} alt="Product" className="h-full w-full object-cover" />
+                                            </button>) : (
+                                            <ImageIcon className="h-6 w-6 text-slate-300" />
+                                        )}
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-foreground text-xl font-bold">{selectedRef?.codigo}</span>
+                                            <Badge variant="outline" className="text-muted-foreground h-5 border px-2 text-[10px] font-bold uppercase">
+                                                {typeof selectedRef?.marca === 'object' ? selectedRef.marca.nombre : selectedRef?.marca || 'N/A'}
+                                            </Badge>
+                                        </div>
+                                        <h3 className="text-muted-foreground text-[13px] font-bold uppercase">{selectedRef?.descripcion}</h3>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setMode('search')}
+                                    className="text-muted-foreground hover:text-foreground bg-muted/50 border-border flex items-center gap-1 rounded-xl border px-3 py-2 text-xs font-bold transition-colors"
                                 >
-                                    <div className="flex min-w-0 flex-1 items-center gap-3">
-                                        <div
-                                            role="button"
-                                            tabIndex={0}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (r.foto) openViewer(r.foto);
-                                            }}
-                                            onKeyDown={(e) => e.key === 'Enter' && r.foto && openViewer(r.foto)}
-                                            className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-                                        >
-                                            {r.foto ? (
-                                                <img src={`/storage/${r.foto}`} alt="Thumb" className="h-full w-full object-cover" />
-                                            ) : (
-                                                <ImageIcon className="h-4 w-4 text-slate-300" />
-                                            )}
-                                        </div>
-                                        <div className="min-w-0 space-y-0.5">
-                                            <div className="flex min-w-0 items-center gap-1.5">
-                                                <span className="text-foreground flex-shrink-0 font-bold">{r.codigo}</span>
-                                                <span className="text-foreground min-w-0 truncate font-medium uppercase">{r.descripcion}</span>
+                                    ← Volver
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="flex-1 overflow-y-auto" ref={scrollRef} onScroll={handleScroll}>
+                        {mode === 'search' ? (
+                            <div className="divide-y divide-slate-100 p-2">
+                                {displayResults.map((r: any) => (
+                                    <div
+                                        key={r.id}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => handleSelectRef(r)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSelectRef(r)}
+                                        className="group flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    >
+                                        <div className="flex min-w-0 flex-1 items-center gap-3">
+                                            <div
+                                                role="button"
+                                                tabIndex={0}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (r.foto) openViewer(r.foto);
+                                                }}
+                                                onKeyDown={(e) => e.key === 'Enter' && r.foto && openViewer(r.foto)}
+                                                className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                                            >
+                                                {r.foto ? (
+                                                    <img src={`/storage/${r.foto}`} alt="Thumb" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <ImageIcon className="h-4 w-4 text-slate-300" />
+                                                )}
                                             </div>
-                                            <div className="mt-1 flex gap-1.5">
-                                                <Badge
-                                                    variant="outline"
-                                                    className="border-border text-muted-foreground rounded-md px-1.5 py-0 text-[10px] font-medium"
-                                                >
-                                                    {typeof r.marca === 'object' ? r.marca.nombre : r.marca || 'GENERIC'}
-                                                </Badge>
-                                                <Badge
-                                                    variant="secondary"
-                                                    className="bg-muted text-muted-foreground rounded-md px-1.5 py-0 text-[10px] font-medium"
-                                                >
-                                                    {r.displayTallas} tallas
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-6">
-                                        <Badge
-                                            variant="secondary"
-                                            className="bg-muted text-muted-foreground flex items-center gap-2 rounded-full border-none px-3 py-1 text-[10px] uppercase"
-                                        >
-                                            <Box className="h-3 w-3" />
-                                            {r.displayStock} uds
-                                        </Badge>
-                                        ${Number(r.precio_venta || 0).toLocaleString()}
-                                    </div>
-                                </div>
-                            ))}
-                            {meta && meta.current_page < meta.last_page && (
-                                <div className="flex justify-center py-4">
-                                    <span className="text-muted-foreground text-xs italic">{loading ? 'Cargando...' : ''}</span>
-                                </div>
-                            )}
-                            {displayResults.length === 0 && !loading && (
-                                <div className="p-12 text-center text-slate-400">
-                                    <Search className="mx-auto mb-3 h-12 w-12 opacity-20" />
-                                    <p className="text-sm italic">No se encontraron referencias disponibles.</p>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="space-y-6 p-6">
-                            {loadingStock ? (
-                                <div className="space-y-3">
-                                    {[1, 2].map((i) => (
-                                        <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-50 dark:bg-slate-800" />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {groupedStock.map((bodega) => (
-                                        <div key={bodega.id} className="border-border bg-background overflow-hidden rounded-2xl border">
-                                            <div className="bg-muted/30 flex items-center justify-between border-b px-4 py-2">
-                                                <div className="text-foreground flex items-center gap-2">
-                                                    <Warehouse className="text-muted-foreground h-3.5 w-3.5" />
-                                                    <span className="text-[11px] font-bold uppercase">{bodega.nombre}</span>
+                                            <div className="min-w-0 space-y-0.5">
+                                                <div className="flex min-w-0 items-center gap-1.5">
+                                                    <span className="text-foreground flex-shrink-0 font-bold">{r.codigo}</span>
+                                                    <span className="text-foreground min-w-0 truncate font-medium uppercase">{r.descripcion}</span>
                                                 </div>
-                                                <span className="text-muted-foreground text-[11px]">{bodega.total_stock} uds disponibles</span>
-                                            </div>
-                                            <div className="divide-y divide-slate-100">
-                                                {bodega.items.map((item: any) => {
-                                                    const qty = quantities[item.key] || 0;
-                                                    return (
-                                                        <div
-                                                            key={item.key}
-                                                            className="hover:bg-muted/20 flex items-center justify-between p-4 transition-colors"
-                                                        >
-                                                            <div className="flex items-center gap-6">
-                                                                <div className="border-border bg-background flex h-8 w-8 items-center justify-center rounded-lg border">
-                                                                    <span className="text-foreground text-xs font-bold">{item.talla}</span>
-                                                                </div>
-                                                                <div className="space-y-0.5">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="text-foreground/80 text-sm font-bold">
-                                                                            {item.is_muestra ? item.bodega_nombre : 'Stock en Bodega'}
-                                                                        </span>
-                                                                        {item.etiquetas && (
-                                                                            <div className="flex gap-1">
-                                                                                {item.etiquetas.map((t: string) => (
-                                                                                    <Badge
-                                                                                        key={t}
-                                                                                        variant="outline"
-                                                                                        className="border-border py-0 text-[9px]"
-                                                                                    >
-                                                                                        {t}
-                                                                                    </Badge>
-                                                                                ))}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2 text-[12px]">
-                                                                        <span>{item.stock} disp.</span>
-                                                                        <span className="text-foreground border-border ml-1 border-l pl-2">
-                                                                            ${Number(item.precio_ajustado || 0).toLocaleString()}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            {bodega.can_order && (
-                                                                <div className="bg-background border-border/50 flex items-center gap-3 rounded-xl border p-1.5 shadow-xs">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleQtyChange(item.key, -1, item.stock)}
-                                                                        className="hover:bg-muted text-muted-foreground flex h-8 w-8 items-center justify-center rounded-lg transition-all active:scale-95"
-                                                                    >
-                                                                        <Minus className="h-4 w-4" />
-                                                                    </button>
-                                                                    <div className="text-foreground w-6 text-center text-sm font-medium">{qty}</div>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleQtyChange(item.key, 1, item.stock)}
-                                                                        className="hover:bg-muted text-foreground flex h-8 w-8 items-center justify-center rounded-lg shadow-sm transition-all active:scale-95"
-                                                                    >
-                                                                        <Plus className="h-4 w-4" />
-                                                                    </button>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
+                                                <div className="mt-1 flex gap-1.5">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-border text-muted-foreground rounded-md px-1.5 py-0 text-[10px] font-medium"
+                                                    >
+                                                        {typeof r.marca === 'object' ? r.marca.nombre : r.marca || 'GENERIC'}
+                                                    </Badge>
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="bg-muted text-muted-foreground rounded-md px-1.5 py-0 text-[10px] font-medium"
+                                                    >
+                                                        {r.displayTallas} tallas
+                                                    </Badge>
+                                                </div>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+                                        <div className="flex items-center gap-6">
+                                            <Badge
+                                                variant="secondary"
+                                                className="bg-muted text-muted-foreground flex items-center gap-2 rounded-full border-none px-3 py-1 text-[10px] uppercase"
+                                            >
+                                                <Box className="h-3 w-3" />
+                                                {r.displayStock} uds
+                                            </Badge>
+                                            ${Number(r.precio_venta || 0).toLocaleString()}
+                                        </div>
+                                    </div>
+                                ))}
+                                {meta && meta.current_page < meta.last_page && (
+                                    <div className="flex justify-center py-4">
+                                        <span className="text-muted-foreground text-xs italic">{loading ? 'Cargando...' : ''}</span>
+                                    </div>
+                                )}
+                                {displayResults.length === 0 && !loading && (
+                                    <div className="p-12 text-center text-slate-400">
+                                        <Search className="mx-auto mb-3 h-12 w-12 opacity-20" />
+                                        <p className="text-sm italic">No se encontraron referencias disponibles.</p>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-6 p-6">
+                                {loadingStock ? (
+                                    <div className="space-y-3">
+                                        {[1, 2].map((i) => (
+                                            <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-50 dark:bg-slate-800" />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {groupedStock.map((bodega) => (
+                                            <div key={bodega.id} className="border-border bg-background overflow-hidden rounded-2xl border">
+                                                <div className="bg-muted/30 flex items-center justify-between border-b px-4 py-2">
+                                                    <div className="text-foreground flex items-center gap-2">
+                                                        <Warehouse className="text-muted-foreground h-3.5 w-3.5" />
+                                                        <span className="text-[11px] font-bold uppercase">{bodega.nombre}</span>
+                                                        {bodega.descuento > 0 && (
+                                                            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-none px-1.5 py-0 h-4">
+                                                                - ${Number(bodega.descuento).toLocaleString()}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-muted-foreground text-[11px]">{bodega.total_stock} uds disponibles</span>
+                                                </div>
+                                                <div className="divide-y divide-slate-100">
+                                                    {bodega.items.map((item: any) => {
+                                                        const qty = quantities[item.key] || 0;
+                                                        return (
+                                                            <div
+                                                                key={item.key}
+                                                                className="hover:bg-muted/20 flex items-center justify-between p-4 transition-colors"
+                                                            >
+                                                                <div className="flex items-center gap-6">
+                                                                    <div className="border-border bg-background flex h-8 w-8 items-center justify-center rounded-lg border">
+                                                                        <span className="text-foreground text-xs font-bold">{item.talla}</span>
+                                                                    </div>
+                                                                    <div className="space-y-0.5">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-foreground/80 text-sm font-bold">
+                                                                                {item.is_muestra ? item.bodega_nombre : 'Stock en Bodega'}
+                                                                            </span>
+                                                                            {item.etiquetas && (
+                                                                                <div className="flex gap-1">
+                                                                                    {item.etiquetas.map((t: string) => (
+                                                                                        <Badge
+                                                                                            key={t}
+                                                                                            variant="outline"
+                                                                                            className="border-border py-0 text-[9px]"
+                                                                                        >
+                                                                                            {t}
+                                                                                        </Badge>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2 text-[12px]">
+                                                                            <span>{item.stock} disp.</span>
+                                                                            <span className="text-foreground border-border ml-1 border-l pl-2">
+                                                                                ${Number(item.precio_ajustado || 0).toLocaleString()}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                {bodega.can_order && (
+                                                                    <div className="bg-background border-border/50 flex items-center gap-3 rounded-xl border p-1.5 shadow-xs">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleQtyChange(item.key, -1, item.stock)}
+                                                                            className="hover:bg-muted text-muted-foreground flex h-8 w-8 items-center justify-center rounded-lg transition-all active:scale-95"
+                                                                        >
+                                                                            <Minus className="h-4 w-4" />
+                                                                        </button>
+                                                                        <div className="text-foreground w-6 text-center text-sm font-medium">{qty}</div>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleQtyChange(item.key, 1, item.stock)}
+                                                                            className="hover:bg-muted text-foreground flex h-8 w-8 items-center justify-center rounded-lg shadow-sm transition-all active:scale-95"
+                                                                        >
+                                                                            <Plus className="h-4 w-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
 
-                {/* Footer Bar */}
-                <div className="bg-background border-t p-6">
-                    {isOutsideHours && (
-                        <div className="mb-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
-                            <AlertCircle className="h-5 w-5 flex-shrink-0 text-amber-500" />
-                            <p className="text-xs font-medium text-amber-700">
-                                {is_holiday
-                                    ? 'Hoy es día festivo en Colombia. Los locales no pueden agregar productos.'
-                                    : `Su local solo puede agregar productos en el horario: ${schedule_today.map((r: any) => `${r[0]} - ${r[1]}`).join(' y ')}.`}
-                            </p>
-                        </div>
-                    )}
-                    {mode === 'detail' ? (
-                        <FormButtons
-                            processing={saving}
-                            reset={onClose}
-                            buttons={{ cancel: true, submit: true }}
-                            labels={{ cancel: 'Cancelar', submit: 'Agregar a factura' }}
-                            submitDisabled={!canSubmit || isOutsideHours}
-                        />
-                    ) : (
-                        <div className="flex justify-end">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="text-muted-foreground bg-muted/50 hover:bg-muted rounded-xl px-6 py-2.5 text-sm font-bold transition-colors"
-                            >
-                                Cerrar
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </form>
-        </Modal>
+                    {/* Footer Bar */}
+                    <div className="bg-background border-t p-6">
+                        {isOutsideHours && (
+                            <div className="mb-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                                <AlertCircle className="h-5 w-5 flex-shrink-0 text-amber-500" />
+                                <p className="text-xs font-medium text-amber-700">
+                                    {is_holiday
+                                        ? 'Hoy es día festivo en Colombia. Los locales no pueden agregar productos.'
+                                        : `Su local solo puede agregar productos en el horario: ${schedule_today.map((r: any) => `${r[0]} - ${r[1]}`).join(' y ')}.`}
+                                </p>
+                            </div>
+                        )}
+                        {mode === 'detail' ? (
+                            <FormButtons
+                                processing={saving}
+                                reset={onClose}
+                                buttons={{ cancel: true, submit: true }}
+                                labels={{ cancel: 'Cancelar', submit: 'Agregar a factura' }}
+                                submitDisabled={!canSubmit || isOutsideHours}
+                            />
+                        ) : (
+                            <div className="flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="text-muted-foreground bg-muted/50 hover:bg-muted rounded-xl px-6 py-2.5 text-sm font-bold transition-colors"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </form>
+            </Modal>
 
-        <ViewerModal 
-            show={!!viewerImage} 
-            image={viewerImage} 
-            onClose={closeViewer} 
-        />
-    </>
-);
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={closeViewer}
+            />
+        </>
+    );
 };

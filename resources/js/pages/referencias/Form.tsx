@@ -2,14 +2,14 @@ import { Button } from '@/components/ui/button';
 import { FormButtons } from '@/components/ui/form/FormButtons';
 import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
-import { Label } from '@/components/ui/label';
 import { SwitchField } from '@/components/ui/form/SwitchField';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { showAlert } from '@/plugins/sweetalert';
 import { useForm } from '@inertiajs/react';
+import axios from 'axios';
 import { Image as ImageIcon, Upload, X } from 'lucide-react';
 import { FormEventHandler, useEffect, useRef, useState } from 'react';
-import axios from 'axios';
 
 type ThisForm = {
     codigo: string;
@@ -86,13 +86,13 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
             reset();
             setImagePreview(null);
             if (fileInputRef.current) fileInputRef.current.value = '';
-            
+
             // If user is not superadmin, account is already set in useForm init
             // but if they are superadmin, we wait for them to select an account
             return;
         }
         const getItem = async () => {
-            const item: any = await onGetItem({ id }, {});
+            const item: any = await onGetItem(() => ({ url: route('api.referencias.show', { referencia: id }) }), {});
             if (item) {
                 setData({
                     codigo: item.codigo,
@@ -138,6 +138,19 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
             <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
                 <form onSubmit={submit} encType="multipart/form-data">
                     <div className="text-foreground grid grid-cols-1 gap-6 md:grid-cols-2">
+                        {isSuperAdmin && (
+                            <SelectField
+                                name="cuenta_id"
+                                title="Cuenta / Empresa"
+                                required
+                                value={data.cuenta_id}
+                                onChange={(val) => setData('cuenta_id', val as string)}
+                                lista={cuentas}
+                                item={{ idx: 'id', value: 'nombre' }}
+                                error={errors.cuenta_id}
+                            />
+                        )}
+
                         <InputField
                             name="codigo"
                             title="Código / SKU"
@@ -168,19 +181,6 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
                             item={{ idx: 'id', value: 'nombre' }}
                             error={errors.categoria_id}
                         />
-
-                        {isSuperAdmin && (
-                            <SelectField
-                                name="cuenta_id"
-                                title="Cuenta / Empresa"
-                                required
-                                value={data.cuenta_id}
-                                onChange={(val) => setData('cuenta_id', val as string)}
-                                lista={cuentas}
-                                item={{ idx: 'id', value: 'nombre' }}
-                                error={errors.cuenta_id}
-                            />
-                        )}
 
                         <div className="col-span-1">
                             <InputField

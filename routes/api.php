@@ -19,7 +19,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Recursos Base
     Route::apiResource('cuentas', ApiCuentasController::class)->names('api.cuentas');
+    Route::get('usuarios/{usuario}/accesos', [ApiUsuariosController::class, 'getAccesos'])->name('api.usuarios.accesos');
     Route::apiResource('usuarios', ApiUsuariosController::class)->names('api.usuarios');
+    Route::get('bodegas/list', [App\Http\Controllers\Api\BodegasController::class, 'getList'])->name('api.bodegas.list');
     Route::apiResource('bodegas', ApiBodegasController::class)->names('api.bodegas');
     Route::get('bodegas/{bodega}/accesos', [App\Http\Controllers\Api\BodegasController::class, 'getAccesos'])->name('api.bodegas.accesos');
     Route::apiResource('categorias', ApiCategoriasController::class)->names('api.categorias');
@@ -52,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('ventas/{venta}/detalles/bulk', [App\Http\Controllers\Api\VentasController::class, 'bulkDeleteDetails'])->name('api.ventas.detalles.bulk_delete');
     Route::delete('ventas/{venta}/detalles/{detalle}', [App\Http\Controllers\Api\VentasController::class, 'deleteDetail'])->name('api.ventas.detalles.delete');
     Route::post('ventas/{venta}/bulk-discounts', [App\Http\Controllers\Api\VentasController::class, 'updateBulkDiscounts'])->name('api.ventas.bulk_discounts');
+    Route::post('ventas/{venta}/reabrir', [App\Http\Controllers\Api\VentasController::class, 'reopenVenta'])->name('api.ventas.reopen');
     Route::post('ventas/{venta}/cerrar', [App\Http\Controllers\Api\VentasController::class, 'closeVenta'])->name('api.ventas.cerrar');
     Route::post('ventas/{venta}/mark-printed', [App\Http\Controllers\Api\VentasController::class, 'markPrinted'])->name('api.ventas.mark_printed');
     Route::get('search-references', [App\Http\Controllers\Api\VentasController::class, 'searchReferences'])->name('api.ventas.search_references');

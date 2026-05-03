@@ -9,9 +9,10 @@ import { router } from '@inertiajs/react';
 import { Save } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
+export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas, onSuccess }: any) => {
 	const [sizedWarehouse, setSizedWarehouse] = useState('');
-	const [sizedRows, setSizedRows] = useState<{ size: string, qty: string, estanteria_id: string }[]>([]);
+	const [sizedShelf, setSizedShelf] = useState('');
+	const [sizedRows, setSizedRows] = useState<{ size: string, qty: string }[]>([]);
 	const [viewerImage, setViewerImage] = useState<string | null>(null);
 	const viewerOpenRef = useRef(false);
 
@@ -19,7 +20,7 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 		if (isOpen && caja) {
 			setSizedWarehouse(caja.bodega_id?.toString() || '');
 
-			let initialRows: { size: string, qty: string, estanteria_id: string }[] = [];
+			let initialRows: { size: string, qty: string }[] = [];
 			const variaciones = caja.referencia_variaciones;
 
 			if (Array.isArray(variaciones) && variaciones.length > 0) {
@@ -28,10 +29,10 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 					if (typeof item === 'object' && item !== null) {
 						sizeLabel = String(item.text || item.nombre || item.talla || item.valor || Object.values(item)[0]);
 					}
-					return { size: sizeLabel, qty: '', estanteria_id: '' };
+					return { size: sizeLabel, qty: '' };
 				});
 			} else {
-				initialRows = Array.from({ length: 15 }, (_, i) => ({ size: String(34 + i), qty: '', estanteria_id: '' }));
+				initialRows = Array.from({ length: 15 }, (_, i) => ({ size: String(34 + i), qty: '' }));
 			}
 			setSizedRows(initialRows);
 		}
@@ -77,17 +78,19 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 		}
 
 		const tallasValidas = sizedRows.filter(r => (parseInt(r.qty) || 0) > 0);
-		if (tallasValidas.some(r => !r.estanteria_id)) {
-			showAlert('warning', 'Debes seleccionar una estantería para cada talla con cantidad.');
+		if (!sizedShelf) {
+			showAlert('warning', 'Debes seleccionar una estantería de destino.');
 			return;
 		}
 
 		setProcessing(true);
 		router.post(route('cajas.tallar', { caja: caja.id }), {
+			estanteria_id: sizedShelf,
 			tallas: tallasValidas
 		}, {
 			onSuccess: () => {
 				showAlert('success', 'Producto tallado e ingresado al inventario.');
+				if (onSuccess) onSuccess();
 				onClose();
 			},
 			onError: (err: any) => {
@@ -111,10 +114,10 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 			maxWidth="2xl"
 		>
 			<form onSubmit={submit} className="flex flex-col h-[80vh]">
-				<div className="p-6 flex-1 overflow-y-auto space-y-4">
-					<div className="grid grid-cols-[120px_1fr] gap-6 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-						<div 
-							className="flex h-[120px] w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white"
+				<div className="p-4 sm:p-6 flex-1 overflow-y-auto space-y-4">
+					<div className="flex flex-col sm:grid sm:grid-cols-[120px_1fr] gap-4 sm:gap-6 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+						<div
+							className="flex h-[120px] w-[120px] mx-auto sm:mx-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white shrink-0"
 							onClick={() => caja?.referencia_foto && openViewer(caja.referencia_foto)}
 						>
 							{caja?.referencia_foto ? (
@@ -130,20 +133,38 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 									SKU: {caja.referencia_codigo}
 								</Badge>
 							</div>
-							<div className="bg-white p-4 rounded-lg flex items-center justify-between border border-slate-100">
-								<div>
-									<p className="text-[10px] uppercase font-bold text-slate-400">Disponible en caja</p>
-									<p className="text-xl font-black text-slate-900">{caja.cantidad} pares</p>
+							<div className="bg-white p-4 rounded-lg border border-slate-100">
+								<div className="mb-4 flex items-center justify-between">
+									<div>
+										<p className="text-[10px] uppercase font-medium text-slate-400">Saldo en caja</p>
+										<p className={`text-xl font-bold ${caja.cantidad - sizedTotal < 0 ? 'text-red-600' : 'text-slate-900'}`}>
+											{caja.cantidad - sizedTotal} pares
+										</p>
+									</div>
 								</div>
-								<div className="w-64">
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 									<SelectField
 										item={{ idx: 'id', value: 'nombre' }}
 										name="sizedWarehouse"
 										title="Bodega de destino"
 										lista={bodegas}
 										value={sizedWarehouse}
-										onChange={(v) => setSizedWarehouse(v as string)}
+										onChange={(v) => {
+											setSizedWarehouse(v as string);
+											setSizedShelf('');
+										}}
 										error={""}
+									/>
+									<SelectField
+										item={{ idx: 'id', value: 'nombre' }}
+										name="sizedShelf"
+										title="Estantería"
+										lista={shelves}
+										value={sizedShelf}
+										onChange={(v) => setSizedShelf(v as string)}
+										error={""}
+										placeholder="Seleccionar estante..."
+										disabled={!sizedWarehouse}
 									/>
 								</div>
 							</div>
@@ -154,27 +175,15 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 						Ingresa la cantidad por talla y selecciona el estante donde guardarás el stock físico.
 					</p>
 
-					<div className="border rounded-lg overflow-hidden flex flex-col">
-						<div className="bg-slate-100 px-4 py-2 text-xs font-bold text-slate-600 border-b grid grid-cols-[5rem_1fr_6rem] gap-4">
+					<div className="border rounded-lg overflow-hidden flex flex-col max-w-md mx-auto w-full">
+						<div className="bg-slate-100 px-4 py-2 text-xs font-bold text-slate-600 border-b grid grid-cols-[1fr_80px] gap-4">
 							<span>Talla</span>
-							<span>Estantería de Destino</span>
 							<span className="text-right">Cantidad</span>
 						</div>
-						<div className="divide-y max-h-[400px] overflow-y-auto">
+						<div className="divide-y max-h-[300px] overflow-y-auto">
 							{sizedRows.map((row, i) => (
-								<div key={row.size} className="px-4 py-2 grid grid-cols-[5rem_1fr_6rem] gap-4 items-center hover:bg-slate-50 transition-colors">
+								<div key={row.size} className="px-4 py-2 grid grid-cols-[1fr_80px] gap-4 items-center hover:bg-slate-50 transition-colors">
 									<span className="font-mono font-bold text-slate-700">{row.size}</span>
-									<SelectField
-										item={{ idx: 'id', value: 'nombre' }}
-										name={`estanteria_${i}`}
-										title=""
-										lista={shelves}
-										value={row.estanteria_id}
-										onChange={(v) => updateSizedRow(i, 'estanteria_id', v as string)}
-										error={""}
-										placeholder="Seleccionar estante..."
-										disabled={!sizedWarehouse}
-									/>
 									<InputField
 										name={`qty_${i}`}
 										title=""
@@ -207,10 +216,10 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas }: any) => {
 					</div>
 				</div>
 			</form>
-			<ViewerModal 
-				show={!!viewerImage} 
-				image={viewerImage} 
-				onClose={closeViewer} 
+			<ViewerModal
+				show={!!viewerImage}
+				image={viewerImage}
+				onClose={closeViewer}
 			/>
 		</Modal>
 	);

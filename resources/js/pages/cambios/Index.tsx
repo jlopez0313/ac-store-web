@@ -201,6 +201,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                             fetchData();
                         } catch (error: any) {
                             console.error('Error storing change:', error);
+                            throw error;
                         }
                     }}
                     onReload={() => fetchData()}

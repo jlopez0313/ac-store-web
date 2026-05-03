@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import AppLayout from '@/layouts/app-layout';
 import { createPrintRequest } from '@/lib/firebase';
 import { confirmDialog, showAlert } from '@/plugins/sweetalert';
@@ -14,7 +15,6 @@ import { Plus, ShoppingCart } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AddDetailModal } from './AddDetailModal';
 import { CreateModal } from './CreateModal';
-import { ViewerModal } from '@/components/ui/ViewerModal';
 
 // Sub-components
 import { InvoiceDetailHeader } from './InvoiceDetailHeader';
@@ -127,8 +127,11 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
             input: 'textarea',
             inputPlaceholder: 'Escribe el motivo de la devolución aquí...',
             showCancelButton: true,
-            confirmButtonText: 'Eliminar',
+            confirmButtonText: 'Devolver',
             cancelButtonText: 'Cancelar',
+            customClass: {
+                confirmButton: 'bg-red-500 hover:bg-red-600',
+            },
             inputValidator: (value: string) => {
                 if (!value) return 'Debes proporcionar una observación';
                 return null;
@@ -146,7 +149,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                 { params: { observacion: result.value } },
             );
             setSelectedFactura({ ...selectedFactura, detalles: response.data.data });
-            showAlert('success', 'Producto eliminado y stock restaurado.');
+            showAlert('success', 'Devolucion registrada, stock restaurado.');
             fetchData(); // Refresh list to update totals/badges
         } catch (error: any) {
             showAlert('error', error.response?.data?.error || 'Error al eliminar el detalle.');
@@ -280,6 +283,10 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         setDetailModalOpen(true);
                                     }}
                                     onCloseFactura={handleCloseFactura}
+                                    onUpdateFactura={(updatedDetalles) => {
+                                        setSelectedFactura({ ...selectedFactura, detalles: updatedDetalles });
+                                        fetchData();
+                                    }}
                                     onPrint={async (type) => {
                                         // Re-fetch factura to get current impreso status
                                         let freshFactura = selectedFactura;
@@ -366,7 +373,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                                             detalle_ids: [item.id],
                                                         });
                                                         // Update local state incrementally so UI reflects progress
-                                                        currentDetalles = currentDetalles.map(d => 
+                                                        currentDetalles = currentDetalles.map(d =>
                                                             d.id === item.id ? { ...d, impreso: true } : d
                                                         );
                                                         setSelectedFactura({ ...freshFactura, detalles: currentDetalles });
@@ -455,10 +462,10 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                 }}
             />
 
-            <ViewerModal 
-                show={!!viewerImage} 
-                image={viewerImage} 
-                onClose={() => setViewerImage(null)} 
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={() => setViewerImage(null)}
             />
         </AppLayout>
     );

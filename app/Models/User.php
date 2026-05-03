@@ -93,6 +93,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the warehouses the user has access to.
+     */
+    public function bodegas()
+    {
+        return $this->belongsToMany(Bodega::class, 'bodega_accesos', 'user_id', 'bodega_id');
+    }
+
+    /**
      * Get the city where the user is located.
      */
     public function ciudad()

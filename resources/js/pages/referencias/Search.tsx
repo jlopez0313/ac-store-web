@@ -5,13 +5,13 @@ import { DataGrid } from '@/components/ui/DataTable';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { ImageIcon, Loader2, Search as SearchIcon, X } from 'lucide-react';
 import { useState } from 'react';
-import { ViewerModal } from '@/components/ui/ViewerModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Panel principal', href: route('dashboard') },
@@ -102,12 +102,12 @@ export default function Search({ results: initialResults, filters, cuentas, marc
         },
         {
             name: 'Código',
-            selector: (row: any) => row.codigo,
+            selector: (row: any) => <span className='font-bold'>{row.codigo}</span>,
             sortable: true,
         },
         {
             name: 'Marca',
-            selector: (row: any) => row.marca,
+            selector: (row: any) => <span className='font-bold'>{row.marca}</span>,
             sortable: true,
         },
         {
@@ -124,7 +124,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
         },
         {
             name: 'Bodega',
-            selector: (row: any) => row.bodega,
+            selector: (row: any) => <span className='font-bold'>{row.bodega}</span>,
             sortable: true,
         },
         {
@@ -136,11 +136,11 @@ export default function Search({ results: initialResults, filters, cuentas, marc
         },
         ...(isSuperAdmin
             ? [
-                  {
-                      name: 'Cuenta',
-                      selector: (row: any) => row.cuenta,
-                  },
-              ]
+                {
+                    name: 'Cuenta',
+                    selector: (row: any) => row.cuenta,
+                },
+            ]
             : []),
     ];
 
@@ -238,7 +238,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                         data={results}
                         columns={columns}
                         total={total}
-                        onSort={() => {}}
+                        onSort={() => { }}
                         fetchPage={handlePageChange}
                         setPageSize={(size) => handlePerRowsChange(size, 1)}
                         serverSide={true}
@@ -254,10 +254,10 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                 </div>
             </div>
 
-            <ViewerModal 
-                show={!!viewerImage} 
-                image={viewerImage} 
-                onClose={() => setViewerImage(null)} 
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={() => setViewerImage(null)}
             />
         </AppLayout>
     );

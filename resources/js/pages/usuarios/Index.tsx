@@ -7,9 +7,9 @@ import { Modal } from '@/components/ui/Modal';
 import { useCrudPage } from '@/hooks/useCrudPage';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
-import { Edit, Plus, Search as SearchIcon, Trash } from 'lucide-react';
+import { Edit, Plus, Search as SearchIcon, ShieldCheck, Trash } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Form } from './Form';
 
@@ -77,6 +77,12 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
             sortField: 'name',
         },
         {
+            name: 'Documento',
+            selector: (row: any) => row.documento || 'N/A',
+            sortable: true,
+            sortField: 'documento',
+        },
+        {
             name: 'Usuario',
             selector: (row: any) => row.username,
             sortable: true,
@@ -135,6 +141,12 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
     ];
 
     const actions = [
+        {
+            title: 'Permisos Bodegas',
+            icon: ShieldCheck,
+            hide: (row: any) => row.role !== 'local',
+            action: (id: number) => router.visit(route('usuarios.accesos', { usuario: id })),
+        },
         {
             title: 'Editar',
             icon: Edit,

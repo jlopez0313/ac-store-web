@@ -86,6 +86,20 @@ class VentasController extends Controller
             });
         }
 
+        if ($request->filled('bodega_id')) {
+            $query->whereHas('inventarios', function ($q) use ($request) {
+                $q->where('stock', '>', 0)
+                  ->whereHas('estanteria', function ($eq) use ($request) {
+                      $eq->where('bodega_id', $request->bodega_id);
+                  });
+            });
+        } else if ($request->filled('talla')) {
+            $query->whereHas('inventarios', function ($q) use ($request) {
+                $q->where('talla', $request->talla)
+                  ->where('stock', '>', 0);
+            });
+        }
+
         $paginated = $query->paginate(20);
 
         $data = collect($paginated->items())->map(function ($r) {
@@ -146,11 +160,18 @@ class VentasController extends Controller
             });
 
         $muestras = collect();
-        if (auth()->user()->hasAnyRole(['admin', 'bodega', 'superadmin'])) {
-            $muestras = Muestra::where('referencia_id', $request->referencia_id)
+        $user = auth()->user();
+
+        if ($user->hasAnyRole(['admin', 'bodega', 'superadmin', 'local'])) {
+            $query = Muestra::where('referencia_id', $request->referencia_id)
                 ->where('estado', 'activo')
-                ->with(['local', 'inventario'])
-                ->get()
+                ->with(['local', 'inventario']);
+
+            if ($user->hasRole('local')) {
+                $query->where('local_id', $user->id);
+            }
+
+            $muestras = $query->get()
                 ->map(function ($m) {
                     return [
                         'id' => $m->inventario_id,
@@ -170,6 +191,43 @@ class VentasController extends Controller
         }
 
         return response()->json(['data' => $stock->concat($muestras)]);
+    }
+
+
+
+    public function reopenVenta(Request $request, Venta $venta)
+    {
+        $user = auth()->user();
+
+        // Security check: only admin or superadmin
+        if (!$user->hasRole('superadmin') && $user->role !== 'admin') {
+            abort(403, 'No tienes permiso para reabrir facturas.');
+        }
+
+        // Account security check
+        if (!$user->hasRole('superadmin') && $user->cuenta_id !== $venta->cuenta_id) {
+            abort(403, 'No tienes permiso para reabrir esta factura.');
+        }
+
+        if ($venta->estado !== 'cerrada') {
+            return response()->json(['error' => 'La factura no está cerrada'], 400);
+        }
+
+        $validated = $request->validate([
+            'observacion' => 'required|string|min:5'
+        ]);
+
+        $observacionDate = now()->format('Y-m-d H:i');
+        $nuevaObservacion = "{$observacionDate} ({$user->name}) [REAPERTURA]: {$validated['observacion']}";
+
+        $observacionesActuales = $venta->observaciones ? $venta->observaciones . "\n" : "";
+
+        $venta->update([
+            'estado' => 'abierta',
+            'observaciones' => $observacionesActuales . $nuevaObservacion
+        ]);
+
+        return response()->json(['message' => 'Factura reabierta correctamente', 'data' => $venta->fresh()]);
     }
 
     public function store(Request $request)
@@ -426,7 +484,7 @@ class VentasController extends Controller
         return response()->json(['message' => 'Factura cerrada correctamente.', 'data' => $venta]);
     }
 
-    public function bulkDiscounts(Request $request, Venta $venta)
+    public function updateBulkDiscounts(Request $request, Venta $venta)
     {
         $request->validate([
             'discounts' => 'required|array',
@@ -454,7 +512,14 @@ class VentasController extends Controller
         $total = VentaDetalle::where('venta_id', $venta->id)->sum('subtotal');
         $venta->update(['total' => $total]);
 
-        return response()->json(['message' => 'Descuentos aplicados correctamente']);
+        $detalles = VentaDetalle::where('venta_id', $venta->id)
+            ->with(['producto', 'bodega', 'estanteria', 'muestra'])
+            ->get();
+
+        return response()->json([
+            'message' => 'Descuentos aplicados correctamente',
+            'data' => $detalles
+        ]);
     }
 
     public function destroy(Venta $venta)

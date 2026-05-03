@@ -96,12 +96,25 @@ class VentasController extends Controller
 
         $paginated = $query->paginate(20);
 
-        $data = collect($paginated->items())->map(function ($r) {
+        $data = collect($paginated->items())->map(function ($r) use ($user) {
             $invs = \App\Models\Inventario::where('referencia_id', $r->id)
                 ->join('estanterias', 'inventarios.estanteria_id', '=', 'estanterias.id')
                 ->selectRaw('estanterias.bodega_id, inventarios.talla, SUM(inventarios.stock) as total_stock, MAX(inventarios.precio_venta) as max_precio')
                 ->groupBy('estanterias.bodega_id', 'inventarios.talla')
                 ->get();
+
+            // Count active samples
+            $muestrasQuery = \App\Models\Muestra::where('referencia_id', $r->id)
+                ->where('estado', 'activo');
+            
+            if (!$user->hasAnyRole(['admin', 'bodega', 'superadmin'])) {
+                $muestrasQuery->where('local_id', $user->id);
+            }
+            
+            $muestrasCount = $muestrasQuery->count();
+            $muestrasTallas = $muestrasQuery->pluck('variante')->unique();
+
+            $allTallas = $invs->pluck('talla')->concat($muestrasTallas)->unique();
 
             return [
                 'id' => $r->id,
@@ -111,8 +124,8 @@ class VentasController extends Controller
                 'foto' => $r->foto,
                 'categoria' => $r->categoria?->nombre,
                 'cuenta_id' => $r->cuenta_id,
-                'stock_global' => (int) $invs->sum('total_stock'),
-                'total_tallas' => (int) $invs->pluck('talla')->unique()->count(),
+                'stock_global' => (int) $invs->sum('total_stock') + $muestrasCount,
+                'total_tallas' => (int) $allTallas->count(),
                 'precio_venta' => (float) $invs->max('max_precio'),
                 'stock_breakdown' => $invs,
             ];
@@ -153,30 +166,33 @@ class VentasController extends Controller
                 ];
             });
 
-        // Get active samples for this reference (only for authorized roles)
-        $muestras = collect();
-        if (auth()->user()->hasAnyRole(['admin', 'bodega', 'superadmin'])) {
-            $muestras = \App\Models\Muestra::where('referencia_id', $request->referencia_id)
-                ->where('estado', 'activo')
-                ->with(['local', 'inventario'])
-                ->get()
-                ->map(function ($m) {
-                    return [
-                        'id' => $m->inventario_id, // Link to inventario if needed
-                        'muestra_id' => $m->id,
-                        'type' => 'muestra',
-                        'bodega_id' => null,
-                        'bodega_nombre' => "En Local: " . ($m->local->name ?? 'N/A'),
-                        'estanteria_id' => null,
-                        'estanteria_nombre' => 'Muestra Física',
-                        'talla' => $m->variante,
-                        'stock' => 1,
-                        'precio_venta' => $m->inventario->precio_venta ?? 0,
-                        'is_muestra' => true,
-                        'etiquetas' => $m->etiquetas
-                    ];
-                });
+        // Get active samples for this reference
+        $user = auth()->user();
+        $muestrasQuery = \App\Models\Muestra::where('referencia_id', $request->referencia_id)
+            ->where('estado', 'activo')
+            ->with(['local', 'inventario']);
+
+        if (!$user->hasAnyRole(['admin', 'bodega', 'superadmin'])) {
+            // Local users only see samples assigned to them
+            $muestrasQuery->where('local_id', $user->id);
         }
+
+        $muestras = $muestrasQuery->get()->map(function ($m) {
+            return [
+                'id' => $m->inventario_id,
+                'muestra_id' => $m->id,
+                'type' => 'muestra',
+                'bodega_id' => null,
+                'bodega_nombre' => "En Local: " . ($m->local->name ?? 'N/A'),
+                'estanteria_id' => null,
+                'estanteria_nombre' => 'Muestra Física',
+                'talla' => $m->variante,
+                'stock' => 1,
+                'precio_venta' => $m->inventario->precio_venta ?? 0,
+                'is_muestra' => true,
+                'etiquetas' => $m->etiquetas
+            ];
+        });
 
         return response()->json(['data' => $stock->concat($muestras)]);
     }

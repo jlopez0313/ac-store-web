@@ -27,6 +27,7 @@ type Props = {
 	onSort: (selectedColumn: TableColumn<any>, sortDirection: SortOrder, sortedRows: any[]) => void;
 	fetchPage: (page: number) => void;
 	setPageSize: (size: number) => void;
+	fixedHeaderScrollHeight?: string;
 }
 
 export const DataGrid = ({
@@ -46,7 +47,8 @@ export const DataGrid = ({
 	noDataComponent = "No hay registros para mostrar",
 	onSort,
 	fetchPage,
-	setPageSize
+	setPageSize,
+	fixedHeaderScrollHeight = '540px'
 }: Props) => {
 
 	const actionCol = ActionsColumn(actions, moreActions);
@@ -96,7 +98,7 @@ export const DataGrid = ({
 			responsive={true}
 			fixedHeader={true}
 			persistTableHead={true}
-			fixedHeaderScrollHeight='540px'
+			fixedHeaderScrollHeight={fixedHeaderScrollHeight}
 
 			paginationComponentOptions={paginationOptions}
 			noDataComponent={noDataComponent}

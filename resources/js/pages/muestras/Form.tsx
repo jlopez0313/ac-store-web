@@ -30,6 +30,8 @@ export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetI
     const [selectedInv, setSelectedInv] = useState<any>(null);
     const [loadingRefs, setLoadingRefs] = useState(false);
     const [loadingStock, setLoadingStock] = useState(false);
+    const [selectedBodegaId, setSelectedBodegaId] = useState<string>('');
+    const [selectedEstanteriaId, setSelectedEstanteriaId] = useState<string>('');
 
     const { data, setData, errors, reset, setError } = useForm<ThisForm>({
         local_id: '',
@@ -45,14 +47,14 @@ export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetI
     useEffect(() => {
         if (id) {
             axios.get(route('api.muestras_crud.show', { muestras_crud: id })).then((res) => {
-                const item = res.data;
+                const item = res.data.data || res.data;
                 setData({
-                    local_id: item.local.id.toString(),
-                    referencia_id: item.referencia.id.toString(),
+                    local_id: item.local?.id?.toString() || '',
+                    referencia_id: item.referencia?.id?.toString() || '',
                     inventario_id: item.inventario_id?.toString() || '',
-                    variante: item.variante,
-                    etiquetas: item.etiquetas,
-                    cuenta_id: item.cuenta.id.toString(),
+                    variante: item.variante || '',
+                    etiquetas: item.etiquetas || [],
+                    cuenta_id: item.cuenta?.id?.toString() || '',
                     impreso: !!item.impreso,
                 });
                 // Need to trigger ref loading
@@ -95,6 +97,8 @@ export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetI
                 return;
             }
             setLoadingStock(true);
+            setSelectedBodegaId('');
+            setSelectedEstanteriaId('');
             try {
                 const res = await axios.get(route('api.muestras.stock', { referencia_id: data.referencia_id }));
                 setStockItems(res.data.data);
@@ -102,6 +106,10 @@ export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetI
                 if (data.inventario_id) {
                     const inv = res.data.data.find((x: any) => x.id.toString() === data.inventario_id);
                     setSelectedInv(inv);
+                    if (inv) {
+                        setSelectedBodegaId(inv.bodega_id?.toString() || '');
+                        setSelectedEstanteriaId(inv.estanteria_id?.toString() ?? 'null');
+                    }
                 }
             } catch (error) {
                 console.error(error);
@@ -115,6 +123,8 @@ export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetI
     const handleRefChange = (refId: string) => {
         const ref = references.find((r) => r.id.toString() === refId);
         setSelectedRef(ref);
+        setSelectedBodegaId('');
+        setSelectedEstanteriaId('');
         setData((old) => ({
             ...old,
             referencia_id: refId,
@@ -225,20 +235,68 @@ export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetI
                         />
 
                         {selectedRef && (
-                            <SelectField
-                                name="inventario_id"
-                                title="Ubicación / Talla (Inventario)"
-                                required
-                                disabled={loadingStock}
-                                value={data.inventario_id}
-                                onChange={(val) => handleInvChange(val as string)}
-                                lista={stockItems.map((i) => ({
-                                    id: i.id.toString(),
-                                    display: `Bodega: ${i.bodega_nombre} | Estante: ${i.estanteria_nombre} | Talla: ${i.talla} (Stock: ${i.stock})`,
-                                }))}
-                                item={{ idx: 'id', value: 'display' }}
-                                error={errors.inventario_id}
-                            />
+                            <>
+                                <SelectField
+                                    name="bodega_id"
+                                    title="Seleccionar Bodega"
+                                    required
+                                    disabled={loadingStock}
+                                    value={selectedBodegaId}
+                                    onChange={(val) => {
+                                        setSelectedBodegaId(val as string);
+                                        setSelectedEstanteriaId('');
+                                        setData('inventario_id', '');
+                                    }}
+                                    lista={Array.from(new Set(stockItems.map((i) => i.bodega_id))).map((id) => {
+                                        const item = stockItems.find((i) => i.bodega_id === id);
+                                        return { id: id?.toString() || '', label: item?.bodega_nombre || 'Desconocida' };
+                                    })}
+                                    item={{ idx: 'id', value: 'label' }}
+                                />
+
+                                {selectedBodegaId && (
+                                    <SelectField
+                                        name="estanteria_id"
+                                        title="Seleccionar Estantería"
+                                        required
+                                        disabled={loadingStock}
+                                        value={selectedEstanteriaId}
+                                        onChange={(val) => {
+                                            setSelectedEstanteriaId(val as string);
+                                            setData('inventario_id', '');
+                                        }}
+                                        lista={Array.from(
+                                            new Set(stockItems.filter((i) => i.bodega_id?.toString() === selectedBodegaId).map((i) => i.estanteria_id)),
+                                        ).map((id) => {
+                                            const item = stockItems.find((i) => i.estanteria_id === id);
+                                            return { id: id?.toString() ?? 'null', label: item?.estanteria_nombre || 'General' };
+                                        })}
+                                        item={{ idx: 'id', value: 'label' }}
+                                    />
+                                )}
+
+                                {selectedEstanteriaId && (
+                                    <SelectField
+                                        name="inventario_id"
+                                        title="Seleccionar Talla / Stock"
+                                        required
+                                        error={errors.inventario_id}
+                                        disabled={loadingStock}
+                                        value={data.inventario_id}
+                                        onChange={(val) => handleInvChange(val as string)}
+                                        lista={stockItems
+                                            .filter((i) => 
+                                                i.bodega_id?.toString() === selectedBodegaId && 
+                                                (i.estanteria_id?.toString() ?? 'null') === selectedEstanteriaId
+                                            )
+                                            .map((i) => ({
+                                                id: i.id.toString(),
+                                                label: `Talla: ${i.talla} (Disponible: ${i.stock})`,
+                                            }))}
+                                        item={{ idx: 'id', value: 'label' }}
+                                    />
+                                )}
+                            </>
                         )}
 
                         <div className="flex items-center space-x-2">

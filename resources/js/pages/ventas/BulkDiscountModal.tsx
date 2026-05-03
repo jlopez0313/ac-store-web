@@ -1,10 +1,9 @@
 import { Modal } from '@/components/ui/Modal';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import { FormButtons } from '@/components/ui/form/FormButtons';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tag } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { ViewerModal } from '@/components/ui/ViewerModal';
 
 interface BulkDiscountModalProps {
     isOpen: boolean;
@@ -76,7 +75,8 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
         setNewDiscounts(prev => ({ ...prev, [refId]: value }));
     };
 
-    const calculateNewPrice = (originalPrice: number, discountStr: string) => {
+    const calculateNewPrice = (originalPrice: number, currentPrice: number, discountStr: string) => {
+        if (discountStr === '') return currentPrice;
         const discount = parseFloat(discountStr) || 0;
         return Math.max(0, originalPrice - discount);
     };
@@ -122,24 +122,25 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                             <TableRow>
                                 <TableHead className="w-16 font-bold text-foreground">Foto</TableHead>
                                 <TableHead className="font-bold text-foreground">Referencia</TableHead>
-                                <TableHead className="w-30 text-center font-bold text-foreground">Cant. Total</TableHead>
-                                <TableHead className="w-32 text-right font-bold text-foreground">Precio Venta</TableHead>
-                                <TableHead className="w-32 text-right font-bold text-foreground">Precio Actual</TableHead>
-                                <TableHead className="w-43 text-center font-bold text-foreground">Nuevo Descuento ($)</TableHead>
-                                <TableHead className="w-32 text-right font-bold text-foreground">Precio Final</TableHead>
-                                <TableHead className="w-36 text-right pr-6 font-bold text-foreground">Subtotal</TableHead>
+                                <TableHead className="w-30 font-bold text-foreground">Cant. Total</TableHead>
+                                <TableHead className="w-32 font-bold text-foreground">Precio Sugerido</TableHead>
+                                <TableHead className="w-32 font-bold text-foreground">Precio Actual</TableHead>
+                                <TableHead className="w-32 font-bold text-foreground">Desc. Actual</TableHead>
+                                <TableHead className="w-43 font-bold text-foreground">Nuevo Descuento ($)</TableHead>
+                                <TableHead className="w-32 font-bold text-foreground">Precio Final</TableHead>
+                                <TableHead className="w-36 pr-6 font-bold text-foreground">Subtotal</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {groupedItems.map((group: any) => {
                                 const newDiscount = newDiscounts[group.producto_id] || '';
-                                const newPrice = calculateNewPrice(group.originalPrice, newDiscount);
+                                const newPrice = calculateNewPrice(group.originalPrice, group.currentPrice, newDiscount);
                                 const total = newPrice * group.totalInvoiceQuantity;
 
                                 return (
                                     <TableRow key={group.producto_id} className="hover:bg-muted/10 transition-colors">
                                         <TableCell>
-                                            <div 
+                                            <div
                                                 className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-100 bg-slate-50 transition-transform hover:scale-110 active:scale-95"
                                                 onClick={() => group.producto?.foto && openViewer(group.producto.foto)}
                                             >
@@ -152,7 +153,7 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
-                                                <span className="font-mono font-black text-indigo-600 text-xs">
+                                                <span className="font-bold text-xs">
                                                     {group.producto?.codigo}
                                                 </span>
                                                 <span className="text-[11px] text-muted-foreground truncate max-w-[180px]" title={group.producto?.descripcion}>
@@ -160,16 +161,19 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                                                 </span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-center">
-                                            <div className="flex flex-col items-center">
+                                        <TableCell className="">
+                                            <div className="flex flex-col">
                                                 <span className="text-sm text-muted-foreground font-medium">{group.totalInvoiceQuantity} ud.</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right text-muted-foreground text-sm font-mono">
+                                        <TableCell className="">
                                             ${group.originalPrice.toLocaleString()}
                                         </TableCell>
-                                        <TableCell className="text-right text-muted-foreground text-sm font-mono">
+                                        <TableCell className="text-muted-foreground">
                                             ${group.currentPrice.toLocaleString()}
+                                        </TableCell>
+                                        <TableCell className="text-foreground text-[13px] font-bold">
+                                            ${(group.originalPrice - group.currentPrice).toLocaleString()}
                                         </TableCell>
                                         <TableCell>
                                             <input
@@ -180,10 +184,10 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                                                 className="w-full px-3 py-1.5 bg-muted/30 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-center font-bold text-foreground"
                                             />
                                         </TableCell>
-                                        <TableCell className="text-right font-medium text-indigo-600 font-mono">
+                                        <TableCell className="font-medium text-indigo-600">
                                             ${newPrice.toLocaleString()}
                                         </TableCell>
-                                        <TableCell className="text-right pr-6 font-medium text-foreground font-mono">
+                                        <TableCell className="pr-6 font-medium text-foreground">
                                             ${total.toLocaleString()}
                                         </TableCell>
                                     </TableRow>
@@ -197,7 +201,7 @@ export const BulkDiscountModal: React.FC<BulkDiscountModalProps> = ({
                                     <TableCell className="text-right pr-6 text-indigo-700 font-bold text-lg font-mono">
                                         ${groupedItems.reduce((acc, group) => {
                                             const newDiscount = newDiscounts[group.producto_id] || '';
-                                            const newPrice = calculateNewPrice(group.originalPrice, newDiscount);
+                                            const newPrice = calculateNewPrice(group.originalPrice, group.currentPrice, newDiscount);
                                             return acc + (newPrice * group.totalInvoiceQuantity);
                                         }, 0).toLocaleString()}
                                     </TableCell>

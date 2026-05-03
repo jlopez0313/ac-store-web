@@ -142,6 +142,7 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                                 </div>
                                 <Button
                                     variant="secondary"
+                                    loading={loading}
                                     onClick={() => {
                                         const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
                                         handleSearch(val);
