@@ -2,13 +2,14 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { SelectField } from '@/components/ui/form/SelectField';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { BarChart3, Package, Search, ShoppingCart, X } from 'lucide-react';
+import { BarChart3, ImageIcon, Package, Search, ShoppingCart, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -31,7 +32,8 @@ export default function Ventas({ cuentas, locales }: any) {
     });
 
     const [data, setData] = useState<any[]>([]);
-    const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25, total_ventas: 0, total_productos: 0 });
+    const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25, total_facturas: 0, total_ventas: 0, total_productos: 0 });
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
 
@@ -56,11 +58,28 @@ export default function Ventas({ cuentas, locales }: any) {
     const handleClear = () => {
         setFilters({ desde: firstDay, hasta: today, local_id: '', cuenta_id: 'all' });
         setData([]);
-        setMeta({ total: 0, current_page: 1, per_page: 25, total_ventas: 0, total_productos: 0 });
+        setMeta({ total: 0, current_page: 1, per_page: 25, total_facturas: 0, total_ventas: 0, total_productos: 0 });
         setSearched(false);
     };
 
     const columns = [
+        {
+            name: 'Foto',
+            width: '70px',
+            cell: (row: any) => (
+                <button
+                    type="button"
+                    onClick={() => row.foto && setViewerImage(row.foto)}
+                    className={`my-1 flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-border bg-muted transition-transform ${row.foto ? 'hover:scale-110 active:scale-95 cursor-pointer' : 'cursor-default'}`}
+                >
+                    {row.foto ? (
+                        <img src={row.foto} alt={row.codigo} className="h-full w-full object-cover" />
+                    ) : (
+                        <ImageIcon className="h-4 w-4 text-slate-400" />
+                    )}
+                </button>
+            ),
+        },
         {
             name: 'Factura',
             selector: (row: any) => row.factura_numero || row.factura_id,
@@ -213,7 +232,7 @@ export default function Ventas({ cuentas, locales }: any) {
                             </div>
                             <div>
                                 <p className="text-[10px] font-medium uppercase text-slate-400">Facturas</p>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{meta.total.toLocaleString()}</p>
+                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{Number(meta.total_facturas || 0).toLocaleString()}</p>
                             </div>
                         </div>
 
@@ -265,6 +284,12 @@ export default function Ventas({ cuentas, locales }: any) {
                     </div>
                 )}
             </div>
+
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={() => setViewerImage(null)}
+            />
         </AppLayout>
     );
 }

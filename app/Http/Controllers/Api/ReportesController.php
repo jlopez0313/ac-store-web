@@ -40,8 +40,9 @@ class ReportesController extends Controller
         ->orderByDesc('id');
 
         // Totals before pagination
-        $totalVentas   = (clone $query)->sum('subtotal');
+        $totalVentas    = (clone $query)->sum('subtotal');
         $totalProductos = (clone $query)->sum('cantidad');
+        $totalFacturas  = (clone $query)->distinct()->count('venta_id');
 
         $paginated = $query->paginate($request->input('per_page', 25));
 
@@ -56,6 +57,7 @@ class ReportesController extends Controller
                 'codigo'         => $d->producto->codigo ?? 'N/A',
                 'descripcion'    => $d->producto->descripcion ?? 'N/A',
                 'marca'          => $d->producto->marca->nombre ?? 'N/A',
+                'foto'           => $d->producto->foto ? asset('storage/' . ltrim($d->producto->foto, '/')) : null,
                 'talla'          => $d->talla,
                 'bodega'         => $d->estanteria->bodega->nombre ?? 'N/A',
                 'cantidad'       => $d->cantidad,
@@ -66,6 +68,7 @@ class ReportesController extends Controller
                 'current_page'    => $paginated->currentPage(),
                 'per_page'        => $paginated->perPage(),
                 'total'           => $paginated->total(),
+                'total_facturas'  => $totalFacturas,
                 'total_ventas'    => (float) $totalVentas,
                 'total_productos' => (int) $totalProductos,
             ],
