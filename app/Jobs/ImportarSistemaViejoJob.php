@@ -1378,7 +1378,17 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
         DB::beginTransaction();
         try {
-            $this->iterarCsvInventario(function ($row, $index) use (&$totales, &$di, &$do, &$doSinRef, &$doSinVenta, &$batch, $now) {
+            // Pre-cargar mapa de inventarios para asociar el inventario_id a cada venta
+            $mapInventarios = DB::table('inventarios')
+                ->where('cuenta_id', $this->cuentaId)
+                ->select('id', 'referencia_id', 'talla')
+                ->get()
+                ->groupBy('referencia_id')
+                ->map(function ($items) {
+                    return $items->keyBy(fn($i) => trim((string) $i->talla))->map->id;
+                });
+
+            $this->iterarCsvInventario(function ($row, $index) use ($mapInventarios, &$totales, &$di, &$do, &$doSinRef, &$doSinVenta, &$batch, $now) {
                 if ($index === 1) {
                     return;
                 }
@@ -1409,14 +1419,16 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 $precio = (int) ($row[18] ?: $row[19] ?: $row[11] ?: 0);
                 $cant = (int) ($row[3] ?? 1);
                 $subtotal = $precio * $cant;
+                $talla = trim((string) ($row[4] ?? ''));
 
                 if (!$this->dryRun) {
                     $batch[] = [
                         'venta_id' => $ventaId,
                         'producto_id' => $refId,
+                        'inventario_id' => $mapInventarios->get($refId)?->get($talla),
                         'bodega_id' => $this->mapBodegas[$row[6] ?? null] ?? null,
                         'estanteria_id' => $this->mapEstanterias[$row[6] ?? null] ?? null,
-                        'talla' => trim((string) ($row[4] ?? '')),
+                        'talla' => $talla,
                         'cantidad' => $cant,
                         'precio_unitario' => $precio,
                         'subtotal' => $subtotal,

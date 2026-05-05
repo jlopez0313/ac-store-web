@@ -11,7 +11,13 @@ class DevolucionesController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
         $query = \App\Models\VentaDetalle::onlyTrashed()
+            ->whereHas('venta', function ($q) use ($user) {
+                if (!$user->hasRole('superadmin')) {
+                    $q->where('cuenta_id', $user->cuenta_id);
+                }
+            })
             ->with(['venta.local', 'producto', 'bodega', 'estanteria', 'eliminador'])
             ->orderBy('deleted_at', 'desc');
 
@@ -31,7 +37,11 @@ class DevolucionesController extends Controller
 
         $devoluciones = $query->paginate($request->input('per_page', 25))->appends($request->all());
 
-        $locals = \App\Models\User::role('local')->get(['id', 'name']);
+        $localsQuery = \App\Models\User::role('local');
+        if (!$user->hasRole('superadmin')) {
+            $localsQuery->where('cuenta_id', $user->cuenta_id);
+        }
+        $locals = $localsQuery->get(['id', 'name']);
 
         return Inertia::render('devoluciones/Index', [
             'devoluciones' => DevolucionResource::collection($devoluciones),
