@@ -51,6 +51,7 @@ export const NAV_ITEMS: NavItem[] = [
     { title: 'Cambios', url: '/cambios', icon: RefreshCcw, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
     { title: 'Devoluciones', url: '/devoluciones', icon: Undo2, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },
     { title: 'Cardex', url: '/cardex', icon: TrendingUp, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },
+    { title: 'Reporte de Ventas', url: '/reporte-ventas', icon: BarChart3, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },
     // { title: 'Ventas Generales', url: '/ventas-generales', icon: BarChart2, roles: ['superadmin', 'admin'], group: 'reportes' },
     { title: 'Cartera', url: '/cartera', icon: Wallet, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },
     { title: 'Suscripciones', url: '/reporte-suscripciones', icon: BarChart3, roles: ['superadmin'], group: 'reportes' },
