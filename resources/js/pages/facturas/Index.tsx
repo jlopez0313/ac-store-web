@@ -93,8 +93,15 @@ export default function Index({ filters: initialFilters }: any) {
 
     const columns = [
         {
+            name: 'ID',
+            selector: (row: any) => row.id,
+            sortable: true,
+            sortField: 'id',
+            width: '80px',
+        },
+        {
             name: 'Código',
-            selector: (row: any) => row.numero ?? row.id,
+            selector: (row: any) => row.numero || '-',
             sortable: true,
             sortField: 'numero',
             width: '100px',
