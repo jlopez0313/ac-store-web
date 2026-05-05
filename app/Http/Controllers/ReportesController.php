@@ -14,7 +14,7 @@ class ReportesController extends Controller
         $user = auth()->user();
         $isSuper = $user->role === 'superadmin';
 
-        $localesQuery = User::where('role', 'local');
+        $localesQuery = User::whereHas('roles', fn($q) => $q->where('name', 'local'));
         if (!$isSuper) {
             $localesQuery->where('cuenta_id', $user->cuenta_id);
         }
