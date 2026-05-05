@@ -141,7 +141,7 @@ export default function Ventas({ cuentas, locales }: any) {
             cell: (row: any) => {
                 const sugerido = Number(row.precio_sugerido || 0);
                 const unitario = Number(row.precio_unitario || 0);
-                let cls = 'font-semibold rounded border text-xs';
+                let cls = 'font-semibold px-2 rounded border text-xs';
                 if (sugerido > 0 && unitario < sugerido) {
                     cls += ' bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800';
                 } else if (sugerido > 0 && unitario === sugerido) {
