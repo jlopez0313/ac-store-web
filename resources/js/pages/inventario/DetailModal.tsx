@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import axios from 'axios';
 import { Edit, Info, Package, Tag, Warehouse } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
 import { AdjustmentModal } from './AdjustmentModal';
 
@@ -16,6 +17,8 @@ interface DetailModalProps {
 }
 
 export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, referencia, onAdjust }) => {
+    const { auth } = usePage().props as any;
+    const canAdjust = ['superadmin', 'admin'].includes(auth.user.role);
     const [details, setDetails] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [adjustmentOpen, setAdjustmentOpen] = useState(false);
@@ -247,27 +250,17 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                                                     </TableCell>
                                                                     <TableCell className="pr-6 text-right">
                                                                         <div className="flex items-center justify-end gap-1">
-                                                                            {/*
-                                                                            
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                className="hover:bg-primary/10 h-7 w-7 cursor-pointer p-0"
-                                                                                onClick={() => handleDownloadLabel(item)}
-                                                                                title="Descargar Etiqueta"
-                                                                            >
-                                                                                <Barcode className="h-3.5 w-3.5 text-emerald-600" />
-                                                                            </Button>
-                                                                            */}
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                className="hover:bg-primary/10 h-7 w-7 cursor-pointer p-0"
-                                                                                onClick={() => handleAdjust(item)}
-                                                                                title="Ajustar"
-                                                                            >
-                                                                                <Edit className="text-primary h-3.5 w-3.5" />
-                                                                            </Button>
+                                                                            {canAdjust && (
+                                                                                <Button
+                                                                                    variant="ghost"
+                                                                                    size="sm"
+                                                                                    className="hover:bg-primary/10 h-7 w-7 cursor-pointer p-0"
+                                                                                    onClick={() => handleAdjust(item)}
+                                                                                    title="Ajustar"
+                                                                                >
+                                                                                    <Edit className="text-primary h-3.5 w-3.5" />
+                                                                                </Button>
+                                                                            )}
                                                                         </div>
                                                                     </TableCell>
                                                                 </TableRow>

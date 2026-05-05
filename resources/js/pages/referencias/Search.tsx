@@ -10,8 +10,9 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { ImageIcon, Loader2, Search as SearchIcon, X } from 'lucide-react';
+import { Eye, ImageIcon, Loader2, Search as SearchIcon, X } from 'lucide-react';
 import { useState } from 'react';
+import { DetailModal } from '../inventario/DetailModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Panel principal', href: route('dashboard') },
@@ -34,6 +35,8 @@ export default function Search({ results: initialResults, filters, cuentas, marc
     const [currentPage, setCurrentPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
     const [viewerImage, setViewerImage] = useState<string | null>(null);
+    const [selectedReferencia, setSelectedReferencia] = useState<any>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
     const handleSearch = async (page = 1, rowsPerPage = perPage) => {
         setLoading(true);
@@ -117,21 +120,10 @@ export default function Search({ results: initialResults, filters, cuentas, marc
             width: '350px',
         },
         {
-            name: 'Talla',
-            selector: (row: any) => row.talla,
-            sortable: true,
-            width: '100px',
-        },
-        {
-            name: 'Bodega',
-            selector: (row: any) => <span className='font-bold'>{row.bodega}</span>,
-            sortable: true,
-        },
-        {
-            name: 'Stock',
+            name: 'Stock Total',
             selector: (row: any) => row.stock,
             sortable: true,
-            width: '100px',
+            width: '120px',
             cell: (row: any) => <span className={`font-bold ${row.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>{row.stock}</span>,
         },
         ...(isSuperAdmin
@@ -142,6 +134,27 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                 },
             ]
             : []),
+        {
+            name: 'Acciones',
+            width: '150px',
+            cell: (row: any) => (
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 font-bold"
+                    onClick={() => {
+                        setSelectedReferencia({
+                            ...row,
+                            total_stock: row.stock // DetailModal expects total_stock
+                        });
+                        setIsDetailModalOpen(true);
+                    }}
+                >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Ver Disponibilidad
+                </Button>
+            ),
+        },
     ];
 
     return (
@@ -258,6 +271,12 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                 show={!!viewerImage}
                 image={viewerImage}
                 onClose={() => setViewerImage(null)}
+            />
+
+            <DetailModal
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                referencia={selectedReferencia}
             />
         </AppLayout>
     );

@@ -21,6 +21,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ filters: initialFilters }: any) {
+	const { auth } = usePage().props as any;
+	const canAdjust = ['superadmin', 'admin'].includes(auth.user.role);
+
 	const [items, setItems] = useState<any[]>([]);
 	const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
 	const [loading, setLoading] = useState(true);
@@ -171,12 +174,12 @@ export default function Index({ filters: initialFilters }: any) {
 	];
 
 	const actions = [
-		{
+		...(canAdjust ? [{
 			title: 'Ajustar',
 			icon: Edit,
 			isLoading: (id: any, row: any) => actionLoading && selectedReferencia?.id === row.id,
 			action: (id: any, row: any) => handleAdjustFromIndex(row)
-		},
+		}] : []),
 		{
 			title: 'Ver Detalle',
 			icon: Eye,

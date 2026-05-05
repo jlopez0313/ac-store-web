@@ -37,6 +37,11 @@ class InventariosController extends Controller
 
     public function ajustar(Request $request)
     {
+        $user = auth()->user();
+        if (!$user->hasAnyRole(['superadmin', 'admin'])) {
+            return response()->json(['error' => 'No tiene permisos para realizar ajustes de inventario.'], 403);
+        }
+
         $request->validate([
             'referencia_id' => 'required|exists:referencias,id',
             'estanteria_id' => 'required|exists:estanterias,id',

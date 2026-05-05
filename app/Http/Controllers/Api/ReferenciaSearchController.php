@@ -15,49 +15,63 @@ class ReferenciaSearchController extends Controller
         $user = auth()->user();
         $isSuper = $user->hasRole('superadmin');
         
-        $query = Inventario::with(['referencia.marca', 'estanteria.bodega'])
-            ->where('stock', '>', 0);
+        $query = Referencia::with(['marca', 'cuenta'])
+            ->withSum(['inventarios as total_stock' => function ($q) use ($user, $isSuper, $request) {
+                $q->where('stock', '>', 0);
+                if ($request->filled('talla')) {
+                    $q->where('talla', 'like', '%' . $request->talla . '%');
+                }
+                if (!$isSuper) {
+                    if ($user->hasRole('local')) {
+                        $q->whereHas('estanteria.bodega.bodegaAccesos', function ($aq) use ($user) {
+                            $aq->where('user_id', $user->id)
+                               ->where(function ($sq) {
+                                   $sq->where('can_view', true)->orWhere('can_order', true);
+                               });
+                        });
+                    } else {
+                        $q->where('cuenta_id', $user->cuenta_id);
+                    }
+                } elseif ($request->filled('cuenta_id') && $request->cuenta_id !== 'all') {
+                    $q->where('cuenta_id', $request->cuenta_id);
+                }
+            }], 'stock')
+            ->whereHas('inventarios', function ($q) use ($user, $isSuper, $request) {
+                $q->where('stock', '>', 0);
+                
+                if ($request->filled('talla')) {
+                    $q->where('talla', 'like', '%' . $request->talla . '%');
+                }
 
-        // Apply filters based on role
-        if ($isSuper) {
-            if ($request->filled('cuenta_id') && $request->cuenta_id !== 'all') {
-                $query->where('cuenta_id', $request->cuenta_id);
-            }
-        } elseif ($user->hasRole('local')) {
-            // Local users only see what they have access to
-            $query->whereHas('estanteria.bodega.bodegaAccesos', function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->where(function ($sq) {
-                      $sq->where('can_view', true)
-                         ->orWhere('can_order', true);
-                  });
+                if (!$isSuper) {
+                    if ($user->hasRole('local')) {
+                        $q->whereHas('estanteria.bodega.bodegaAccesos', function ($aq) use ($user) {
+                            $aq->where('user_id', $user->id)
+                               ->where(function ($sq) {
+                                   $sq->where('can_view', true)->orWhere('can_order', true);
+                               });
+                        });
+                    } else {
+                        $q->where('cuenta_id', $user->cuenta_id);
+                    }
+                } elseif ($request->filled('cuenta_id') && $request->cuenta_id !== 'all') {
+                    $q->where('cuenta_id', $request->cuenta_id);
+                }
             });
-        } else {
-            // Admin/Bodega users only see their account's inventory
-            $query->where('cuenta_id', $user->cuenta_id);
-        }
 
         // Search filters
         if ($request->filled('marca')) {
-            $query->whereHas('referencia.marca', function ($q) use ($request) {
+            $query->whereHas('marca', function ($q) use ($request) {
                 $q->where('nombre', 'like', '%' . $request->marca . '%');
             });
         }
 
         if ($request->filled('codigo')) {
-            $query->whereHas('referencia', function ($q) use ($request) {
-                $q->where('codigo', 'like', '%' . $request->codigo . '%');
-            });
+            $query->where('codigo', 'like', '%' . $request->codigo . '%');
         }
 
         if ($request->filled('referencia')) {
-            $query->whereHas('referencia', function ($q) use ($request) {
-                $q->where('descripcion', 'like', '%' . $request->referencia . '%');
-            });
-        }
-
-        if ($request->filled('talla')) {
-            $query->where('talla', 'like', '%' . $request->talla . '%');
+            $query->where('descripcion', 'like', '%' . $request->referencia . '%');
         }
 
         $perPage = $request->input('per_page', 10);
@@ -67,13 +81,11 @@ class ReferenciaSearchController extends Controller
             'data' => $paginated->getCollection()->map(function ($item) {
                 return [
                     'id' => $item->id,
-                    'codigo' => $item->referencia->codigo,
-                    'marca' => $item->referencia->marca->nombre ?? 'N/A',
-                    'descripcion' => $item->referencia->descripcion,
-                    'talla' => $item->talla,
-                    'stock' => $item->stock,
-                    'foto' => $item->referencia->foto,
-                    'bodega' => $item->estanteria->bodega->nombre,
+                    'codigo' => $item->codigo,
+                    'marca' => $item->marca->nombre ?? 'N/A',
+                    'descripcion' => $item->descripcion,
+                    'stock' => (int) $item->total_stock,
+                    'foto' => $item->foto,
                     'cuenta' => $item->cuenta->nombre ?? 'N/A',
                 ];
             }),
