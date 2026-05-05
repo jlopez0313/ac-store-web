@@ -42,7 +42,7 @@ class VentasController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                // Exact ID or Numero match if numeric
+                // Exact Numero match if numeric
                 if (is_numeric($search)) {
                     $q->where('numero', $search);
                 } else {
@@ -57,6 +57,11 @@ class VentasController extends Controller
             ->paginate($request->input('per_page', 10));
 
         return VentaResource::collection($paginated);
+    }
+
+    public function show(Venta $venta)
+    {
+        return new VentaResource($venta->load(['local', 'detalles.producto', 'detalles.estanteria.bodega']));
     }
 
     public function searchReferences(Request $request)

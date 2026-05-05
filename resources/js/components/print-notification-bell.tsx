@@ -78,11 +78,9 @@ export function PrintNotificationBell({ cuentaId }: Props) {
         const effectiveCuentaId = cuentaId || (request as any)._cuentaId;
         setProcessingKey(request.key || null);
         try {
-            const response = await axios.get(route('api.ventas.index'), {
-                params: { search: request.venta_id, per_page: 1 },
-            });
+            const response = await axios.get(route('api.ventas.show', request.venta_id));
+            const venta = response.data.data;
 
-            const venta = response.data.data?.[0];
             if (!venta) {
                 showAlert('error', 'No se encontró la factura.');
                 return;
