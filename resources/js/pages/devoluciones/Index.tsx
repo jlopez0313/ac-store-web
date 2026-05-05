@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Image as ImageIcon, Search as SearchIcon, User as UserIcon, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -19,6 +19,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ locals, filters: initialFilters }: any) {
+    const { auth }: any = usePage().props;
+    const isSuperAdmin = auth.user.role === 'superadmin';
     const [items, setItems] = useState<any[]>([]);
     const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
     const [loading, setLoading] = useState(true);
@@ -123,6 +125,17 @@ export default function Index({ locals, filters: initialFilters }: any) {
             sortable: true,
             cell: (row: any) => <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{row.venta?.local?.name || 'N/A'}</span>,
         },
+        ...(isSuperAdmin ? [{
+            name: 'Cuenta',
+            selector: (row: any) => row.venta?.cuenta?.nombre,
+            sortable: true,
+            width: '150px',
+            cell: (row: any) => (
+                <Badge variant="outline" className="font-bold border-indigo-200 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400">
+                    {row.venta?.cuenta?.nombre || 'N/A'}
+                </Badge>
+            ),
+        }] : []),
         {
             name: 'Producto',
             grow: 1.5,

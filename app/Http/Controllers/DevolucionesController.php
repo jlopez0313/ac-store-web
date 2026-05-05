@@ -18,7 +18,7 @@ class DevolucionesController extends Controller
                     $q->where('cuenta_id', $user->cuenta_id);
                 }
             })
-            ->with(['venta.local', 'producto', 'bodega', 'estanteria', 'eliminador'])
+            ->with(['venta.local', 'venta.cuenta', 'producto', 'bodega', 'estanteria', 'eliminador'])
             ->orderBy('deleted_at', 'desc');
 
         if ($request->filled('local_id')) {
