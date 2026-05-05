@@ -12,15 +12,18 @@ class DevolucionesController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = \App\Models\Devolucion::query()
+        
+        // Usamos el modelo que corresponda. Si en tu sistema las devoluciones
+        // son productos borrados de la venta, usamos VentaDetalle::onlyTrashed()
+        $query = \App\Models\VentaDetalle::onlyTrashed()
             ->whereHas('venta', function ($q) use ($user) {
-                $q->withTrashed();
+                $q->withTrashed(); // Por si la venta también fue borrada
                 if (!$user->hasRole('superadmin')) {
                     $q->where('cuenta_id', $user->cuenta_id);
                 }
             })
             ->with(['venta' => fn($q) => $q->withTrashed(), 'venta.local', 'venta.cuenta', 'producto', 'bodega', 'estanteria', 'eliminador'])
-            ->orderBy('created_at', 'desc');
+            ->orderBy('deleted_at', 'desc');
 
         if ($request->filled('local_id')) {
             $query->whereHas('venta', function ($q) use ($request) {

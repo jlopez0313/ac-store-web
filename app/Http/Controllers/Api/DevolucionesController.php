@@ -18,12 +18,14 @@ class DevolucionesController extends Controller
         $isSuper = $user->role === 'superadmin';
 
         $query = VentaDetalle::onlyTrashed()
-            ->with(['venta.local', 'producto', 'bodega', 'estanteria', 'eliminador'])
+            ->whereHas('venta', function ($q) use ($user, $isSuper) {
+                $q->withTrashed();
+                if (!$isSuper) {
+                    $q->where('cuenta_id', $user->cuenta_id);
+                }
+            })
+            ->with(['venta' => fn($q) => $q->withTrashed(), 'venta.local', 'venta.cuenta', 'producto', 'bodega', 'estanteria', 'eliminador'])
             ->orderBy('deleted_at', 'desc');
-
-        if (!$isSuper) {
-            $query->where('cuenta_id', $user->cuenta_id);
-        }
 
         if ($request->filled('local_id')) {
             $query->whereHas('venta', function ($q) use ($request) {
