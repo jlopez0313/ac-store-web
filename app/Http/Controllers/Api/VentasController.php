@@ -42,9 +42,9 @@ class VentasController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                // Prioritize Exact ID if numeric, otherwise search local name
+                // Exact ID or Numero match if numeric
                 if (is_numeric($search)) {
-                    $q->where('id', $search);
+                    $q->where('numero', $search);
                 } else {
                     $q->whereHas('local', function ($lq) use ($search) {
                         $lq->where('name', 'like', '%' . $search . '%');
@@ -234,6 +234,7 @@ class VentasController extends Controller
     {
         $request->validate([
             'user_id' => 'required',
+            'vendedor_ids' => 'nullable|array',
             'cuenta_id' => auth()->user()->role === 'superadmin' ? 'required|exists:cuentas,id' : 'nullable',
         ]);
 

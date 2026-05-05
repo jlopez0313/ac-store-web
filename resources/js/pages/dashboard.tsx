@@ -21,35 +21,45 @@ export default function Dashboard({ auth }: { auth: Auth }) {
 		<AppLayout breadcrumbs={breadcrumbs} hideSidebar>
 			<Head title="Panel principal" />
 
-			<div className="p-4">
-				<PageHeader
-					title={`Bienvenido, ${auth.user.name?.split(' ')[0]}`}
-					description="¿Qué deseas hacer hoy?"
-				/>
+			<div className="p-6 md:p-10 max-w-6xl mx-auto">
+				<div className="text-center mb-10">
+					<h1 className="text-3xl font-bold tracking-tight mb-2">
+						Bienvenido, {auth.user.name?.split(' ')[0]}
+					</h1>
+					<p className="text-muted-foreground text-lg">
+						¿Qué deseas hacer hoy?
+					</p>
+				</div>
 
-				<div className="mt-8 px-4 mx-auto space-y-8">
-
+				<div className="space-y-12">
 					{groups.map(group => {
 						const items = visibleItems.filter(i => i.group === group);
 						if (items.length === 0) return null;
 						const meta = GROUP_META[group];
 
 						return (
-							<section key={group}>
-								<h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
-									{meta.label}
-								</h2>
-								<div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+							<section key={group} className="space-y-6">
+								<div className="flex items-center gap-4">
+									<div className="h-px flex-1 bg-border/60"></div>
+									<h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/60 whitespace-nowrap">
+										{meta.label}
+									</h2>
+									<div className="h-px flex-1 bg-border/60"></div>
+								</div>
+								
+								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 justify-center">
 									{items.map(item => (
 										<Link
 											key={item.url}
 											href={item.url}
-											className="group flex flex-col items-center gap-3 rounded-xl border bg-card p-5 text-center hover:border-primary/40 hover:shadow-md transition-all duration-150 hover:-translate-y-0.5"
+											className="group flex flex-col items-center gap-4 rounded-2xl border bg-card p-6 text-center hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1.5"
 										>
-											<div className={`w-11 h-11 rounded-xl flex items-center justify-center ${meta.bg} transition-transform group-hover:scale-110`}>
-												<item.icon className={`h-5 w-5 ${meta.color}`} />
+											<div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${meta.bg} shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-110`}>
+												<item.icon className={`h-7 w-7 ${meta.color}`} />
 											</div>
-											<span className="text-sm font-medium leading-tight">{item.title}</span>
+											<span className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-tight">
+												{item.title}
+											</span>
 										</Link>
 									))}
 								</div>

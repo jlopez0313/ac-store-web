@@ -115,6 +115,11 @@ class MuestrasController extends Controller
                 $this->updateInventoryForMuestra($inventario, $validated['etiquetas'], 'subtract');
 
                 $muestra = Muestra::create($validated);
+                
+                // Mark OTHER samples as already printed (true) so ONLY the new one stays pending (false)
+                Muestra::where('cuenta_id', $validated['cuenta_id'])
+                    ->where('id', '!=', $muestra->id)
+                    ->update(['impreso' => true]);
 
                 return response()->json([
                     'message' => 'Muestra registrada correctamente',

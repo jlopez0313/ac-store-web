@@ -16,6 +16,7 @@ class CompraResource extends JsonResource
     {
         return [
             'id'             => $this->id,
+            'numero'         => $this->numero,
             'cuenta_id'      => $this->cuenta_id,
             'proveedor_id'   => $this->proveedor_id,
             'estado'         => $this->estado,

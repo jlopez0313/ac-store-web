@@ -26,8 +26,10 @@ class ComprasController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('proveedor', function ($q) use ($search) {
-                $q->where('nombre', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('proveedor', function ($pq) use ($search) {
+                    $pq->where('nombre', 'like', "%{$search}%");
+                })->orWhere('numero', 'like', "%{$search}%");
             });
         }
 
@@ -56,6 +58,7 @@ class ComprasController extends Controller
             $validated['cuenta_id'] = auth()->user()->cuenta_id;
         }
 
+        $validated['numero'] = (Compra::where('cuenta_id', $validated['cuenta_id'])->max('numero') ?? 0) + 1;
         $compra = Compra::create($validated);
         $compra->load('cuenta', 'proveedor', 'detalles.producto');
 

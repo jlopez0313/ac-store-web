@@ -62,6 +62,7 @@ class UsuariosController extends Controller
             'ciudad_id' => 'nullable|exists:cities,id',
             'precio_suscripcion' => 'nullable|numeric',
             'fecha_vencimiento' => 'nullable|date',
+            'maneja_vendedores' => 'nullable|boolean',
         ]);
 
         $user = User::create([
@@ -76,6 +77,7 @@ class UsuariosController extends Controller
             'nombre_impresora' => $validated['nombre_impresora'] ?? null,
             'ciudad_id' => $request->ciudad_id ?? null,
             'fecha_vencimiento' => $validated['fecha_vencimiento'] ?? null,
+            'maneja_vendedores' => $validated['maneja_vendedores'] ?? false,
             'email_verified_at' => now(),
         ]);
 
@@ -118,6 +120,7 @@ class UsuariosController extends Controller
             'ciudad_id' => 'nullable|exists:cities,id',
             'precio_suscripcion' => 'nullable|numeric',
             'fecha_vencimiento' => 'nullable|date',
+            'maneja_vendedores' => 'nullable|boolean',
         ]);
 
         $usuario->update([
@@ -131,6 +134,7 @@ class UsuariosController extends Controller
             'nombre_impresora' => $validated['nombre_impresora'] ?? null,
             'ciudad_id' => $request->ciudad_id ?? null,
             'fecha_vencimiento' => $validated['fecha_vencimiento'] ?? null,
+            'maneja_vendedores' => $validated['maneja_vendedores'] ?? false,
         ]);
 
         if (!empty($validated['password'])) {

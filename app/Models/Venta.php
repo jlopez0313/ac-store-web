@@ -11,7 +11,9 @@ class Venta extends Model
     use HasFactory, Blameable;
 
     protected $fillable = [
+        'numero',
         'user_id',
+        'vendedor_id',
         'cuenta_id',
         'fecha',
         'estado',
@@ -29,6 +31,11 @@ class Venta extends Model
     public function local()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function vendedor()
+    {
+        return $this->belongsTo(Vendedor::class, 'vendedor_id');
     }
 
     public function cuenta()

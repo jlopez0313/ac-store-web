@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('referencias', ApiReferenciasController::class)->names('api.referencias');
     Route::apiResource('marcas', App\Http\Controllers\Api\MarcasController::class)->names('api.marcas');
     Route::apiResource('proveedores', ApiProveedoresController::class)->names('api.proveedores');
+    Route::apiResource('vendedores', App\Http\Controllers\Api\VendedorController::class)->names('api.vendedores');
     Route::apiResource('compras', ApiComprasController::class)->names('api.compras');
 
     // Detalles de Compra

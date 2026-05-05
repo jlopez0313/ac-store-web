@@ -72,11 +72,7 @@ export const SelectField = ({
             if (Array.isArray(value)) {
                 const actualValues = dataList.filter(o => o.value !== "ALL").map(o => o.value);
                 const valueArray = value as any[];
-                if (valueArray.length && actualValues.length && actualValues.every(v => valueArray.includes(v))) {
-                    return [{ value: "ALL", label: "TODOS" }];
-                } else {
-                    return dataList.filter((item) => valueArray.includes(item.value));
-                }
+                return dataList.filter((item) => valueArray.includes(item.value));
             }
             return [];
         } else {

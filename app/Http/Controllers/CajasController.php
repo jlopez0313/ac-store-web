@@ -112,6 +112,9 @@ class CajasController extends Controller
                 $caja->decrement('cantidad', $totalTallado);
             }
 
+            // 4. Mark all samples as already printed (true)
+            \App\Models\Muestra::where('cuenta_id', $caja->cuenta_id)->update(['impreso' => true]);
+
             DB::commit();
             return back()->with('success', 'Producto tallado correctamente.');
 

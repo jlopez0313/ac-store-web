@@ -25,9 +25,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('referencias-busqueda', [App\Http\Controllers\ReferenciaSearchController::class, 'index'])->name('referencias.search');
     Route::resource('cuentas', CuentasController::class);
     Route::get('usuarios', [App\Http\Controllers\UsuariosController::class, 'index'])->name('usuarios.index');
+    Route::get('vendedores', [App\Http\Controllers\VendedorController::class, 'all'])->name('vendedores.index');
     Route::get('/muestras', [App\Http\Controllers\MuestrasController::class, 'index'])->name('muestras.index');
     Route::get('/cambios', [App\Http\Controllers\CambiosController::class, 'index'])->name('cambios.index');
     Route::get('usuarios/{usuario}/accesos', [App\Http\Controllers\UsuarioAccesoController::class, 'index'])->name('usuarios.accesos');
+    Route::get('usuarios/{usuario}/vendedores', [App\Http\Controllers\VendedorController::class, 'index'])->name('usuarios.vendedores');
     Route::post('usuarios/{usuario}/accesos/{bodega_id}', [App\Http\Controllers\UsuarioAccesoController::class, 'update'])->name('usuarios.accesos.update');
     Route::get('bodegas', [App\Http\Controllers\BodegasController::class, 'index'])->name('bodegas.index');
     Route::get('bodegas/{bodega}/accesos', [App\Http\Controllers\BodegaAccesoController::class, 'index'])->name('bodegas.accesos');

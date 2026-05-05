@@ -24,6 +24,7 @@ type ThisForm = {
     ciudad_id: string;
     precio_suscripcion: string;
     fecha_vencimiento: string;
+    maneja_vendedores: boolean;
 };
 
 export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore, onGetItem, onReload, default_user_price }: any) => {
@@ -44,6 +45,7 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
         ciudad_id: '',
         precio_suscripcion: '',
         fecha_vencimiento: '',
+        maneja_vendedores: false,
     });
 
     const [countries, setCountries] = useState<any[]>([]);
@@ -154,6 +156,7 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
                     ciudad_id: ciudadId,
                     precio_suscripcion: item.precio_suscripcion?.toString() || '',
                     fecha_vencimiento: item.fecha_vencimiento || '',
+                    maneja_vendedores: !!item.maneja_vendedores,
                 });
             }
         };
@@ -223,7 +226,7 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
                             error={errors.role}
                         />
 
-                        {!['local', 'superadmin'].includes(data.role) && (
+                        {isSuperAdmin && data.role !== 'superadmin' && (
                             <SelectField
                                 name="cuenta_id"
                                 title="Cuenta / Empresa"
@@ -316,6 +319,16 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
                                 value={data.nombre_impresora}
                                 onChange={(value) => setData('nombre_impresora', value as string)}
                                 error={(errors as any).nombre_impresora}
+                            />
+                        )}
+
+                        {data.role === 'local' && (
+                            <SwitchField
+                                processing={processing}
+                                name="maneja_vendedores"
+                                title="Maneja Vendedores"
+                                checked={data.maneja_vendedores}
+                                onChange={(value) => setData('maneja_vendedores', value)}
                             />
                         )}
                     </div>

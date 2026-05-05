@@ -5,7 +5,7 @@ import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { DollarSign, Eye, Search as SearchIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -19,6 +19,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ filters: initialFilters }: any) {
+    const { auth } = usePage().props as any;
+    const isSuper = auth.user.role === 'superadmin';
+
     const [data, setData] = useState<any[]>([]);
     const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25, gran_total: 0 });
     const [loading, setLoading] = useState(true);
@@ -48,7 +51,7 @@ export default function Index({ filters: initialFilters }: any) {
 
                 // Auto-open modal if search matches a single record and we haven't opened it yet
                 if (params.search && items.length > 0) {
-                    const found = items.find((f: any) => f.id == params.search);
+                    const found = items.find((f: any) => f.id == params.search || f.numero == params.search);
                     if (found && !isModalOpen) {
                         setSelectedFactura(found);
                         setIsModalOpen(true);
@@ -90,12 +93,18 @@ export default function Index({ filters: initialFilters }: any) {
 
     const columns = [
         {
-            name: 'ID',
-            selector: (row: any) => row.id,
+            name: 'Código',
+            selector: (row: any) => row.numero ?? row.id,
             sortable: true,
-            sortField: 'id',
-            width: '70px',
+            sortField: 'numero',
+            width: '100px',
         },
+        ...(isSuper ? [{
+            name: 'Cuenta',
+            selector: (row: any) => row.cuenta || 'N/A',
+            sortable: true,
+            sortField: 'cuenta_id',
+        }] : []),
         {
             name: 'Fecha',
             selector: (row: any) => row.fecha || '-',
@@ -103,7 +112,7 @@ export default function Index({ filters: initialFilters }: any) {
             sortField: 'created_at',
         },
         {
-            name: 'Vendedor',
+            name: 'Creado Por',
             selector: (row: any) => row.vendedor || '-',
             sortable: true,
             sortField: 'usuario_id',

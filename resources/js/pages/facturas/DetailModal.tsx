@@ -166,7 +166,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 			<Modal
 				show={isOpen}
 				onClose={viewerImage ? () => { } : onClose}
-				title={`Detalle de Factura #${factura.id}`}
+				title={`Detalle de Factura #${factura.numero ?? factura.id}`}
 				maxWidth="4xl"
 				closeable={true}
 			>

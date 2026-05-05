@@ -163,7 +163,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                 uploaded++;
                 const pct = Math.round((uploaded / total) * 100);
                 setCsvUploadPct(pct);
-                setProgreso((prev) => (prev ? { ...prev, mensaje: `Subiendo CSV: ${pct}%` } : null));
+                setProgreso((prev) => (prev ? { ...prev, pct, mensaje: `Subiendo CSV: ${pct}%` } : null));
             }
             setCsvUploadDone(true);
         } finally {
@@ -210,7 +210,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
 
             // 2. Subir CSV de inventario si existe
             if (secInventario && csvFile && !csvUploadDone) {
-                setProgreso((prev) => (prev ? { ...prev, mensaje: 'Subiendo CSV inventario...' } : null));
+                setProgreso((prev) => (prev ? { ...prev, pct: 0, mensaje: 'Subiendo CSV inventario...' } : null));
                 await subirCsv(uid);
             }
 

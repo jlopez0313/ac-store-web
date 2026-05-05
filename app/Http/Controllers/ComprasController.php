@@ -30,7 +30,7 @@ class ComprasController extends Controller
                 // e.g., Filter by provider's name or observation contents
                 $q->whereHas('proveedor', function($pq) use ($request) {
                     $pq->where('nombre', 'like', '%' . $request->search . '%');
-                })->orWhere('id', 'like', '%' . $request->search . '%');
+                })->orWhere('numero', 'like', '%' . $request->search . '%');
             });
         }
 

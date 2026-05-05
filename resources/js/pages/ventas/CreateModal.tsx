@@ -12,15 +12,17 @@ interface CreateModalProps {
 	onClose: () => void;
 	accounts: any[];
 	locals: any[];
+	vendedores: any[];
 	nextId: number;
 	onSuccess?: () => void;
 }
 
-export const CreateModal = ({ isOpen, onClose, accounts, locals, nextId, onSuccess }: CreateModalProps) => {
+export const CreateModal = ({ isOpen, onClose, accounts, locals, vendedores, nextId, onSuccess }: CreateModalProps) => {
 	const { isSuperAdmin } = useAuth();
 
 	const { data, setData, post, processing, errors, reset } = useForm({
 		user_id: [] as string[],
+		vendedor_ids: [] as string[],
 		cuenta_id: '',
 		observaciones: '',
 	});
@@ -43,12 +45,20 @@ export const CreateModal = ({ isOpen, onClose, accounts, locals, nextId, onSucce
 		});
 	};
 
-	// Filtrar locales por cuenta si es superadmin y ha seleccionado una cuenta
 	const filteredLocals = isSuperAdmin 
 		? (data.cuenta_id 
 			? locals.filter((l: any) => l.accessible_cuenta_ids?.includes(Number(data.cuenta_id))) 
 			: []) 
 		: locals; 
+
+	const selectedLocals = filteredLocals.filter((l: any) => 
+        data.user_id.map(id => id.toString()).includes(l.id.toString())
+    );
+	const showVendedores = selectedLocals.some((l: any) => !!l.maneja_vendedores);
+
+	const availableVendedores = vendedores.filter((v: any) => 
+		data.user_id.map(id => id.toString()).includes(v.user_id?.toString())
+	).map(v => ({ id: v.id, name: v.nombre }));
 
 	return (
 		<Modal 
@@ -80,12 +90,30 @@ export const CreateModal = ({ isOpen, onClose, accounts, locals, nextId, onSucce
 						required
 						multiple={true}
 						value={data.user_id}
-						onChange={(v) => setData('user_id', v as string[])}
+						onChange={(v) => {
+							const newIds = v as string[];
+							setData((d) => ({ ...d, user_id: newIds, vendedor_ids: [] }));
+						}}
 						lista={filteredLocals}
 						item={{ idx: 'id', value: 'name' }}
 						error={errors.user_id}
 						disabled={isSuperAdmin && !data.cuenta_id}
 					/>
+
+					{showVendedores && (
+						<SelectField
+							name="vendedor_ids"
+							title="Vendedores"
+							required={true}
+							multiple={true}
+							value={data.vendedor_ids}
+							onChange={(v) => setData('vendedor_ids', v as string[])}
+							lista={availableVendedores}
+							item={{ idx: 'id', value: 'name' }}
+							error={errors.vendedor_ids}
+							placeholder="Selecciona los vendedores para facturación individual"
+						/>
+					)}
 
 					<TextAreaField
 						name="observaciones"

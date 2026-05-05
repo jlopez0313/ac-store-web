@@ -20,7 +20,7 @@ class FacturasController extends Controller
         $sortField = $request->input('sort_field', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
-        $query = Venta::with(['local', 'creator', 'detalles.bodega', 'detalles.cambio']);
+        $query = Venta::with(['local', 'creator', 'detalles.bodega', 'detalles.cambio', 'cuenta']);
 
         if (!$isSuper) {
             if ($user->role === 'local') {
@@ -45,7 +45,7 @@ class FacturasController extends Controller
         // Apply search
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
-                $q->where('id', 'like', '%' . $request->search . '%')
+                $q->where('numero', 'like', '%' . $request->search . '%')
                     ->orWhereHas('local', function ($lq) use ($request) {
                         $lq->where('name', 'like', '%' . $request->search . '%');
                     });

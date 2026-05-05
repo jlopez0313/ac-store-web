@@ -190,6 +190,7 @@ class ImportacionController extends Controller
             dryRun: $request->boolean('dry_run'),
             soloStep: $solo,
             jobKey: $jobKey,
+            userId: (int) auth()->id(),
             csvFilePath: $csvFilePath,
             refDesde: trim((string) $request->input('ref_desde', '')),
         )->onQueue('importacion');

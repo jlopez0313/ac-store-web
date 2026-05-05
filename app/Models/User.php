@@ -32,6 +32,7 @@ class User extends Authenticatable
         'ciudad_id',
         'precio_suscripcion',
         'fecha_vencimiento',
+        'maneja_vendedores',
     ];
 
     /**
@@ -65,6 +66,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'fecha_vencimiento' => 'date',
             'impresion_principal' => 'boolean',
+            'maneja_vendedores' => 'boolean',
         ];
     }
 

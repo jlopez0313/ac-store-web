@@ -166,7 +166,7 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                                             className={`mb-1 w-full rounded-lg px-3 py-2.5 text-left transition-colors ${isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
                                         >
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-semibold">Factura #{factura.id}</span>
+                                                <span className="text-sm font-semibold">Factura #{factura.numero ?? factura.id}</span>
                                                 <Badge
                                                     variant="outline"
                                                     className={`text-xs capitalize ${isSelected ? 'border-white/40 text-white' : 'badge-open'}`}
@@ -215,7 +215,7 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
                                                 <Label className="text-muted-foreground text-xs">FACTURA N°</Label>
-                                                <div className="text-primary text-2xl font-bold">#{selectedFactura.id}</div>
+                                                <div className="text-primary text-2xl font-bold">#{selectedFactura.numero ?? selectedFactura.id}</div>
                                             </div>
                                             <div className="text-right">
                                                 <Badge

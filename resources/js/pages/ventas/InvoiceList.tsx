@@ -103,7 +103,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, selectedFact
                                 <div className="pointer-events-none flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <FileText className={`h-4 w-4 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
-                                        <span className="text-sm font-medium">Factura #{factura.id}</span>
+                                        <span className="text-sm font-medium">Factura #{factura.numero ?? factura.id}</span>
                                     </div>
                                     <Badge
                                         variant="outline"
@@ -120,7 +120,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, selectedFact
                                     </Badge>
                                 </div>
                                 <div className="mt-1.5 px-6 text-xs opacity-70">
-                                    {factura.local?.name} · {new Date(factura.fecha).toLocaleDateString()}
+                                    {factura.local?.name} {factura.vendedor && factura.vendedor !== factura.local?.name ? `(${factura.vendedor})` : ''} · {new Date(factura.fecha).toLocaleDateString()}
                                 </div>
                             </button>
                         );

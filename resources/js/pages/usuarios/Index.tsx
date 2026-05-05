@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
-import { Edit, Plus, Search as SearchIcon, ShieldCheck, Trash } from 'lucide-react';
+import { Edit, Plus, Search as SearchIcon, ShieldCheck, Trash, Users } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Form } from './Form';
 
@@ -30,6 +30,8 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
         sort_order: initialFilters?.sort_order || 'desc',
         page: initialFilters?.page || 1,
     });
+
+    const [selectedUser, setSelectedUser] = useState<any>(null);
 
     const fetchData = useCallback(
         async (newParams = {}) => {
@@ -146,6 +148,14 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
             icon: ShieldCheck,
             hide: (row: any) => row.role !== 'local',
             action: (id: number) => router.visit(route('usuarios.accesos', { usuario: id })),
+        },
+        {
+            title: 'Gestionar Vendedores',
+            icon: Users,
+            hide: (row: any) => row.role !== 'local' || !row.maneja_vendedores,
+            action: (id: number) => {
+                router.visit(route('usuarios.vendedores', { usuario: id }));
+            },
         },
         {
             title: 'Editar',

@@ -13,6 +13,7 @@ class Compra extends Model
     protected $table = 'compras';
 
     protected $fillable = [
+        'numero',
         'cuenta_id',
         'proveedor_id',
         'estado',         // 'abierta' o 'cerrada'

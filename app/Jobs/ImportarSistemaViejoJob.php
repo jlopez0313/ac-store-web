@@ -41,6 +41,8 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
     private int $rolLocalId = 0;
     private int $userPorDefecto = 1;
+    private string $cuentaDomain = 'sistema.local';
+    private string $cuentaPrefix = '';
 
     public function __construct(
         private readonly string $filePath,
@@ -48,6 +50,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
         private readonly bool $dryRun,
         private readonly string $soloStep,
         private readonly string $jobKey,
+        private readonly int $userId,
         private readonly string $csvFilePath = '',
         private readonly string $refDesde = '',
     ) {
@@ -61,8 +64,13 @@ class ImportarSistemaViejoJob implements ShouldQueue
         ini_set('memory_limit', '2048M');
 
         $this->log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        $this->log('INICIO importación cuenta=' . $this->cuentaId . ($this->dryRun ? ' [DRY-RUN]' : ''));
-        $this->log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        // Obtener dominio y prefijo de la cuenta para evitar conflictos globales
+        $cuenta = DB::table('cuentas')->find($this->cuentaId);
+        $cuentaNameClean = $cuenta ? preg_replace('/[^a-z0-9]/', '', strtolower($cuenta->nombre)) : 'sistema';
+        $this->cuentaDomain = $cuentaNameClean . '.local';
+        $this->cuentaPrefix = $cuentaNameClean . '_';
+
+        $this->log("Contexto cuenta: @{$this->cuentaDomain} (prefijo: {$this->cuentaPrefix})");
 
         // Determinar pasos activos (soloStep puede ser comma-separated)
         $stepsActivos = $this->soloStep ? array_map('trim', explode(',', $this->soloStep)) : [];
@@ -87,12 +95,13 @@ class ImportarSistemaViejoJob implements ShouldQueue
             'categorias' => fn() => $this->importarCategorias(),
             'marcas' => fn() => $this->importarMarcas(),
             'users_locales' => fn() => $this->importarUsersLocales(),
+            'vendedores' => fn() => $this->importarVendedores(),
             'proveedores' => fn() => $this->importarProveedores(),
             'bodegas' => fn() => $this->importarBodegas(),
             'referencias' => fn() => $this->importarReferencias(),
+            'compras' => fn() => $this->importarCompras(),
             'inventario' => fn() => $this->importarInventario(),
             'traslados' => fn() => $this->importarTraslados(),
-            'compras' => fn() => $this->importarCompras(),
             'ventas' => fn() => $this->importarVentas(),
             'muestras' => fn() => $this->importarMuestras(),
         ];
@@ -100,42 +109,45 @@ class ImportarSistemaViejoJob implements ShouldQueue
         $totalPasos = count($pasos);
         $pasoActual = 0;
 
-        foreach ($pasos as $nombre => $fn) {
-            if ($stepsActivos && !in_array($nombre, $stepsActivos)) {
+        try {
+            foreach ($pasos as $nombre => $fn) {
+                if ($stepsActivos && !in_array($nombre, $stepsActivos)) {
+                    ++$pasoActual;
+                    continue;
+                }
+
                 ++$pasoActual;
-                continue;
+                $pct = round(($pasoActual / $totalPasos) * 100);
+
+                $this->log("─── INICIO: {$nombre} ───");
+                $this->reportProgress($nombre, $pct, "Procesando {$nombre}...");
+                $inicio = microtime(true);
+
+                try {
+                    $fn();
+                } catch (\Throwable $e) {
+                    $this->log("ERROR en {$nombre}: " . $e->getMessage());
+                    throw $e;
+                }
+
+                $seg = round(microtime(true) - $inicio, 1);
+                $this->log("─── FIN: {$nombre} ({$seg}s) ───");
+            }
+        } finally {
+            if (file_exists($this->filePath)) {
+                @unlink($this->filePath);
             }
 
-            ++$pasoActual;
-            $pct = round(($pasoActual / $totalPasos) * 100);
-
-            $this->log("─── INICIO: {$nombre} ───");
-            $this->reportProgress($nombre, $pct, "Procesando {$nombre}...");
-            $inicio = microtime(true);
-
-            try {
-                $fn();
-            } catch (\Throwable $e) {
-                $this->log("ERROR en {$nombre}: " . $e->getMessage());
+            // Borrar CSV (tanto el generado como el subido por el usuario)
+            if ($this->csvInventarioPath && file_exists($this->csvInventarioPath)) {
+                @unlink($this->csvInventarioPath);
             }
 
-            $seg = round(microtime(true) - $inicio, 1);
-            $this->log("─── FIN: {$nombre} ({$seg}s) ───");
+            $this->reportProgress('completado', 100, $this->dryRun ? 'PROCESO TERMINADO' : 'PROCESO TERMINADO');
+            $this->log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            $this->log('PROCESO TERMINADO - Archivos limpiados');
+            $this->log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         }
-
-        if (file_exists($this->filePath)) {
-            @unlink($this->filePath);
-        }
-
-        // Solo borrar CSV generado desde Excel, NO el subido por el usuario
-        if ($this->csvInventarioPath && $this->csvInventarioPath !== $this->csvFilePath && file_exists($this->csvInventarioPath)) {
-            @unlink($this->csvInventarioPath);
-        }
-
-        $this->reportProgress('completado', 100, $this->dryRun ? 'SIMULACIÓN COMPLETADA' : 'IMPORTACIÓN COMPLETADA ✓');
-        $this->log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        $this->log($this->dryRun ? 'SIMULACIÓN COMPLETADA' : 'IMPORTACIÓN COMPLETADA ✓');
-        $this->log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     }
 
     private function loadSheet(string $sheetName)
@@ -155,6 +167,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
             'TALLAS CURVAS',
             'MARCAS',
             'USUARIOS',
+            'VENDEDORES',
             'UBICACION_CALZADO',
             'ESTANTES X BODEGA',
             'REFERENCIAS',
@@ -389,9 +402,15 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 continue;
             }
             $norm = strtoupper(trim($nombre));
-            $nitPorNombre[$norm] = trim((string) $nit);
+            $nitPorNombre[$norm] = preg_replace('/[^0-9]/', '', (string) $nit);
             if ($email) {
-                $emailPorNombre[$norm] = trim($email);
+                $email = trim($email);
+                // Si el correo es del sistema viejo o genérico, lo movemos al dominio de la cuenta
+                if (str_contains($email, '@sistema.')) {
+                    $emailParts = explode('@', $email);
+                    $email = $emailParts[0] . '@' . $this->cuentaDomain;
+                }
+                $emailPorNombre[$norm] = $email;
             }
         }
 
@@ -416,32 +435,33 @@ class ImportarSistemaViejoJob implements ShouldQueue
             $nombreNorm = strtoupper(str_replace('_', ' ', trim($ubicacion)));
             $nit = $nitPorNombre[$nombreNorm] ?? '';
             $email = $emailPorNombre[$nombreNorm] ?? null;
-            $username = preg_replace('/[^a-z0-9]/', '_', strtolower($nombreNorm));
-            $emailUso = $email ?: ($username . '@sistema.local');
+            $email = $emailPorNombre[$nombreNorm] ?? null;
+            $username = $this->generarUsernameUnico($nombreNorm);
+            $emailUso = $email ?: ($username . '@' . $this->cuentaDomain);
             $estado = $activo ? 1 : 0;
 
             if (!$this->dryRun) {
-                // Buscar por username o por nombre exacto (evitar duplicados en re-runs)
+                // Búsqueda siempre dentro de la cuenta actual
                 $existing = DB::table('users')
                     ->where('cuenta_id', $this->cuentaId)
-                    ->where(function ($q) use ($username, $nombreNorm) {
-                        $q->where('username', $username)->orWhere('name', $nombreNorm);
+                    ->where(function ($q) use ($nit, $nombreNorm) {
+                        if ($nit && $nit !== 'acstore123') {
+                            $q->where('documento', $nit);
+                        } else {
+                            $q->where('name', $nombreNorm);
+                        }
                     })
                     ->first();
 
                 if ($existing) {
                     $this->mapLocales[(int) $idUbicacion] = $existing->id;
                     if ($nit) {
-                        $this->mapUsers[$nit] = $existing->id;
+                        $this->mapUsers[preg_replace('/[^0-9]/', '', (string) $nit)] = $existing->id;
                     }
                     continue;
                 }
 
                 $usernameUnico = $username;
-                $suffix = 1;
-                while (DB::table('users')->where('username', $usernameUnico)->exists()) {
-                    $usernameUnico = $username . '_' . $suffix++;
-                }
 
                 $documentoFinal = (strlen($nit) >= 6) ? $nit : 'acstore123';
 
@@ -469,14 +489,14 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
                 $this->mapLocales[(int) $idUbicacion] = $userId;
                 if ($nit) {
-                    $this->mapUsers[$nit] = $userId;
+                    $this->mapUsers[preg_replace('/[^0-9]/', '', (string) $nit)] = $userId;
                 }
                 ++$insertados;
             } else {
                 $fakeId = 50000 + $insertados;
                 $this->mapLocales[(int) $idUbicacion] = $fakeId;
                 if ($nit) {
-                    $this->mapUsers[$nit] = $fakeId;
+                    $this->mapUsers[preg_replace('/[^0-9]/', '', (string) $nit)] = $fakeId;
                 }
                 ++$insertados;
             }
@@ -487,6 +507,107 @@ class ImportarSistemaViejoJob implements ShouldQueue
             $this->log('  ⚠ Password inicial = Documento del local, o "acstore123" si no tiene documento');
         }
     }
+
+    private function importarVendedores(): void
+    {
+        $rows = $this->loadSheet('VENDEDORES');
+        if ($rows->isEmpty()) {
+            return;
+        }
+
+        $insertadosUsers = 0;
+        $insertadosVendedores = 0;
+
+        foreach ($rows as $i => $row) {
+            if ($i === 0) {
+                continue;
+            } // Cabecera
+
+            // Nit_Cedula, Nombre
+            [$nit, $nombre] = array_pad($row->toArray(), 2, null);
+            if (!$nombre) {
+                continue;
+            }
+
+            $nit = trim((string) $nit);
+            $nombreNorm = strtoupper(trim($nombre));
+            $username = $this->generarUsernameUnico($nombreNorm);
+            $email = $username . '@' . $this->cuentaDomain;
+            $documento = (strlen($nit) >= 6) ? $nit : 'acstore123';
+
+            if (!$this->dryRun) {
+                // 1. Asegurar Usuario Local
+                $user = DB::table('users')
+                    ->where('cuenta_id', $this->cuentaId)
+                    ->where(function ($q) use ($documento, $nombreNorm) {
+                        if ($documento !== 'acstore123') {
+                            $q->where('documento', $documento);
+                        } else {
+                            $q->where('name', $nombreNorm);
+                        }
+                    })
+                    ->first();
+
+                if (!$user) {
+                    $userId = DB::table('users')->insertGetId([
+                        'cuenta_id' => $this->cuentaId,
+                        'name' => $nombreNorm,
+                        'username' => $username,
+                        'documento' => $documento,
+                        'email' => $email,
+                        'password' => Hash::make($documento),
+                        'estado' => 1,
+                        'precio_suscripcion' => config('constants.suscripciones.default_user_price'),
+                        'email_verified_at' => now(),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    if ($this->rolLocalId) {
+                        DB::table('model_has_roles')->insertOrIgnore([
+                            'role_id' => $this->rolLocalId,
+                            'model_type' => 'App\\Models\\User',
+                            'model_id' => $userId,
+                        ]);
+                    }
+                    ++$insertadosUsers;
+                } else {
+                    $userId = $user->id;
+                }
+
+                // Guardar para mapeo posterior en Ventas
+                if ($documento && $documento !== 'acstore123') {
+                    $this->mapUsers[preg_replace('/[^0-9]/', '', (string) $documento)] = $userId;
+                }
+
+                // 2. Asegurar Registro en tabla vendedores
+                $vendedorExists = DB::table('vendedores')
+                    ->where('cuenta_id', $this->cuentaId)
+                    ->where('documento', $documento)
+                    ->exists();
+
+                if (!$vendedorExists) {
+                    DB::table('vendedores')->insert([
+                        'cuenta_id' => $this->cuentaId,
+                        'user_id' => $userId, // Se asocia a su propio usuario local
+                        'nombre' => $nombreNorm,
+                        'documento' => $documento,
+                        'estado' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    ++$insertadosVendedores;
+                }
+            } else {
+                ++$insertadosUsers;
+                ++$insertadosVendedores;
+            }
+        }
+
+        $this->log("  {$insertadosUsers} nuevos usuarios locales creados desde VENDEDORES");
+        $this->log("  {$insertadosVendedores} registros creados en tabla vendedores");
+    }
+
 
     // ─────────────────────────────────────────────────────
     // 4. PROVEEDORES (tipo 3)
@@ -722,6 +843,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
                         'marca_id' => $marcaId,
                         'cuenta_id' => $this->cuentaId,
                         'sistema_viejo' => true,
+                        'impreso' => true,
                         'creado_por' => $this->userPorDefecto ?: null,
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -753,6 +875,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
         }
 
         $this->log('  Paso 1: Leyendo CSV y agregando en memoria por ref/talla/ubicación...');
+        $this->ensureMaps();
 
         if ($this->refDesde !== '') {
             $this->log("  ⚠ Filtrando: solo referencias >= {$this->refDesde}");
@@ -816,33 +939,38 @@ class ImportarSistemaViejoJob implements ShouldQueue
             $ref = $row[2];
             $rawTalla = (string) ($row[4] ?? '');
             $talla = mb_check_encoding($rawTalla, 'UTF-8') ? $rawTalla : mb_convert_encoding($rawTalla, 'UTF-8', 'Windows-1252');
-            $talla = trim($talla);
+            $talla = strtoupper(trim($talla));
             $ubicacion = $row[6] ?? '';
             $cantidad = (int) ($row[3] ?? 0);
             $pCosto = (int) ($row[5] ?? 0);
             $pVenta = (int) ($row[18] ?? $row[19] ?? $row[11] ?? 0);
 
-            $key = "{$ref}|{$talla}|{$ubicacion}";
+            $fc = $row[1] ?? '';
+            // Only group by FC if it's a box (talla C)
+            $key = ($talla === 'C')
+                ? "{$ref}|{$talla}|{$ubicacion}|{$fc}"
+                : "{$ref}|{$talla}|{$ubicacion}";
 
             if (!isset($agrupados[$key])) {
                 $agrupados[$key] = [
                     'ref' => $ref,
                     'talla' => $talla,
                     'ubicacion' => $ubicacion,
-                    'stock_total' => 0,
+                    'fc' => $fc,
+                    'stock_total' => $cantidad,
                     'costo' => $pCosto,
                     'venta' => $pVenta,
                 ];
             } else {
-                if ($pCosto < $agrupados[$key]['costo']) {
+                $agrupados[$key]['stock_total'] += $cantidad;
+                // Keep the highest price for consolidated items
+                if ($pCosto > $agrupados[$key]['costo']) {
                     $agrupados[$key]['costo'] = $pCosto;
                 }
-                if ($pVenta < $agrupados[$key]['venta']) {
+                if ($pVenta > $agrupados[$key]['venta']) {
                     $agrupados[$key]['venta'] = $pVenta;
                 }
             }
-
-            $agrupados[$key]['stock_total'] += $cantidad;
 
             if ($rowCount % 50000 === 0) {
                 $this->log("    > {$rowCount} filas procesadas...");
@@ -890,11 +1018,51 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 $estId = $this->mapEstanterias[$item['ubicacion']] ?? null;
 
                 if (!$refId || !$estId || $item['stock_total'] <= 0) {
+                    if (!$refId)
+                        $this->log("    ⚠ Referencia vieja '{$item['ref']}' no encontrada.");
+                    if (!$estId)
+                        $this->log("    ⚠ Ubicación vieja '{$item['ubicacion']}' no encontrada en el mapa de estanterías.");
                     ++$omitidos;
                     continue;
                 }
 
                 $existing = $existingMap["{$refId}|{$estId}|{$item['talla']}"] ?? null;
+
+                if ($item['talla'] === 'C') {
+                    $this->log("    📦 Procesando caja para Ref: {$item['ref']}, Factura: {$item['fc']}");
+                    // Talla C indicates it belongs to a Box (Caja)
+                    $bodegaId = DB::table('estanterias')->where('id', $estId)->value('bodega_id');
+                    $compraId = $this->mapCompras[$item['fc']] ?? null;
+
+                    $existingCaja = DB::table('cajas')
+                        ->where('cuenta_id', $this->cuentaId)
+                        ->where('referencia_id', $refId)
+                        ->where('bodega_id', $bodegaId)
+                        ->where('compra_id', $compraId)
+                        ->first();
+
+                    if ($existingCaja) {
+                        DB::table('cajas')->where('id', $existingCaja->id)->update([
+                            'cantidad' => $existingCaja->cantidad + $item['stock_total'],
+                            'updated_at' => $now,
+                        ]);
+                    } else {
+                        DB::table('cajas')->insert([
+                            'cuenta_id' => $this->cuentaId,
+                            'referencia_id' => $refId,
+                            'bodega_id' => $bodegaId,
+                            'compra_id' => $compraId,
+                            'pares_por_caja' => 12, // Standard default
+                            'cantidad' => $item['stock_total'],
+                            'precio_compra' => $item['costo'],
+                            'precio_venta' => $item['venta'],
+                            'creado_por' => $this->userPorDefecto ?: null,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ]);
+                    }
+                    continue;
+                }
 
                 if ($existing) {
                     DB::table('inventarios')->where('id', $existing->id)->update([
@@ -1022,13 +1190,18 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 continue;
             }
 
+            // Normalizar estado cerrado
+            $cerradaStr = strtoupper(trim((string) $cerrada));
+            $esCerrada = ($cerrada == 1 || $cerrada === true || str_contains($cerradaStr, 'VERD') || str_contains($cerradaStr, 'TRUE') || str_contains($cerradaStr, 'SI'));
+
             if (!$this->dryRun) {
                 $this->mapCompras[$idViejo] = DB::table('compras')->insertGetId([
+                    'numero' => $idViejo,
                     'cuenta_id' => $this->cuentaId,
                     'proveedor_id' => $provId,
-                    'estado' => $cerrada ? 'cerrada' : 'abierta',
+                    'estado' => $esCerrada ? 'cerrada' : 'abierta',
                     'fecha_apertura' => $this->parsearFecha($fecha) ?? now()->toDateTimeString(),
-                    'fecha_cierre' => $cerrada ? ($this->parsearFecha($fecha) ?? now()->toDateTimeString()) : null,
+                    'fecha_cierre' => $esCerrada ? ($this->parsearFecha($fecha) ?? now()->toDateTimeString()) : null,
                     'flete' => 0,
                     'observaciones' => $obs,
                     'creado_por' => $this->userPorDefecto ?: null,
@@ -1148,7 +1321,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 continue;
             }
             // Id_Factura_V, Fecha, Hora, Cliente, Vendedor, Observaciones, Cerrada, Finalizado, Creada_Por, Local
-            [$idViejo, $fecha, , , $vendedorNit, $obs, $cerrada, , , $localId] = array_pad($row->toArray(), 10, null);
+            [$idViejo, $fecha, , $localNit, , $obs, $cerrada, , , $localId] = array_pad($row->toArray(), 10, null);
             if (!$idViejo) {
                 continue;
             }
@@ -1159,15 +1332,25 @@ class ImportarSistemaViejoJob implements ShouldQueue
             }
 
             $fechaVenta = $this->parsearFecha($fecha);
-            $localUserId = $this->mapLocales[(int) $localId] ?? $this->userPorDefecto;
-            $vendedorId = $this->mapUsers[trim((string) $vendedorNit)] ?? $this->userPorDefecto;
-            $estado = $cerrada ? 'cerrada' : 'abierta';
-            if (!$cerrada) {
+            // Limpiar el NIT de la columna Cliente para asegurar coincidencia exacta
+            $localNitLimpio = preg_replace('/[^0-9]/', '', (string) $localNit);
+            // El Local es el usuario con rol local que viene en la columna Cliente (index 3)
+            $localUserId = $this->mapUsers[$localNitLimpio] ?? ($this->mapLocales[(int) $localId] ?? $this->userPorDefecto);
+            // El Creado_Por es el usuario que está cargando el excel (el que inició el job)
+            $creadorId = $this->userId ?: $this->userPorDefecto;
+
+            // Normalizar estado cerrado (Excel puede traer booleano o string "VERDADERO"/"FALSO")
+            $cerradaStr = strtoupper(trim((string) $cerrada));
+            $esCerrada = ($cerrada == 1 || $cerrada === true || str_contains($cerradaStr, 'VERD') || str_contains($cerradaStr, 'TRUE') || str_contains($cerradaStr, 'SI'));
+            $estado = $esCerrada ? 'cerrada' : 'abierta';
+
+            if (!$esCerrada) {
                 ++$abiertasCount;
             }
 
             if (!$this->dryRun) {
                 $this->mapVentas[$idViejo] = DB::table('ventas')->insertGetId([
+                    'numero' => $idViejo,
                     'cuenta_id' => $this->cuentaId,
                     'user_id' => $localUserId,
                     'fecha' => $fechaVenta ? date('Y-m-d', strtotime($fechaVenta)) : now()->toDateString(),
@@ -1175,7 +1358,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
                     'observaciones' => $obs,
                     'subtotal' => 0,
                     'total' => 0,
-                    'creado_por' => $vendedorId,
+                    'creado_por' => $creadorId,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -1282,200 +1465,87 @@ class ImportarSistemaViejoJob implements ShouldQueue
     private function importarMuestras(): void
     {
         $this->ensureMaps();
+        $this->buildMapLocalesFromSheet();
 
-        // Construir mapa local→muestraBodega→lado desde UBICACION_CALZADO
-        // Locales (tipo=1) con campo Muestra>0 apuntan a una bodega de muestras (tipo=3)
-        // Lado: 1=DERECHO, 2=IZQUIERDO, 3=COMPLETO
         $rows = $this->loadSheet('UBICACION_CALZADO');
         if ($rows->isEmpty()) {
             $this->log('  Hoja UBICACION_CALZADO no encontrada');
-
             return;
         }
 
-        // muestraBodegaId → [{localId, lado}]
-        $muestraBodegaToLocales = [];
-        foreach ($rows as $i => $row) {
-            if ($i === 0) {
-                continue;
-            }
-            $rowArr = $row->toArray();
-            $idUbicacion = (int) ($rowArr[0] ?? 0);
-            $tipo = (int) ($rowArr[2] ?? 0);
-            $muestraBodega = (int) ($rowArr[4] ?? 0);
-            $lado = (int) ($rowArr[5] ?? 0);
+        $this->log('  Procesando muestras desde UBICACION_CALZADO...');
 
-            // Solo locales (tipo=1) que tienen muestra asignada
-            if ($tipo !== 1 || $muestraBodega === 0) {
-                continue;
-            }
-
-            $muestraBodegaToLocales[$muestraBodega][] = [
-                'localViejo' => $idUbicacion,
-                'lado' => $lado, // 1=DER, 2=IZQ, 3=COMPLETO
-            ];
-        }
-
-        if (empty($muestraBodegaToLocales)) {
-            $this->log('  No se encontraron locales con muestras asignadas');
-
-            return;
-        }
-
-        $this->log('  Bodegas de muestras: ' . implode(', ', array_keys($muestraBodegaToLocales)));
-
-        // Mapear locales viejos → user IDs del nuevo sistema
-        $this->buildMapLocalesFromSheet();
-
-        // Iterar CSV de inventario buscando registros en bodegas de muestras
-        $muestras = [];
-        $this->iterarCsvInventario(function ($row, $index) use (&$muestras, $muestraBodegaToLocales) {
-            if ($index === 1) {
-                return;
-            }
-
-            // Solo Movimiento=1 (en stock), no vendidos, no cancelados
-            if ((int) ($row[7] ?? 0) !== 1) {
-                return;
-            }
-            if (!empty($row[10])) {
-                return;
-            }
-            $cancelado = strtolower(trim((string) ($row[20] ?? '')));
-            if ($cancelado === '1' || $cancelado === 'true') {
-                return;
-            }
-
-            $ubicacion = (int) ($row[6] ?? 0);
-            if (!isset($muestraBodegaToLocales[$ubicacion])) {
-                return;
-            }
-
-            $ref = $row[2] ?? null;
-            $talla = (string) ($row[4] ?? '');
-            $derecho = $row[22] ?? '';
-            $izquierdo = $row[23] ?? '';
-            $isDer = $derecho === true || $derecho === 1 || strtolower((string) $derecho) === 'true' || $derecho === '1';
-            $isIzq = $izquierdo === true || $izquierdo === 1 || strtolower((string) $izquierdo) === 'true' || $izquierdo === '1';
-
-            if (!$isDer && !$isIzq) {
-                return;
-            }
-            if (!$ref) {
-                return;
-            }
-
-            // Determinar variante/etiquetas
-            $etiquetas = [];
-            if ($isDer) {
-                $etiquetas[] = 'Derecho';
-            }
-            if ($isIzq) {
-                $etiquetas[] = 'Izquierdo';
-            }
-
-            // Asignar a cada local que usa esta bodega de muestras
-            foreach ($muestraBodegaToLocales[$ubicacion] as $localInfo) {
-                $key = "{$ref}|{$talla}|{$localInfo['localViejo']}";
-
-                // Filtrar por lado del local
-                $localEtiquetas = $etiquetas;
-                if ($localInfo['lado'] === 1) {
-                    // Solo Derecho
-                    $localEtiquetas = array_filter($etiquetas, fn($e) => $e === 'Derecho');
-                } elseif ($localInfo['lado'] === 2) {
-                    // Solo Izquierdo
-                    $localEtiquetas = array_filter($etiquetas, fn($e) => $e === 'Izquierdo');
-                }
-                // lado=3 → Completo, toma ambas
-
-                if (empty($localEtiquetas)) {
-                    continue;
-                }
-
-                if (!isset($muestras[$key])) {
-                    $muestras[$key] = [
-                        'ref' => $ref,
-                        'talla' => $talla,
-                        'ubicacion' => $ubicacion,
-                        'localViejo' => $localInfo['localViejo'],
-                        'etiquetas' => array_values($localEtiquetas),
-                    ];
-                }
-            }
-        });
-
-        if (empty($muestras)) {
-            $this->log('  No se encontraron muestras en el inventario');
-
-            return;
-        }
-
-        $this->log('  ' . count($muestras) . ' muestras encontradas, insertando...');
-
-        $insertados = $omitidos = 0;
-        $batch = [];
+        $insertados = 0;
         $now = now();
 
         DB::beginTransaction();
         try {
-            foreach ($muestras as $item) {
-                $refId = $this->mapReferencias[$item['ref']] ?? null;
-                if (!$refId) {
-                    ++$omitidos;
+            foreach ($rows as $i => $row) {
+                if ($i === 0)
                     continue;
-                }
+                $rowArr = $row->toArray();
 
-                // Buscar inventario correspondiente
-                $estId = $this->mapEstanterias[$item['ubicacion']] ?? null;
-                $inventarioId = null;
-                if ($estId) {
-                    $inv = DB::table('inventarios')
-                        ->where('referencia_id', $refId)
-                        ->where('estanteria_id', $estId)
-                        ->where('talla', $item['talla'])
-                        ->where('cuenta_id', $this->cuentaId)
-                        ->first();
-                    $inventarioId = $inv->id ?? null;
-                }
+                // Id_Ubicacion[0], Ubicacion[1], Id_tipo[2], Activo[3], Muestra[4], Lado[5]
+                $idLocalViejo = (int) ($rowArr[0] ?? 0);
+                $tipo = (int) ($rowArr[2] ?? 0);
+                $refVieja = trim((string) ($rowArr[4] ?? ''));
+                $ladoId = (int) ($rowArr[5] ?? 0);
 
-                // Resolver local → userId
-                $localUserId = $this->mapLocales[(int) $item['localViejo']] ?? $this->userPorDefecto;
+                // Solo locales (tipo 1) con Muestra (Referencia ID) asignada
+                if ($tipo !== 1 || !$refVieja || $refVieja == '0')
+                    continue;
 
-                $variante = implode(' / ', $item['etiquetas']);
+                $refId = $this->mapReferencias[$refVieja] ?? null;
+                if (!$refId)
+                    continue;
+
+                // Buscar la talla mínima de esta referencia en el inventario de esta cuenta
+                $minInv = DB::table('inventarios')
+                    ->where('referencia_id', $refId)
+                    ->where('cuenta_id', $this->cuentaId)
+                    ->orderByRaw('CAST(talla AS DECIMAL(10,2)) ASC')
+                    ->orderBy('talla', 'asc')
+                    ->first();
+
+                if (!$minInv)
+                    continue;
+
+                $localUserId = $this->mapLocales[$idLocalViejo] ?? $this->userPorDefecto;
+
+                // Determinar etiquetas según Lado
+                $etiquetas = [];
+                if ($ladoId === 1)
+                    $etiquetas = ['Derecho'];
+                elseif ($ladoId === 2)
+                    $etiquetas = ['Izquierdo'];
+                else
+                    $etiquetas = ['Derecho', 'Izquierdo'];
+
+                $variante = implode(' / ', $etiquetas);
 
                 if (!$this->dryRun) {
-                    $batch[] = [
+                    DB::table('muestras')->insert([
                         'local_id' => $localUserId,
                         'referencia_id' => $refId,
-                        'inventario_id' => $inventarioId,
+                        'inventario_id' => $minInv->id,
                         'variante' => $variante,
-                        'etiquetas' => json_encode($item['etiquetas']),
+                        'etiquetas' => json_encode($etiquetas),
                         'cuenta_id' => $this->cuentaId,
                         'estado' => 'activo',
+                        'impreso' => true,
                         'created_at' => $now,
                         'updated_at' => $now,
-                    ];
-
-                    if (count($batch) >= 500) {
-                        DB::table('muestras')->insert($batch);
-                        $batch = [];
-                    }
+                    ]);
                 }
-                ++$insertados;
+                $insertados++;
             }
-
-            if (!empty($batch)) {
-                DB::table('muestras')->insert($batch);
-            }
-
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            throw $e;
+            $this->log("  ❌ Error importando muestras: " . $e->getMessage());
         }
 
-        $this->log("  {$insertados} muestras insertadas | {$omitidos} omitidas");
+        $this->log("  {$insertados} muestras importadas desde la configuración de locales.");
     }
 
     // ─────────────────────────────────────────────────────
@@ -1617,6 +1687,22 @@ class ImportarSistemaViejoJob implements ShouldQueue
         // Usa el JSON guardado al importar bodegas (no requiere Excel)
         if (empty($this->mapEstanterias)) {
             $this->cargarMapaBodegas();
+        }
+
+        // Compras: mapa old_id (numero) → id
+        if (empty($this->mapCompras)) {
+            $compras = DB::table('compras')
+                ->where('cuenta_id', $this->cuentaId)
+                ->select('id', 'numero')
+                ->get();
+            foreach ($compras as $c) {
+                if ($c->numero) {
+                    $this->mapCompras[(string) $c->numero] = $c->id;
+                }
+            }
+            if (!empty($this->mapCompras)) {
+                $this->log('  Pre-cargados ' . count($this->mapCompras) . ' compras del DB');
+            }
         }
     }
 
@@ -1764,5 +1850,17 @@ class ImportarSistemaViejoJob implements ShouldQueue
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    private function generarUsernameUnico(string $nombre): string
+    {
+        $base = preg_replace('/[^a-z0-9]/', '_', strtolower($nombre));
+        $username = $base;
+        $suffix = 2;
+        while (DB::table('users')->where('username', $username)->exists()) {
+            $username = $base . '_' . $suffix++;
+        }
+
+        return $username;
     }
 }

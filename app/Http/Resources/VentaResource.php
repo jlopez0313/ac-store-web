@@ -23,6 +23,7 @@ class VentaResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'numero' => $this->numero,
             'local' => new UserResource($this->local),
             'bodega' => $bodega ? [
                 'id' => $bodega->id,
@@ -35,7 +36,8 @@ class VentaResource extends JsonResource
             'subtotal' => $this->subtotal,
             'observaciones' => $this->observaciones,
             'cuenta_id' => $this->cuenta_id,
-            'vendedor' => $this->creator ? $this->creator->name : ($this->local->name ?? 'N/A'),
+            'cuenta' => $this->cuenta->nombre ?? 'N/A',
+            'vendedor' => $this->vendedor ? $this->vendedor->nombre : ($this->creator ? $this->creator->name : ($this->local->name ?? 'N/A')),
             'detalles' => $this->detalles ? $this->detalles->map(function ($d) {
                 return [
                     'id' => $d->id,

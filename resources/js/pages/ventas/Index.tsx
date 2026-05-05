@@ -26,7 +26,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Ventas', href: route('ventas.index') },
 ];
 
-export default function Index({ filters: initialFilters, lista, cuentas, referencias, bodegas, bodega_accesos, locals, next_id }: any) {
+export default function Index({ filters: initialFilters, lista, cuentas, referencias, bodegas, bodega_accesos, locals, next_id, vendedores }: any) {
     const { auth } = usePage().props as any;
     const isAdmin = ['admin', 'bodega', 'superadmin'].includes(auth.user.role);
 
@@ -445,6 +445,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                 onClose={() => setIsCreateModalOpen(false)}
                 accounts={cuentas}
                 locals={locals}
+                vendedores={vendedores}
                 nextId={next_id}
                 onSuccess={() => fetchData()}
             />

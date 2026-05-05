@@ -101,6 +101,13 @@ class ReferenciaFotoController extends Controller
         $zip->extractTo($extractPath);
         $zip->close();
 
+        // Limpiar fotos previas de esta cuenta (Storage y DB)
+        $accountStoragePath = 'referencias/' . $cuenta_id;
+        if (Storage::disk('public')->exists($accountStoragePath)) {
+            Storage::disk('public')->deleteDirectory($accountStoragePath);
+        }
+        Referencia::where('cuenta_id', $cuenta_id)->update(['foto' => null]);
+
         $files = $this->getFilesRecursive($extractPath);
         $summary = [
             'total' => count($files),

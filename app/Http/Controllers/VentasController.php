@@ -13,7 +13,7 @@ class VentasController extends Controller
         $user = auth()->user();
         $isSuper = $user->role === 'superadmin';
 
-        $query = \App\Models\Venta::with(['local', 'detalles.producto', 'detalles.estanteria.bodega'])
+        $query = \App\Models\Venta::with(['local', 'vendedor', 'detalles.producto', 'detalles.estanteria.bodega'])
             ->orderBy('id', 'desc');
 
         if (!$isSuper) {
@@ -24,14 +24,15 @@ class VentasController extends Controller
             $query->where(function ($q) use ($request) {
                 $q->whereHas('local', function ($lq) use ($request) {
                     $lq->where('name', 'like', '%' . $request->search . '%');
-                })->orWhere('id', 'like', '%' . $request->search . '%');
+                })->orWhere('numero', 'like', '%' . $request->search . '%');
             });
         }
 
         // Locals are users with role 'local' who have at least one active access in bodega_accesos
         $locals = \App\Models\User::role('local')
             ->whereHas('bodegaAccesos')
-            ->get(['id', 'name', 'cuenta_id'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'cuenta_id', 'maneja_vendedores'])
             ->map(function ($l) {
                 $accessibleCuentas = \App\Models\BodegaAcceso::where('user_id', $l->id)
                     ->join('bodegas', 'bodega_accesos.bodega_id', '=', 'bodegas.id')
@@ -44,7 +45,8 @@ class VentasController extends Controller
                     'id' => $l->id,
                     'name' => $l->name,
                     'cuenta_id' => $l->cuenta_id,
-                    'accessible_cuenta_ids' => $accessibleCuentas
+                    'accessible_cuenta_ids' => $accessibleCuentas,
+                    'maneja_vendedores' => (bool) $l->maneja_vendedores
                 ];
             });
 
@@ -53,12 +55,13 @@ class VentasController extends Controller
         return Inertia::render('ventas/Index', [
             'filters' => request()->all(['search']),
             'lista' => VentaResource::collection($paginated),
-            'next_id' => (\App\Models\Venta::max('id') ?? 0) + 1,
+            'next_id' => (\App\Models\Venta::where('cuenta_id', $isSuper ? request('cuenta_id') : $user->cuenta_id)->max('numero') ?? 0) + 1,
             'cuentas' => $isSuper ? \App\Models\Cuenta::all(['id', 'nombre']) : [],
             'locals' => $locals,
             // Removed full 'referencias' list to improve performance (now using search API)
             'bodegas' => \App\Models\Bodega::with('estanterias')->get(),
             'bodega_accesos' => \App\Models\BodegaAcceso::all(),
+            'vendedores' => \App\Models\Vendedor::where('estado', true)->get(['id', 'nombre', 'user_id', 'cuenta_id']),
         ]);
     }
 
@@ -86,20 +89,29 @@ class VentasController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('codigo', 'like', "%{$search}%")
-                  ->orWhere('descripcion', 'like', "%{$search}%")
-                  ->orWhereHas('marca', function ($mq) use ($search) {
-                      $mq->where('nombre', 'like', "%{$search}%");
-                  });
+                if (is_numeric($search)) {
+                    $q->where('numero', $search);
+                } else {
+                    $q->whereHas('marca', function ($mq) use ($search) {
+                        $mq->where('nombre', 'like', '%' . $search . '%');
+                    });
+                }
             });
         }
 
         $paginated = $query->paginate(20);
 
         $data = collect($paginated->items())->map(function ($r) use ($user) {
-            $invs = \App\Models\Inventario::where('referencia_id', $r->id)
-                ->join('estanterias', 'inventarios.estanteria_id', '=', 'estanterias.id')
-                ->selectRaw('estanterias.bodega_id, inventarios.talla, SUM(inventarios.stock) as total_stock, MAX(inventarios.precio_venta) as max_precio')
+            $invsQuery = \App\Models\Inventario::where('referencia_id', $r->id)
+                ->join('estanterias', 'inventarios.estanteria_id', '=', 'estanterias.id');
+
+            // Only 'local' users are restricted to their allowed bodegas
+            if ($user->role === 'local') {
+                $allowedBodegas = \App\Models\BodegaAcceso::where('user_id', $user->id)->pluck('bodega_id');
+                $invsQuery->whereIn('estanterias.bodega_id', $allowedBodegas);
+            }
+
+            $invs = $invsQuery->selectRaw('estanterias.bodega_id, inventarios.talla, SUM(inventarios.stock) as total_stock, MAX(inventarios.precio_venta) as max_precio')
                 ->groupBy('estanterias.bodega_id', 'inventarios.talla')
                 ->get();
 
@@ -147,10 +159,20 @@ class VentasController extends Controller
             'referencia_id' => 'required|exists:referencias,id',
         ]);
 
-        $stock = \App\Models\Inventario::where('referencia_id', $request->referencia_id)
+        $user = auth()->user();
+        $stockQuery = \App\Models\Inventario::where('referencia_id', $request->referencia_id)
             ->with(['estanteria.bodega'])
-            ->where('stock', '>', 0)
-            ->get()
+            ->where('stock', '>', 0);
+
+        // Only 'local' users are restricted to their allowed bodegas
+        if ($user->role === 'local') {
+            $allowedBodegas = \App\Models\BodegaAcceso::where('user_id', $user->id)->pluck('bodega_id');
+            $stockQuery->whereHas('estanteria', function($q) use ($allowedBodegas) {
+                $q->whereIn('bodega_id', $allowedBodegas);
+            });
+        }
+
+        $stock = $stockQuery->get()
             ->map(function ($item) {
                 return [
                     'id' => $item->id,
@@ -162,9 +184,35 @@ class VentasController extends Controller
                     'talla' => $item->talla,
                     'stock' => $item->stock,
                     'precio_venta' => $item->precio_venta,
-                    'is_muestra' => false
+                    'is_muestra' => false,
+                    'es_caja' => false
                 ];
             });
+
+        // Add boxes if the user is NOT a local
+        if ($user->role !== 'local') {
+            $cajas = \App\Models\Caja::where('referencia_id', $request->referencia_id)
+                ->with(['bodega'])
+                ->where('cantidad', '>', 0)
+                ->get()
+                ->map(function ($caja) {
+                    return [
+                        'id' => $caja->id,
+                        'type' => 'caja',
+                        'bodega_id' => $caja->bodega_id,
+                        'bodega_nombre' => $caja->bodega->nombre,
+                        'estanteria_id' => null,
+                        'estanteria_nombre' => 'Caja Completa',
+                        'talla' => 'C',
+                        'stock' => $caja->cantidad, // number of boxes
+                        'pares_por_caja' => $caja->pares_por_caja,
+                        'precio_venta' => $caja->precio_venta, // price per pair
+                        'is_muestra' => false,
+                        'es_caja' => true
+                    ];
+                });
+            $stock = $stock->concat($cajas);
+        }
 
         // Get active samples for this reference
         $user = auth()->user();
@@ -229,6 +277,32 @@ class VentasController extends Controller
                         'muestra_id' => $muestra->id
                     ]);
                     $venta->increment('total', $unitPrice);
+                } elseif (isset($item['es_caja']) && $item['es_caja']) {
+                    $caja = \App\Models\Caja::findOrFail($item['id']);
+                    $cantidadCajas = (int) $item['cantidad']; // Here 'cantidad' refers to number of boxes
+
+                    if ($caja->cantidad < $cantidadCajas) {
+                        throw new \Exception("Stock de cajas insuficiente.");
+                    }
+
+                    $caja->decrement('cantidad', $cantidadCajas);
+
+                    $totalUnidades = $cantidadCajas * $caja->pares_por_caja;
+                    $unitPrice = (float) $item['precio_unitario'];
+                    $subtotal = $totalUnidades * $unitPrice;
+
+                    $venta->detalles()->create([
+                        'caja_id' => $caja->id,
+                        'es_caja' => true,
+                        'producto_id' => $caja->referencia_id,
+                        'bodega_id' => $caja->bodega_id,
+                        'talla' => 'C',
+                        'cantidad' => $totalUnidades,
+                        'precio_unitario' => $unitPrice,
+                        'subtotal' => $subtotal,
+                        'observacion' => "Venta de {$cantidadCajas} caja(s) de {$caja->pares_por_caja} pares"
+                    ]);
+                    $venta->increment('total', $subtotal);
                 } else {
                     $inv = \App\Models\Inventario::with('estanteria')->findOrFail($item['inventario_id']);
 
@@ -246,13 +320,14 @@ class VentasController extends Controller
                             'producto_id' => $inv->referencia_id,
                             'bodega_id' => $inv->estanteria->bodega_id,
                             'estanteria_id' => $inv->estanteria_id,
+                            'numero' => $venta->numero,
                             'talla' => $inv->talla,
                             'cantidad' => 1,
                             'precio_unitario' => $unitPrice,
                             'subtotal' => $unitPrice,
                         ]);
                     }
-                    $venta->increment('total', $item['cantidad'] * $unitPrice);
+                    $venta->increment('total', $unitPrice * $item['cantidad']);
                 }
             }
 
@@ -380,6 +455,14 @@ class VentasController extends Controller
             if ($muestra) {
                 $muestra->update(['estado' => 'activo']);
             }
+        } elseif ($detalle->es_caja && $detalle->caja_id) {
+            // Restore box stock
+            $caja = \App\Models\Caja::find($detalle->caja_id);
+            if ($caja) {
+                // Re-calculate number of boxes to return
+                $numCajas = $detalle->cantidad / ($caja->pares_por_caja ?: 1);
+                $caja->increment('cantidad', $numCajas);
+            }
         } else {
             // Restore inventory
             $inv = \App\Models\Inventario::find($detalle->inventario_id);
@@ -431,7 +514,8 @@ class VentasController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'user_id' => 'required', // Expected to be array when multiple=true in frontend
+            'user_id' => 'required',
+            'vendedor_ids' => 'nullable|array',
             'cuenta_id' => auth()->user()->role === 'superadmin' ? 'required|exists:cuentas,id' : 'nullable',
         ]);
 
@@ -445,13 +529,45 @@ class VentasController extends Controller
         }
 
         \DB::transaction(function () use ($userIds, $cuenta_id, $request) {
-            foreach ($userIds as $userId) {
-                // Skip 'ALL' value if it somehow reaches the backend
-                if ($userId === 'ALL')
-                    continue;
+            $nextNumero = \App\Models\Venta::where('cuenta_id', $cuenta_id)->max('numero') ?? 0;
 
+            foreach ($userIds as $userId) {
+                if ($userId === 'ALL') continue;
+
+                $local = \App\Models\User::find($userId);
+                if (!$local) continue;
+
+                // Check if local manages sellers and has any
+                if ($local->maneja_vendedores) {
+                    $vendedores = \App\Models\Vendedor::where('user_id', $local->id)
+                        ->where('estado', true)
+                        ->when($request->filled('vendedor_ids'), function($q) use ($request) {
+                            return $q->whereIn('id', $request->vendedor_ids);
+                        })
+                        ->get();
+
+                    if ($vendedores->count() > 0) {
+                        foreach ($vendedores as $vendedor) {
+                            $nextNumero++;
+                            \App\Models\Venta::create([
+                                'numero' => $nextNumero,
+                                'user_id' => $local->id,
+                                'vendedor_id' => $vendedor->id,
+                                'cuenta_id' => $cuenta_id,
+                                'fecha' => now()->format('Y-m-d'),
+                                'estado' => 'abierta',
+                                'observaciones' => $request->observaciones,
+                            ]);
+                        }
+                        continue; // Skip creating a general invoice for this local
+                    }
+                }
+
+                // Default: Create one invoice for the local
+                $nextNumero++;
                 \App\Models\Venta::create([
-                    'user_id' => $userId,
+                    'numero' => $nextNumero,
+                    'user_id' => $local->id,
                     'cuenta_id' => $cuenta_id,
                     'fecha' => now()->format('Y-m-d'),
                     'estado' => 'abierta',
