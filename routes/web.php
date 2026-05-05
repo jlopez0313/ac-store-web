@@ -60,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
     // Rutas de Facturas y Reportes
     Route::get('/facturas', [App\Http\Controllers\FacturasController::class, 'index'])->name('facturas.index');
     Route::get('/reporte-facturas', [App\Http\Controllers\FacturasController::class, 'index'])->name('facturas.reporte');
+    Route::get('/reporte-ventas', [App\Http\Controllers\ReportesController::class, 'ventas'])->name('reportes.ventas');
     Route::get('/cartera', [App\Http\Controllers\CarteraController::class, 'index'])->name('cartera.index');
     Route::get('/cardex', [App\Http\Controllers\CardexController::class, 'index'])->name('cardex.index');
     Route::delete('/facturas/{factura}', [App\Http\Controllers\FacturasController::class, 'destroy'])->name('facturas.destroy');
