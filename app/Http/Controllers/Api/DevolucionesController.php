@@ -33,6 +33,10 @@ class DevolucionesController extends Controller
             });
         }
 
+        if ($request->filled('venta_id')) {
+            $query->where('venta_id', $request->venta_id);
+        }
+
         if ($request->filled('from')) {
             $query->whereDate('deleted_at', '>=', $request->from);
         }

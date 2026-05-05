@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { showAlert } from '@/plugins/sweetalert';
 import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { ChevronDown, FileText, Plus, Printer, ShoppingCart, Warehouse } from 'lucide-react';
+import { ChevronDown, FileText, PackageX, Plus, Printer, ShoppingCart, Warehouse } from 'lucide-react';
 import React, { useState } from 'react';
 import { BulkDiscountModal } from './BulkDiscountModal';
+import { DevolucionesFacturaModal } from './DevolucionesFacturaModal';
 import { ReopenInvoiceModal } from './ReopenInvoiceModal';
 
 interface InvoiceDetailHeaderProps {
@@ -39,6 +40,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
 
     const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
     const [isReopenModalOpen, setIsReopenModalOpen] = useState(false);
+    const [isDevolucionesModalOpen, setIsDevolucionesModalOpen] = useState(false);
     const [applying, setApplying] = useState(false);
 
     const sameRefItemsCount = React.useMemo(() => {
@@ -188,6 +190,15 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                     <Printer className="mr-2 h-4 w-4" />
                                     Imprimir Factura
                                 </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsDevolucionesModalOpen(true)}
+                                    className="h-10 w-full border-red-200 bg-red-50 px-4 font-bold text-red-700 transition-all hover:bg-red-100 md:w-auto active:scale-95 dark:border-red-800 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900"
+                                >
+                                    <PackageX className="mr-2 h-4 w-4" />
+                                    Devoluciones
+                                </Button>
                             </>
                         )}
                     </div>
@@ -237,6 +248,13 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                     setIsReopenModalOpen(false);
                     router.reload({ only: ['factura'] });
                 }}
+            />
+
+            <DevolucionesFacturaModal
+                isOpen={isDevolucionesModalOpen}
+                onClose={() => setIsDevolucionesModalOpen(false)}
+                facturaId={factura.id}
+                facturaCodigo={factura.numero}
             />
         </Card>
     );
