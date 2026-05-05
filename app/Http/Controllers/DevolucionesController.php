@@ -14,11 +14,12 @@ class DevolucionesController extends Controller
         $user = auth()->user();
         $query = \App\Models\VentaDetalle::onlyTrashed()
             ->whereHas('venta', function ($q) use ($user) {
+                $q->withTrashed(); // Importante: buscar también en ventas borradas
                 if (!$user->hasRole('superadmin')) {
                     $q->where('cuenta_id', $user->cuenta_id);
                 }
             })
-            ->with(['venta.local', 'venta.cuenta', 'producto', 'bodega', 'estanteria', 'eliminador'])
+            ->with(['venta' => fn($q) => $q->withTrashed(), 'venta.local', 'venta.cuenta', 'producto', 'bodega', 'estanteria', 'eliminador'])
             ->orderBy('deleted_at', 'desc');
 
         if ($request->filled('local_id')) {
