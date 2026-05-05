@@ -37,7 +37,6 @@ class ReportesController extends Controller
                 $q->whereDate('fecha', '<=', $request->hasta);
             }
         })
-        ->where('precio_unitario', '>', 0) // Exclude credit/adjustment lines
         ->orderByDesc('id');
 
         // Totals before pagination
