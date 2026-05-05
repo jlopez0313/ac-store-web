@@ -190,16 +190,18 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                     <Printer className="mr-2 h-4 w-4" />
                                     Imprimir Factura
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setIsDevolucionesModalOpen(true)}
-                                    className="h-10 w-full border-red-200 bg-red-50 px-4 font-bold text-red-700 transition-all hover:bg-red-100 md:w-auto active:scale-95 dark:border-red-800 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900"
-                                >
-                                    <PackageX className="mr-2 h-4 w-4" />
-                                    Devoluciones
-                                </Button>
                             </>
+                        )}
+                        {factura.detalles?.length > 0 && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsDevolucionesModalOpen(true)}
+                                className="h-10 w-full border-red-200 bg-red-50 px-4 font-bold text-red-700 transition-all hover:bg-red-100 md:w-auto active:scale-95 dark:border-red-800 dark:bg-red-950 dark:text-red-300 dark:hover:bg-red-900"
+                            >
+                                <PackageX className="mr-2 h-4 w-4" />
+                                Devoluciones
+                            </Button>
                         )}
                     </div>
                     <div className="text-right">
