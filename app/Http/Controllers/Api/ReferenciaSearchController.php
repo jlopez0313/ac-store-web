@@ -86,7 +86,7 @@ class ReferenciaSearchController extends Controller
                     'marca' => $item->marca->nombre ?? 'N/A',
                     'descripcion' => $item->descripcion,
                     'stock' => (int) $item->total_stock,
-                    'foto' => $item->foto,
+                    'foto' => $item->foto ? asset('storage/' . ltrim($item->foto, '/')) : null,
                     'cuenta' => $item->cuenta->nombre ?? 'N/A',
                 ];
             }),

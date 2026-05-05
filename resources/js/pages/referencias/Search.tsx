@@ -96,7 +96,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                     className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-slate-100 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 transition-transform hover:scale-110 active:scale-95"
                 >
                     {row.foto ? (
-                        <img src={`/storage/${row.foto}`} alt="Product" className="h-full w-full object-cover" />
+                        <img src={row.foto} alt="Product" className="h-full w-full object-cover" />
                     ) : (
                         <ImageIcon className="h-4 w-4 text-slate-300" />
                     )}
@@ -134,26 +134,19 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                 },
             ]
             : []),
+    ];
+
+    const actions = [
         {
-            name: 'Acciones',
-            width: '150px',
-            cell: (row: any) => (
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 font-bold"
-                    onClick={() => {
-                        setSelectedReferencia({
-                            ...row,
-                            total_stock: row.stock // DetailModal expects total_stock
-                        });
-                        setIsDetailModalOpen(true);
-                    }}
-                >
-                    <Eye className="mr-2 h-4 w-4" />
-                    Ver Disponibilidad
-                </Button>
-            ),
+            title: 'Ver Disponibilidad',
+            icon: Eye,
+            action: (id: any, row: any) => {
+                setSelectedReferencia({
+                    ...row,
+                    total_stock: row.stock // DetailModal expects total_stock
+                });
+                setIsDetailModalOpen(true);
+            },
         },
     ];
 
@@ -251,6 +244,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                         data={results}
                         columns={columns}
                         total={total}
+                        actions={actions}
                         onSort={() => { }}
                         fetchPage={handlePageChange}
                         setPageSize={(size) => handlePerRowsChange(size, 1)}
