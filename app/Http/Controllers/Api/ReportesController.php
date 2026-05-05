@@ -61,6 +61,7 @@ class ReportesController extends Controller
                 'talla'          => $d->talla,
                 'bodega'         => $d->estanteria->bodega->nombre ?? 'N/A',
                 'cantidad'       => $d->cantidad,
+                'precio_sugerido'=> $d->inventario->precio_venta ?? 0,
                 'precio_unitario'=> $d->precio_unitario,
                 'subtotal'       => $d->subtotal,
             ]),

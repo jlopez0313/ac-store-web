@@ -138,7 +138,19 @@ export default function Ventas({ cuentas, locales }: any) {
             name: 'P. Unit.',
             selector: (row: any) => row.precio_unitario,
             width: '110px',
-            cell: (row: any) => `$${Number(row.precio_unitario || 0).toLocaleString()}`,
+            cell: (row: any) => {
+                const sugerido = Number(row.precio_sugerido || 0);
+                const unitario = Number(row.precio_unitario || 0);
+                let cls = 'font-semibold px-2 py-0.5 rounded border text-xs';
+                if (sugerido > 0 && unitario < sugerido) {
+                    cls += ' bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800';
+                } else if (sugerido > 0 && unitario === sugerido) {
+                    cls += ' text-slate-700 border-transparent';
+                } else {
+                    cls += ' text-slate-700 border-transparent';
+                }
+                return <span className={cls}>${unitario.toLocaleString()}</span>;
+            },
         },
         {
             name: 'Subtotal',
