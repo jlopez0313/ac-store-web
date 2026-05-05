@@ -138,13 +138,17 @@ class CambiosController extends Controller
 
                 // 5. Create a new Venta record for the replacement item
                 // Total is now the difference to pay
+                $cuentaId = $detalleOriginal->venta->cuenta_id;
+                $nextNumero = (Venta::where('cuenta_id', $cuentaId)->max('numero') ?? 0) + 1;
+
                 $nuevaVenta = Venta::create([
-                    'user_id' => $detalleOriginal->venta->user_id,
-                    'cuenta_id' => $detalleOriginal->venta->cuenta_id,
-                    'fecha' => now()->format('Y-m-d'),
-                    'estado' => 'cerrada',
+                    'numero'      => $nextNumero,
+                    'user_id'     => $detalleOriginal->venta->user_id,
+                    'cuenta_id'   => $cuentaId,
+                    'fecha'       => now()->format('Y-m-d'),
+                    'estado'      => 'cerrada',
                     'observaciones' => "Cambio de producto (Factura Original #{$detalleOriginal->venta_id}). Observación: " . $request->observacion,
-                    'total' => $diferencia,
+                    'total'       => $diferencia,
                 ]);
 
                 // Update Cambio with the new invoice ID

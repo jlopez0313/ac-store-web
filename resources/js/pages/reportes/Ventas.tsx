@@ -1,5 +1,4 @@
 import { PageHeader } from '@/components/page-header';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { SelectField } from '@/components/ui/form/SelectField';
@@ -63,52 +62,71 @@ export default function Ventas({ cuentas, locales }: any) {
 
     const columns = [
         {
-            name: 'ID',
-            selector: (row: any) => row.id,
-            width: '80px',
-            sortable: true,
-        },
-        {
-            name: 'Código',
-            selector: (row: any) => row.numero || '-',
-            width: '100px',
+            name: 'Factura',
+            selector: (row: any) => row.factura_numero || row.factura_id,
+            width: '90px',
         },
         {
             name: 'Fecha',
-            selector: (row: any) => row.fecha || '-',
+            selector: (row: any) => row.fecha,
+            width: '110px',
             sortable: true,
-            width: '120px',
         },
         ...(isSuper ? [{
             name: 'Cuenta',
-            selector: (row: any) => row.cuenta?.nombre || 'N/A',
+            selector: (row: any) => row.cuenta,
+            width: '120px',
         }] : []),
         {
             name: 'Local',
-            selector: (row: any) => row.local?.name || 'N/A',
+            selector: (row: any) => row.local,
             grow: 1,
         },
         {
-            name: 'Vendedor',
-            selector: (row: any) => row.vendedor?.nombre || row.local?.name || 'N/A',
-            grow: 1,
-        },
-        {
-            name: 'Estado',
+            name: 'Código',
+            selector: (row: any) => row.codigo,
             width: '110px',
-            cell: (row: any) => (
-                <Badge variant={row.estado === 'cerrada' ? 'default' : 'outline'} className="capitalize">
-                    {row.estado}
-                </Badge>
-            ),
+            cell: (row: any) => <span className="font-bold">{row.codigo}</span>,
         },
         {
-            name: 'Total',
-            selector: (row: any) => row.total,
-            sortable: true,
-            width: '130px',
+            name: 'Descripción',
+            selector: (row: any) => row.descripcion,
+            grow: 2,
+            wrap: true,
+        },
+        {
+            name: 'Marca',
+            selector: (row: any) => row.marca,
+            width: '110px',
+        },
+        {
+            name: 'Talla',
+            selector: (row: any) => row.talla,
+            width: '80px',
+        },
+        {
+            name: 'Bodega',
+            selector: (row: any) => row.bodega,
+            width: '120px',
+        },
+        {
+            name: 'Cant.',
+            selector: (row: any) => row.cantidad,
+            width: '70px',
+            cell: (row: any) => <span className="font-bold text-center w-full">{row.cantidad}</span>,
+        },
+        {
+            name: 'P. Unit.',
+            selector: (row: any) => row.precio_unitario,
+            width: '110px',
+            cell: (row: any) => `$${Number(row.precio_unitario || 0).toLocaleString()}`,
+        },
+        {
+            name: 'Subtotal',
+            selector: (row: any) => row.subtotal,
+            width: '120px',
             cell: (row: any) => (
-                <span className="font-bold text-green-600">${Number(row.total || 0).toLocaleString()}</span>
+                <span className="font-bold text-green-600">${Number(row.subtotal || 0).toLocaleString()}</span>
             ),
         },
     ];

@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Venta;
 use App\Models\VentaDetalle;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class ReportesController extends Controller
 {
@@ -15,48 +13,63 @@ class ReportesController extends Controller
         $user = auth()->user();
         $isSuper = $user->role === 'superadmin';
 
-        $query = Venta::with(['local', 'cuenta', 'vendedor']);
+        $query = VentaDetalle::with([
+            'venta.local',
+            'venta.cuenta',
+            'producto.marca',
+            'estanteria.bodega',
+        ])
+        ->whereHas('venta', function ($q) use ($user, $isSuper, $request) {
+            if (!$isSuper) {
+                $q->where('cuenta_id', $user->cuenta_id);
+            } elseif ($request->filled('cuenta_id') && $request->cuenta_id !== 'all') {
+                $q->where('cuenta_id', $request->cuenta_id);
+            }
 
-        // Filter by Account
-        if (!$isSuper) {
-            $query->where('cuenta_id', $user->cuenta_id);
-        } elseif ($request->filled('cuenta_id') && $request->cuenta_id !== 'all') {
-            $query->where('cuenta_id', $request->cuenta_id);
-        }
+            if ($request->filled('local_id')) {
+                $q->where('user_id', $request->local_id);
+            }
 
-        // Filter by Local
-        if ($request->filled('local_id')) {
-            $query->where('user_id', $request->local_id);
-        }
-
-        // Filter by Date Range
-        if ($request->filled('desde')) {
-            $query->whereDate('fecha', '>=', $request->desde);
-        }
-        if ($request->filled('hasta')) {
-            $query->whereDate('fecha', '<=', $request->hasta);
-        }
-
-        // Order
-        $query->orderBy('fecha', 'desc')->orderBy('id', 'desc');
+            if ($request->filled('desde')) {
+                $q->whereDate('fecha', '>=', $request->desde);
+            }
+            if ($request->filled('hasta')) {
+                $q->whereDate('fecha', '<=', $request->hasta);
+            }
+        })
+        ->where('precio_unitario', '>', 0) // Exclude credit/adjustment lines
+        ->orderByDesc('id');
 
         // Totals before pagination
-        $totalsQuery = clone $query;
-        $totalVentas = (clone $query)->sum('total');
-        $ventaIds = (clone $query)->pluck('id');
-        $totalProductos = VentaDetalle::whereIn('venta_id', $ventaIds)->sum('cantidad');
+        $totalVentas   = (clone $query)->sum('subtotal');
+        $totalProductos = (clone $query)->sum('cantidad');
 
         $paginated = $query->paginate($request->input('per_page', 25));
 
         return response()->json([
-            'data' => $paginated->items(),
+            'data' => $paginated->getCollection()->map(fn($d) => [
+                'id'             => $d->id,
+                'factura_id'     => $d->venta_id,
+                'factura_numero' => $d->venta->numero ?? '-',
+                'fecha'          => $d->venta->fecha?->format('Y-m-d') ?? '-',
+                'local'          => $d->venta->local->name ?? 'N/A',
+                'cuenta'         => $d->venta->cuenta->nombre ?? 'N/A',
+                'codigo'         => $d->producto->codigo ?? 'N/A',
+                'descripcion'    => $d->producto->descripcion ?? 'N/A',
+                'marca'          => $d->producto->marca->nombre ?? 'N/A',
+                'talla'          => $d->talla,
+                'bodega'         => $d->estanteria->bodega->nombre ?? 'N/A',
+                'cantidad'       => $d->cantidad,
+                'precio_unitario'=> $d->precio_unitario,
+                'subtotal'       => $d->subtotal,
+            ]),
             'meta' => [
-                'current_page' => $paginated->currentPage(),
-                'per_page' => $paginated->perPage(),
-                'total' => $paginated->total(),
-                'total_ventas' => (float) $totalVentas,
+                'current_page'    => $paginated->currentPage(),
+                'per_page'        => $paginated->perPage(),
+                'total'           => $paginated->total(),
+                'total_ventas'    => (float) $totalVentas,
                 'total_productos' => (int) $totalProductos,
-            ]
+            ],
         ]);
     }
 }
