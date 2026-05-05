@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cuenta;
 use App\Models\Inventario;
 use App\Models\Marca;
+use App\Models\Referencia;
 use Illuminate\Http\Request;
 
 class ReferenciaSearchController extends Controller
