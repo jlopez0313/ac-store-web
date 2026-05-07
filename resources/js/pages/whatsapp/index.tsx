@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type Auth, type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
+import { SelectField } from '@/components/ui/form/SelectField';
 import {
     CheckCircle2,
     Loader2,
@@ -65,7 +66,9 @@ export default function WhatsappPage({ cuentas }: Props) {
             
             const calendarEvents = messages.map((msg: any) => ({
                 id: msg.id,
-                title: msg.recipient || 'Mensaje',
+                title: msg.message 
+                    ? msg.message.split('\n')[0].replace(/\*/g, '') 
+                    : (msg.recipient || 'Mensaje'),
                 start: msg.scheduledTime,
                 color: msg.status === 'sent' ? '#10b981' : '#3b82f6',
                 extendedProps: {
@@ -195,17 +198,17 @@ export default function WhatsappPage({ cuentas }: Props) {
 
                     <div className="flex flex-wrap items-center gap-3">
                         {isSuperAdmin && (
-                            <div className="min-w-[200px]">
-                                <select
+                            <div className="min-w-[250px] -mt-2">
+                                <SelectField
+                                    name="filter_cuenta"
+                                    title=""
+                                    placeholder="Todas las cuentas"
+                                    lista={cuentas}
+                                    item={{ idx: 'id', value: 'nombre' }}
                                     value={filterCuentaId}
-                                    onChange={(e) => setFilterCuentaId(e.target.value)}
-                                    className="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                                >
-                                    <option value="">Todas las cuentas</option>
-                                    {cuentas.map((c: any) => (
-                                        <option key={c.id} value={c.id}>{c.nombre}</option>
-                                    ))}
-                                </select>
+                                    onChange={(val) => setFilterCuentaId(val as string)}
+                                    error={undefined}
+                                />
                             </div>
                         )}
 
