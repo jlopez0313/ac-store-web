@@ -182,4 +182,48 @@ class ReferenciasController extends Controller
         $referencia->delete();
         return response()->json(['message' => 'Referencia eliminada correctamente']);
     }
+
+    public function getList(Request $request)
+    {
+        $user = auth()->user();
+        $isSuper = $user->role === 'superadmin';
+
+        $query = Referencia::orderBy('codigo');
+
+        if (!$isSuper) {
+            $query->where('cuenta_id', $user->cuenta_id);
+        } elseif ($request->filled('cuenta_id')) {
+            $query->where('cuenta_id', $request->cuenta_id);
+        }
+
+        if ($request->filled('bodega_id')) {
+            $query->whereHas('inventarios', function ($q) use ($request) {
+                $q->where('stock', '>', 0)
+                  ->whereHas('estanteria', function ($sq) use ($request) {
+                      $sq->where('bodega_id', $request->bodega_id);
+                  });
+            });
+        } else {
+            $query->whereHas('inventarios', function ($q) {
+                $q->where('stock', '>', 0);
+            });
+        }
+
+        return response()->json($query->with(['inventarios' => function($q) {
+            $q->where('stock', '>', 0);
+        }])->get()->map(function($r) {
+            $precio = $r->inventarios->max('precio_venta');
+            $tallas = $r->inventarios->pluck('talla')->unique()->sort()->values()->toArray();
+            
+            return [
+                'id' => $r->id,
+                'codigo' => $r->codigo,
+                'descripcion' => $r->descripcion,
+                'precio' => $precio,
+                'tallas' => $tallas,
+                'foto' => $r->foto ? asset('storage/' . $r->foto) : null,
+                'name' => "{$r->codigo} - " . ($r->descripcion ?: 'Sin descripción')
+            ];
+        }));
+    }
 }

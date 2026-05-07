@@ -1,23 +1,25 @@
 import JsBarcode from 'jsbarcode';
 
-interface PrintItem {
+interface ReturnItem {
     id: number;
+    venta_id: number;
     producto: {
         codigo: string;
         descripcion: string;
         marca: string;
     };
-    estanteria_nombre: string;
-    bodega_nombre: string;
     talla: string;
     cantidad: number;
-    muestra_id?: number | null;
+    observacion?: string;
+    fecha_devolucion?: string;
+    eliminador?: {
+        name: string;
+    };
 }
 
-interface PrintData {
-    facturaId: number;
+interface ReturnPrintData {
     localName: string;
-    items: PrintItem[];
+    items: ReturnItem[];
     footer?: string;
 }
 
@@ -37,19 +39,18 @@ function generateBarcodeSvg(value: string): string {
     }
 }
 
-function buildTicketHtml(item: PrintItem, facturaId: number, localName: string, footer: string): string {
-    const now = new Date();
-    const fecha = now.toLocaleDateString('es-CO');
-    const hora = now.toLocaleTimeString('es-CO');
+function buildReturnTicketHtml(item: ReturnItem, localName: string, footer: string): string {
+    const fecha = item.fecha_devolucion ? new Date(item.fecha_devolucion).toLocaleDateString('es-CO') : new Date().toLocaleDateString('es-CO');
+    const hora = item.fecha_devolucion ? new Date(item.fecha_devolucion).toLocaleTimeString('es-CO') : new Date().toLocaleTimeString('es-CO');
     const barcodeSvg = generateBarcodeSvg(item.producto.codigo);
 
     return `
-        <div class="ticket">
+        <div class="ticket return-ticket">
+            <div class="return-header">TICKET DE DEVOLUCIÓN</div>
             <table class="top-row">
                 <tr>
                     <td class="col-ref"><b>REF ${item.producto.codigo}</b></td>
-                    <td class="col-est"><b>EST ${item.estanteria_nombre.substring(0, 6)}</b></td>
-                    <td class="col-fac"><b>FAC ${facturaId}</b></td>
+                    <td class="col-fac"><b>FAC ORIG #${item.venta_id}</b></td>
                 </tr>
             </table>
             <table class="items-table">
@@ -68,18 +69,18 @@ function buildTicketHtml(item: PrintItem, facturaId: number, localName: string, 
                     </tr>
                 </tbody>
             </table>
-            <table class="bottom-row">
-                <tr>
-                    <td class="col-marca">${item.producto.marca}</td>
-                    <td class="col-bodega">${item.bodega_nombre}</td>
-                </tr>
-            </table>
+            
+            <div class="reason-box">
+                <div class="reason-label">MOTIVO DE DEVOLUCIÓN:</div>
+                <div class="reason-text">${item.observacion || 'No especificado'}</div>
+            </div>
+
             <table class="info-row">
                 <tr>
                     <td class="col-local">
                         <div>${localName}</div>
-                        <div>${fecha}</div>
-                        <div>${hora}</div>
+                        <div>${fecha} ${hora}</div>
+                        <div class="user-info">Por: ${item.eliminador?.name || 'Sistema'}</div>
                     </td>
                     <td class="col-barcode">
                         ${barcodeSvg ? `<div class="barcode-wrap">${barcodeSvg}</div>` : ''}
@@ -87,13 +88,13 @@ function buildTicketHtml(item: PrintItem, facturaId: number, localName: string, 
                     </td>
                 </tr>
             </table>
-            <div class="footer-banner">${item.muestra_id ? 'RECOGER MUESTRA' : 'PEDIDO'}</div>
+            <div class="footer-banner return-banner">DEVOLUCIÓN</div>
             <div class="footer-text">${footer}</div>
         </div>
     `;
 }
 
-const TICKET_CSS = `
+const RETURN_TICKET_CSS = `
         @page { margin: 0; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -107,6 +108,14 @@ const TICKET_CSS = `
             width: 100%;
             overflow: hidden;
         }
+        .return-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 4px;
+        }
         table {
             width: 100%;
             table-layout: fixed;
@@ -114,9 +123,9 @@ const TICKET_CSS = `
             margin-bottom: 2px;
         }
         td, th { overflow: hidden; word-break: break-word; }
-        .top-row .col-ref  { width: 40%; font-size: 10px; }
-        .top-row .col-est  { width: 30%; font-size: 10px; text-align: center; }
-        .top-row .col-fac  { width: 30%; font-size: 10px; text-align: right; }
+        .top-row .col-ref  { width: 50%; font-size: 11px; }
+        .top-row .col-fac  { width: 50%; font-size: 11px; text-align: right; }
+        
         .items-table { margin-top: 4px; }
         .items-table thead th {
             font-size: 9px;
@@ -127,22 +136,38 @@ const TICKET_CSS = `
         .items-table .col-cant  { width: 20%; }
         .items-table .col-desc  { width: 55%; text-align: center; }
         .items-table .col-talla { width: 25%; text-align: right; }
-        .items-table th.col-desc  { text-align: center; }
-        .items-table th.col-talla { text-align: right; }
+        
         .values td { padding: 3px 0; font-weight: bold; }
         .values .col-cant  { font-size: 16px; }
         .values .col-desc  { font-size: 11px; text-align: center; line-height: 1.3; }
         .values .col-talla { font-size: 16px; text-align: right; }
-        .bottom-row { margin-top: 4px; font-size: 11px; font-weight: bold; }
-        .bottom-row .col-marca  { width: 50%; }
-        .bottom-row .col-bodega { width: 50%; text-align: right; }
+        
+        .reason-box {
+            margin: 8px 0;
+            padding: 4px;
+            border: 1px solid #000;
+            background: #f0f0f0;
+        }
+        .reason-label {
+            font-size: 9px;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 2px;
+        }
+        .reason-text {
+            font-size: 11px;
+            font-style: italic;
+            line-height: 1.2;
+        }
+
         .info-row { margin-top: 6px; }
         .info-row .col-local  { width: 45%; font-size: 10px; font-weight: bold; vertical-align: bottom; }
         .info-row .col-barcode { width: 55%; text-align: right; vertical-align: bottom; }
+        .user-info { font-size: 9px; margin-top: 2px; color: #444; }
+        
         .barcode-wrap svg { width: 100%; height: auto; display: block; }
         .barcode-code {
             font-size: 9px;
-            font-family: 'Courier New', monospace;
             text-align: center;
             letter-spacing: 1px;
             margin-top: 1px;
@@ -156,6 +181,10 @@ const TICKET_CSS = `
             padding: 3px 0;
             letter-spacing: 1px;
         }
+        .return-banner {
+            background-color: #000;
+            color: #fff;
+        }
         .footer-text {
             margin-top: 3px;
             text-align: center;
@@ -165,13 +194,13 @@ const TICKET_CSS = `
         }
 `;
 
-function wrapHtml(bodyContent: string, title = 'Ticket'): string {
+function wrapHtml(bodyContent: string, title = 'Ticket de Devolución'): string {
     return `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>${title}</title>
-    <style>${TICKET_CSS}</style>
+    <style>${RETURN_TICKET_CSS}</style>
 </head>
 <body onload="window.print()">
     ${bodyContent}
@@ -180,16 +209,16 @@ function wrapHtml(bodyContent: string, title = 'Ticket'): string {
 }
 
 /** Returns one full HTML document per item — use for QZ so each item = one print job + one cut */
-export function buildReceiptPageHtml(data: PrintData): string[] {
+export function buildReturnPageHtml(data: ReturnPrintData): string[] {
     const footer = data.footer || import.meta.env.VITE_APP_NAME || ' / WhatsApp / 300 000 0000';
     return data.items.map((item) =>
-        wrapHtml(buildTicketHtml(item, data.facturaId, data.localName, footer))
+        wrapHtml(buildReturnTicketHtml(item, data.localName, footer))
     );
 }
 
-export function printReceipts(data: PrintData, returnHtml = false): string | void {
+export function printReturns(data: ReturnPrintData, returnHtml = false): string | void {
     const footer = data.footer || import.meta.env.VITE_APP_NAME || ' / WhatsApp / 300 000 0000';
-    const ticketsHtml = data.items.map((item) => buildTicketHtml(item, data.facturaId, data.localName, footer)).join('');
+    const ticketsHtml = data.items.map((item) => buildReturnTicketHtml(item, data.localName, footer)).join('');
 
     const html = wrapHtml(ticketsHtml);
 

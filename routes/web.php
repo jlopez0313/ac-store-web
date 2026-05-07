@@ -8,6 +8,7 @@ use App\Http\Controllers\MuestrasController;
 use App\Http\Controllers\ProveedoresController;
 use App\Http\Controllers\ReferenciasController;
 use App\Http\Controllers\UsuariosController;
+use App\Http\Controllers\WhatsappController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -73,7 +74,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/progreso', [ImportacionController::class, 'progreso'])->name('progreso');
     });
 
+
     Route::get('reporte-suscripciones', [App\Http\Controllers\SuscripcionesController::class, 'index'])->name('subscriptions.report');
+
+    Route::get('whatsapp', [WhatsappController::class, 'index'])->name('whatsapp.index');
 
     Route::get('opciones', [App\Http\Controllers\OpcionesController::class, 'index'])->name('opciones.index');
     Route::get('opciones/horarios', [App\Http\Controllers\OpcionesController::class, 'horarios'])->name('opciones.horarios');

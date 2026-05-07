@@ -1,0 +1,96 @@
+.fc {
+    --fc-border-color: rgba(0, 0, 0, 0.05);
+    --fc-button-bg-color: #ffffff;
+    --fc-button-border-color: #e2e8f0;
+    --fc-button-text-color: #64748b;
+    --fc-button-hover-bg-color: #f8fafc;
+    --fc-button-hover-border-color: #cbd5e1;
+    --fc-button-active-bg-color: #f1f5f9;
+    --fc-button-active-border-color: #94a3b8;
+    --fc-today-bg-color: rgba(16, 185, 129, 0.03);
+    --fc-event-bg-color: #10b981;
+    --fc-event-border-color: #10b981;
+    font-size: 0.8rem;
+
+    .fc-button {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        text-transform: capitalize;
+
+        &.fc-button-primary:not(:disabled) {
+            &.fc-button-active, &:active {
+                background-color: var(--fc-button-active-bg-color) !important;
+                border-color: var(--fc-button-active-border-color) !important;
+                color: #1e293b !important;
+            }
+        }
+    }
+
+    .fc-toolbar-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .fc-col-header-cell-cushion {
+        padding: 8px 0;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        font-weight: 600;
+        color: #94a3b8;
+    }
+
+    .fc-daygrid-day-number {
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 6px 8px;
+        color: #64748b;
+    }
+
+    .fc-event {
+        border-radius: 4px;
+        padding: 1px 4px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .fc-scrollgrid {
+        border-radius: 8px;
+        overflow: hidden;
+        border-color: var(--fc-border-color);
+    }
+}
+
+.fc-theme-standard td, .fc-theme-standard th {
+    border-color: var(--fc-border-color);
+}
+
+:global(.dark) {
+    .fc {
+        --fc-border-color: rgba(255, 255, 255, 0.05);
+        --fc-button-bg-color: #0f172a;
+        --fc-button-border-color: #1e293b;
+        --fc-button-text-color: #94a3b8;
+        --fc-button-hover-bg-color: #1e293b;
+        --fc-button-hover-border-color: #334155;
+        --fc-button-active-bg-color: #334155;
+        --fc-button-active-border-color: #475569;
+        --fc-today-bg-color: rgba(16, 185, 129, 0.08);
+
+        .fc-toolbar-title {
+            color: #f8fafc;
+        }
+
+        .fc-button-primary:not(:disabled) {
+            &.fc-button-active, &:active {
+                color: #f8fafc !important;
+            }
+        }
+    }
+}

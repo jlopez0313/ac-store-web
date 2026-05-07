@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ProveedoresController as ApiProveedoresController;
 use App\Http\Controllers\Api\ComprasController as ApiComprasController;
 use App\Http\Controllers\Api\BodegasController as ApiBodegasController;
 use App\Http\Controllers\Api\CategoriasController as ApiCategoriasController;
+use App\Http\Controllers\Api\ScheduledMessageController as ApiScheduledMessageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    // Scheduled Messages
+    Route::post('scheduled-messages', [ApiScheduledMessageController::class, 'store'])->name('api.scheduled.store');
+    Route::get('scheduled-messages', [ApiScheduledMessageController::class, 'index'])->name('api.scheduled.index');
+    Route::put('scheduled-messages/{id}', [ApiScheduledMessageController::class, 'update'])->name('api.scheduled.update');
+    Route::delete('scheduled-messages/{id}', [ApiScheduledMessageController::class, 'destroy'])->name('api.scheduled.destroy');
+
 
     // Recursos Base
     Route::apiResource('cuentas', ApiCuentasController::class)->names('api.cuentas');
@@ -25,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('bodegas', ApiBodegasController::class)->names('api.bodegas');
     Route::get('bodegas/{bodega}/accesos', [App\Http\Controllers\Api\BodegasController::class, 'getAccesos'])->name('api.bodegas.accesos');
     Route::apiResource('categorias', ApiCategoriasController::class)->names('api.categorias');
+    Route::get('referencias/list', [ApiReferenciasController::class, 'getList'])->name('api.referencias.list');
     Route::get('referencias/next-code', [ApiReferenciasController::class, 'getNextCode'])->name('api.referencias.next-code');
     Route::post('referencias/search', [ApiReferenciaSearchController::class, 'index'])->name('api.referencias.search');
     Route::post('referencias/bulk-photos/chunk', [App\Http\Controllers\Api\ReferenciaFotoController::class, 'uploadChunk'])->name('api.referencias.bulk-photos.chunk');

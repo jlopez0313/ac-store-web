@@ -28,6 +28,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
     placeholder?: string;
     error: string | undefined;
     onChange: (e: string | string[]) => void;
+    isLoading?: boolean;
 }
 
 export const SelectField = ({
@@ -41,6 +42,7 @@ export const SelectField = ({
     placeholder,
     error = '',
     onChange,
+    isLoading = false,
     ...props
 }: Props) => {
 
@@ -117,6 +119,7 @@ export const SelectField = ({
                 placeholder={placeholder ?? title}
                 name={name}
                 isMulti={multiple}
+                isLoading={isLoading}
                 options={dataList}
                 value={selectedValue}
                 closeMenuOnSelect={!multiple}
@@ -125,7 +128,7 @@ export const SelectField = ({
                 unstyled
                 classNames={{
                     control: ({ isFocused }) => cn(
-                        "flex mt-2 h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+                        "flex mt-2 min-h-[40px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
                         isFocused && "ring-1 ring-ring border-ring"
                     ),
                     placeholder: () => "text-muted-foreground",

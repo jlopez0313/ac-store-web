@@ -18,7 +18,8 @@ export interface PrintRequest {
     key?: string;
     venta_id: number;
     local_name: string;
-    type: 'pendientes' | 'cuadre';
+    type: 'pendientes' | 'cuadre' | 'devolucion' | 'cambio' | 'factura';
+    ids?: number[]; // Specific item IDs for returns or targeted printing
     created_at: number;
 }
 

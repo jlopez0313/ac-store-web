@@ -150,6 +150,18 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
             );
             setSelectedFactura({ ...selectedFactura, detalles: response.data.data });
             showAlert('success', 'Devolucion registrada, stock restaurado.');
+            
+            // Trigger print request
+            const cuentaId = selectedFactura.cuenta_id || auth.user.cuenta_id;
+            if (cuentaId) {
+                createPrintRequest(cuentaId, {
+                    venta_id: selectedFactura.id,
+                    local_name: selectedFactura.local?.name || auth.user.name,
+                    type: 'devolucion',
+                    ids: [detalleId]
+                }).catch(err => console.error('Error creating return print request:', err));
+            }
+
             fetchData(); // Refresh list to update totals/badges
         } catch (error: any) {
             showAlert('error', error.response?.data?.error || 'Error al eliminar el detalle.');
@@ -205,6 +217,18 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                     data: { ids: selectedDetailIds, observacion: result.value },
                 });
                 setSelectedFactura({ ...selectedFactura, detalles: response.data.data });
+                
+                // Trigger print request for bulk return
+                const cuentaId = selectedFactura.cuenta_id || auth.user.cuenta_id;
+                if (cuentaId) {
+                    createPrintRequest(cuentaId, {
+                        venta_id: selectedFactura.id,
+                        local_name: selectedFactura.local?.name || auth.user.name,
+                        type: 'devolucion',
+                        ids: selectedDetailIds
+                    }).catch(err => console.error('Error creating bulk return print request:', err));
+                }
+
                 setSelectedDetailIds([]);
                 showAlert('success', 'Productos eliminados correctamente');
                 fetchData();
@@ -307,7 +331,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         const localName = freshFactura.local?.name || auth.user.name;
 
                                         // Local users send print request to Firebase for bodega to handle
-                                        if (auth.user.role === 'local' && (type === 'pendientes' || type === 'cuadre')) {
+                                        if (auth.user.role === 'local' && (type === 'pendientes' || type === 'cuadre' || type === 'factura')) {
                                             const cuentaId = freshFactura.cuenta_id || auth.user.cuenta_id;
                                             if (!cuentaId) {
                                                 showAlert('error', 'No se pudo determinar la cuenta.');
@@ -338,6 +362,23 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                                 await printWithQZ(auth.user.nombre_impresora, html);
                                             } else {
                                                 printCuadre(cuadreData);
+                                            }
+                                            return;
+                                        }
+
+                                        if (type === 'factura') {
+                                            const { printSoporteVenta } = await import('@/utils/printSoporteVenta');
+                                            const soporteData = {
+                                                facturaId: freshFactura.id,
+                                                localName,
+                                                vendedor: freshFactura.vendedor || auth.user.name,
+                                                items: detalles,
+                                            };
+                                            if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                                                const html = printSoporteVenta(soporteData, true) as string;
+                                                await printWithQZ(auth.user.nombre_impresora, html);
+                                            } else {
+                                                printSoporteVenta(soporteData);
                                             }
                                             return;
                                         }

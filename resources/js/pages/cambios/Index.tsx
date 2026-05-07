@@ -5,9 +5,10 @@ import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/use-auth';
+import { createPrintRequest } from '@/lib/firebase';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { ArrowRight, RefreshCcw, Search as SearchIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -20,6 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Index({ filters: initialFilters, cuentas, locals }: any) {
     const { isSuperAdmin } = useAuth();
+    const { auth } = usePage().props as any;
 
     const [items, setItems] = useState<any[]>([]);
     const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
@@ -196,7 +198,20 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                     onClose={() => setShow(false)}
                     onStore={async (data: any) => {
                         try {
-                            await axios.post(route('api.cambios.store'), data);
+                            const response = await axios.post(route('api.cambios.store'), data);
+                            const cambio = response.data.data;
+
+                            // Trigger print request
+                            const cuentaId = cambio.cuenta?.id || auth.user.cuenta_id;
+                            if (cuentaId) {
+                                createPrintRequest(cuentaId, {
+                                    venta_id: cambio.venta_id,
+                                    local_name: cambio.local?.name || auth.user.name,
+                                    type: 'cambio',
+                                    ids: [cambio.id],
+                                }).catch((err) => console.error('Error creating change print request:', err));
+                            }
+
                             setShow(false);
                             fetchData();
                         } catch (error: any) {

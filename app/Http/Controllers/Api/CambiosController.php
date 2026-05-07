@@ -18,13 +18,26 @@ class CambiosController extends Controller
         $user = auth()->user();
         $isSuper = $user->role === 'superadmin';
 
-        $query = Cambio::with(['local', 'venta', 'detalleOriginal.producto', 'productoNuevo', 'cuenta', 'creator'])
-            ->orderBy('created_at', 'desc');
+        $query = Cambio::with([
+            'local', 
+            'venta', 
+            'detalleOriginal.producto', 
+            'detalleOriginal.estanteria.bodega',
+            'productoNuevo', 
+            'nuevoInventario.estanteria.bodega',
+            'cuenta', 
+            'creator'
+        ])->orderBy('created_at', 'desc');
 
         if (!$isSuper) {
             $query->where('cuenta_id', $user->cuenta_id);
         } elseif ($request->filled('cuenta_id')) {
             $query->where('cuenta_id', $request->cuenta_id);
+        }
+
+        if ($request->filled('ids')) {
+            $ids = is_array($request->ids) ? $request->ids : explode(',', $request->ids);
+            $query->whereIn('id', $ids);
         }
 
         if ($request->filled('search')) {

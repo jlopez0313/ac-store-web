@@ -4,6 +4,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { getPrintRequestsRef, onValue, removePrintRequest, type PrintRequest } from '@/lib/firebase';
 import { showAlert } from '@/plugins/sweetalert';
 import { buildReceiptPageHtml, printReceipts } from '@/utils/printReceipt';
+import { buildReturnPageHtml } from '@/utils/printReturn';
+import { buildCambioPageHtml } from '@/utils/printCambio';
+import { printSoporteVenta } from '@/utils/printSoporteVenta';
 import { connectQZ, disconnectQZ, printWithQZ } from '@/utils/qz-service';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -119,7 +122,7 @@ export function PrintNotificationBell({ cuentaId }: Props) {
                         detalle_ids: pendientes.map((d: any) => d.id),
                     });
                 }
-            } else {
+            } else if (request.type === 'cuadre') {
                 const { printCuadre } = await import('@/utils/printCuadre');
                 const html = printCuadre(
                     {
@@ -140,6 +143,74 @@ export function PrintNotificationBell({ cuentaId }: Props) {
                         vendedor: venta.vendedor || '',
                         items: detalles,
                     });
+                }
+            } else if (request.type === 'devolucion') {
+                const response = await axios.get(route('api.devoluciones.index'), {
+                    params: { ids: request.ids || [] },
+                });
+                const returns = response.data.data;
+
+                if (!returns || returns.length === 0) {
+                    showAlert('info', 'No se encontraron los datos de la devolución.');
+                    if (request.key) await removePrintRequest(effectiveCuentaId, request.key);
+                    return;
+                }
+
+                if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                    const pages = buildReturnPageHtml({
+                        localName: request.local_name,
+                        items: returns,
+                    });
+                    for (let i = 0; i < pages.length; i++) {
+                        await printWithQZ(auth.user.nombre_impresora, pages[i]);
+                    }
+                } else {
+                    const { printReturns } = await import('@/utils/printReturn');
+                    printReturns({
+                        localName: request.local_name,
+                        items: returns,
+                    });
+                }
+            } else if (request.type === 'cambio') {
+                const response = await axios.get(route('api.cambios.index'), {
+                    params: { ids: request.ids || [] },
+                });
+                const cambios = response.data.data;
+
+                if (!cambios || cambios.length === 0) {
+                    showAlert('info', 'No se encontraron los datos del cambio.');
+                    if (request.key) await removePrintRequest(effectiveCuentaId, request.key);
+                    return;
+                }
+
+                if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                    const pages = buildCambioPageHtml({
+                        localName: request.local_name,
+                        items: cambios,
+                    });
+                    for (let i = 0; i < pages.length; i++) {
+                        await printWithQZ(auth.user.nombre_impresora, pages[i]);
+                    }
+                } else {
+                    const { printCambios } = await import('@/utils/printCambio');
+                    printCambios({
+                        localName: request.local_name,
+                        items: cambios,
+                    });
+                }
+            } else if (request.type === 'factura') {
+                const soporteData = {
+                    facturaId: venta.id,
+                    localName: venta.local?.name || '',
+                    vendedor: venta.vendedor || '',
+                    items: detalles,
+                };
+
+                if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                    const html = printSoporteVenta(soporteData, true) as string;
+                    await printWithQZ(auth.user.nombre_impresora, html);
+                } else {
+                    printSoporteVenta(soporteData);
                 }
             }
 

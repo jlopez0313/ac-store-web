@@ -37,6 +37,11 @@ class DevolucionesController extends Controller
             $query->where('venta_id', $request->venta_id);
         }
 
+        if ($request->filled('ids')) {
+            $ids = is_array($request->ids) ? $request->ids : explode(',', $request->ids);
+            $query->whereIn('id', $ids);
+        }
+
         if ($request->filled('from')) {
             $query->whereDate('deleted_at', '>=', $request->from);
         }
