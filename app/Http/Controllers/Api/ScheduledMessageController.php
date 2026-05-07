@@ -13,11 +13,19 @@ class ScheduledMessageController extends Controller
      */
     public function index(Request $request)
     {
-        $userId = $request->user()->id;
+        $user = $request->user();
+        $query = ScheduledMessage::query();
+
+        // Filtro multi-cuenta: Si no es superadmin, solo ve lo de su cuenta
+        if ($user->role !== 'superadmin') {
+            $query->where('cuenta_id', $user->cuenta_id);
+        } else if ($request->has('cuenta_id') && $request->cuenta_id != '') {
+            // Si es superadmin y seleccionó una cuenta en el filtro
+            $query->where('cuenta_id', $request->cuenta_id);
+        }
         
-        $messages = ScheduledMessage::where('userId', $userId)
-            ->where(function($query) {
-                $query->where('status', 'pending')
+        $messages = $query->where(function($q) {
+                $q->where('status', 'pending')
                       ->orWhere('status', 'sent');
             })
             ->whereDate('scheduledTime', '>=', now()->startOfDay())
@@ -63,13 +71,17 @@ class ScheduledMessageController extends Controller
             'scheduledTime' => 'required|date',
         ]);
 
-        $message = ScheduledMessage::where('id', $messageId)
-            ->where('userId', $request->user()->id)
-            ->where('status', 'pending')
-            ->first();
+        $user = $request->user();
+        $query = ScheduledMessage::where('id', $messageId);
+
+        if ($user->role !== 'superadmin') {
+            $query->where('cuenta_id', $user->cuenta_id);
+        }
+
+        $message = $query->where('status', 'pending')->first();
 
         if (!$message) {
-            return response()->json(['error' => 'No se encontró el mensaje o ya no está pendiente.'], 404);
+            return response()->json(['error' => 'No se encontró el mensaje o ya no tiene permisos para editarlo.'], 404);
         }
 
         $message->update([
@@ -87,13 +99,17 @@ class ScheduledMessageController extends Controller
      */
     public function destroy(Request $request, $messageId)
     {
-        $message = ScheduledMessage::where('id', $messageId)
-            ->where('userId', $request->user()->id)
-            ->where('status', 'pending')
-            ->first();
+        $user = $request->user();
+        $query = ScheduledMessage::where('id', $messageId);
+
+        if ($user->role !== 'superadmin') {
+            $query->where('cuenta_id', $user->cuenta_id);
+        }
+
+        $message = $query->where('status', 'pending')->first();
 
         if (!$message) {
-            return response()->json(['error' => 'No se encontró el mensaje o ya no está pendiente.'], 404);
+            return response()->json(['error' => 'No se encontró el mensaje o ya no tiene permisos para eliminarlo.'], 404);
         }
 
         $message->delete();

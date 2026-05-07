@@ -38,6 +38,26 @@ export function EditActivityModal({
         fecha: '',
         hora: ''
     });
+    const [timeError, setTimeError] = useState<string | null>(null);
+
+    const validateTime = (fecha: string, hora: string) => {
+        if (!fecha || !hora) return;
+        const [year, month, day] = fecha.split('-').map(Number);
+        const [hour, minute] = hora.split(':').map(Number);
+        const scheduledDate = new Date(year, month - 1, day, hour, minute);
+        const now = new Date();
+        const minAllowedDate = new Date(now.getTime() + 2 * 60 * 1000);
+
+        if (scheduledDate < minAllowedDate) {
+            setTimeError('La hora debe ser al menos 2 minutos posterior a la actual.');
+        } else {
+            setTimeError(null);
+        }
+    };
+
+    useEffect(() => {
+        validateTime(formData.fecha, formData.hora);
+    }, [formData.fecha, formData.hora]);
 
     const [mediaParsed, setMediaParsed] = useState<any>(null);
 
@@ -57,6 +77,7 @@ export function EditActivityModal({
                 fecha: `${yyyy}-${mm}-${dd}`,
                 hora: `${hh}:${min}`
             });
+            setTimeError(null);
 
             if (event.extendedProps.media) {
                 if (typeof event.extendedProps.media === 'string') {
@@ -144,6 +165,8 @@ export function EditActivityModal({
             return;
         }
 
+        if (timeError) return;
+
         const scheduledTime = scheduledDate.toISOString();
 
         setLoading(true);
@@ -213,14 +236,18 @@ export function EditActivityModal({
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="edit-hora">Hora de Envío</Label>
+                        <Label htmlFor="edit-hora" className={timeError ? 'text-red-500' : ''}>Hora de Envío</Label>
                         <Input 
                             id="edit-hora"
                             type="time" 
                             value={formData.hora} 
                             onChange={(e) => setFormData(prev => ({ ...prev, hora: e.target.value }))}
+                            className={timeError ? 'border-red-500 focus-visible:ring-red-500' : ''}
                             required
                         />
+                        {timeError && (
+                            <p className="text-xs text-red-500 font-medium animate-pulse">{timeError}</p>
+                        )}
                     </div>
                 </div>
 
@@ -306,7 +333,11 @@ export function EditActivityModal({
                         <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
                             Cancelar
                         </Button>
-                        <Button type="submit" loading={loading || loadingGroups}>
+                        <Button 
+                            type="submit" 
+                            disabled={loading || loadingGroups || !!timeError}
+                            loading={loading || loadingGroups}
+                        >
                             Actualizar Mensaje
                         </Button>
                     </div>

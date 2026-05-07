@@ -48,6 +48,26 @@ export function ActivityModal({
         fecha: selectedDate,
         hora: '08:00'
     });
+    const [timeError, setTimeError] = useState<string | null>(null);
+
+    const validateTime = (fecha: string, hora: string) => {
+        if (!fecha || !hora) return;
+        const [year, month, day] = fecha.split('-').map(Number);
+        const [hour, minute] = hora.split(':').map(Number);
+        const scheduledDate = new Date(year, month - 1, day, hour, minute);
+        const now = new Date();
+        const minAllowedDate = new Date(now.getTime() + 2 * 60 * 1000);
+
+        if (scheduledDate < minAllowedDate) {
+            setTimeError('La hora debe ser al menos 2 minutos posterior a la actual.');
+        } else {
+            setTimeError(null);
+        }
+    };
+
+    useEffect(() => {
+        validateTime(formData.fecha, formData.hora);
+    }, [formData.fecha, formData.hora]);
 
     useEffect(() => {
         if (show) {
@@ -60,6 +80,7 @@ export function ActivityModal({
                 hora: '08:00'
             });
             setFilterType('groups');
+            setTimeError(null);
         }
     }, [show, selectedDate, isSuperAdmin, userCuentaId]);
 
@@ -156,26 +177,11 @@ export function ActivityModal({
             return;
         }
 
+        if (timeError) return;
+
         // Only send if connected
         if (status !== 'connected') {
             Swal.fire('Error', 'WhatsApp no está conectado.', 'error');
-            return;
-        }
-
-        // Validate time: must be at least 2 minutes in the future
-        const [year, month, day] = formData.fecha.split('-').map(Number);
-        const [hour, minute] = formData.hora.split(':').map(Number);
-        const scheduledDate = new Date(year, month - 1, day, hour, minute);
-        const now = new Date();
-        const minAllowedDate = new Date(now.getTime() + 2 * 60 * 1000);
-
-        if (scheduledDate < minAllowedDate) {
-            Swal.fire({
-                title: 'Hora inválida',
-                text: 'La hora de programación debe ser al menos 2 minutos posterior a la hora actual.',
-                icon: 'error',
-                confirmButtonColor: '#ef4444'
-            });
             return;
         }
 
@@ -262,14 +268,18 @@ export function ActivityModal({
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="hora">Hora de Envío</Label>
+                        <Label htmlFor="hora" className={timeError ? 'text-red-500' : ''}>Hora de Envío</Label>
                         <Input
                             id="hora"
                             type="time"
                             value={formData.hora}
                             onChange={(e) => setFormData(prev => ({ ...prev, hora: e.target.value }))}
+                            className={timeError ? 'border-red-500 focus-visible:ring-red-500' : ''}
                             required
                         />
+                        {timeError && (
+                            <p className="text-xs text-red-500 font-medium animate-pulse">{timeError}</p>
+                        )}
                     </div>
                 </div>
 
@@ -352,7 +362,11 @@ export function ActivityModal({
                     <Button type="button" variant="outline" onClick={onClose}>
                         Cancelar
                     </Button>
-                    <Button type="submit" loading={loadingGroups || loadingBodegas || loadingReferencias}>
+                    <Button 
+                        type="submit" 
+                        disabled={!!timeError}
+                        loading={loadingGroups || loadingBodegas || loadingReferencias}
+                    >
                         Guardar Actividad
                     </Button>
                 </div>

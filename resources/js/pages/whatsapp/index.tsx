@@ -47,6 +47,7 @@ export default function WhatsappPage({ cuentas }: Props) {
     const [status, setStatus] = useState<'loading' | 'connected' | 'disconnected'>('loading');
     const [refreshing, setRefreshing] = useState(false);
     const [events, setEvents] = useState<any[]>([]);
+    const [filterCuentaId, setFilterCuentaId] = useState<string>('');
 
     // Modal State
     const [showModal, setShowModal] = useState(false);
@@ -57,20 +58,29 @@ export default function WhatsappPage({ cuentas }: Props) {
 
     const fetchScheduledMessages = async () => {
         try {
-            const response = await axios.get(route('api.scheduled.index'));
+            const response = await axios.get(route('api.scheduled.index'), {
+                params: { cuenta_id: filterCuentaId }
+            });
             const messages = Array.isArray(response.data) ? response.data : [];
-            const mappedEvents = messages.map((m: any) => ({
-                id: m.id,
-                title: m.message ? m.message.split('\n')[0].replace(/\*/g, '') : 'Mensaje Programado',
-                start: m.scheduledTime,
-                color: '#4f46e5',
-                extendedProps: { ...m }
+            
+            const calendarEvents = messages.map((msg: any) => ({
+                id: msg.id,
+                title: msg.recipient || 'Mensaje',
+                start: msg.scheduledTime,
+                color: msg.status === 'sent' ? '#10b981' : '#3b82f6',
+                extendedProps: {
+                    ...msg
+                }
             }));
-            setEvents(mappedEvents);
+            setEvents(calendarEvents);
         } catch (error) {
             console.error('Error fetching scheduled messages:', error);
         }
     };
+
+    useEffect(() => {
+        fetchScheduledMessages();
+    }, [filterCuentaId]);
 
     const checkStatus = async () => {
         setRefreshing(true);
@@ -91,7 +101,6 @@ export default function WhatsappPage({ cuentas }: Props) {
 
     useEffect(() => {
         checkStatus();
-        fetchScheduledMessages();
     }, []);
 
     useEffect(() => {
@@ -110,15 +119,13 @@ export default function WhatsappPage({ cuentas }: Props) {
             });
 
             socket.on('whatsapp-status-changed', (data: any) => {
-                if (data.userId == auth.user.id) {
-                    if (data.status === 'ready') {
-                        setStatus('connected');
-                        setShowQRModal(false);
-                    } else if (data.status === 'disconnected') {
-                        setStatus('disconnected');
-                    } else if (data.status === 'qr') {
-                        setStatus('disconnected');
-                    }
+                console.log('🔄 Estado de WhatsApp cambiado:', data);
+                if (data.status === 'ready') {
+                    setStatus('connected');
+                    setShowQRModal(false);
+                    fetchScheduledMessages();
+                } else if (data.status === 'disconnected') {
+                    setStatus('disconnected');
                 }
             });
 
@@ -186,47 +193,66 @@ export default function WhatsappPage({ cuentas }: Props) {
                         description="Gestiona tus comunicaciones de WhatsApp."
                     />
 
-                    <div
-                        onClick={() => status === 'disconnected' && setShowQRModal(true)}
-                        className={`flex items-center gap-3 px-4 py-2 rounded-full border shadow-sm transition-all duration-300 ${status === 'connected' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
-                                status === 'disconnected' ? 'bg-red-50 border-red-200 text-red-700 cursor-pointer hover:bg-red-100' :
-                                    'bg-slate-50 border-slate-200 text-slate-700'
-                            }`}>
-                        {status === 'loading' ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : status === 'connected' ? (
-                            <CheckCircle2 className="h-4 w-4" />
-                        ) : (
-                            <XCircle className="h-4 w-4" />
+                    <div className="flex flex-wrap items-center gap-3">
+                        {isSuperAdmin && (
+                            <div className="min-w-[200px]">
+                                <select
+                                    value={filterCuentaId}
+                                    onChange={(e) => setFilterCuentaId(e.target.value)}
+                                    className="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                >
+                                    <option value="">Todas las cuentas</option>
+                                    {cuentas.map((c: any) => (
+                                        <option key={c.id} value={c.id}>{c.nombre}</option>
+                                    ))}
+                                </select>
+                            </div>
                         )}
-                        <span className="text-sm font-medium uppercase tracking-wider">
-                            {status === 'loading' ? 'Verificando...' : status === 'connected' ? 'Conectado' : 'Desconectado'}
-                        </span>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                checkStatus();
-                                fetchScheduledMessages();
-                            }}
-                            disabled={refreshing}
-                            className="ml-2 hover:bg-black/5 p-1 rounded-full transition-colors"
-                            title="Refrescar estado"
-                        >
-                            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                        </button>
 
-                        {status === 'connected' && (
+                        <div
+                            onClick={() => status === 'disconnected' && setShowQRModal(true)}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-full border shadow-sm transition-all duration-300 ${
+                                status === 'connected' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
+                                status === 'disconnected' ? 'bg-red-50 border-red-200 text-red-700 cursor-pointer hover:bg-red-100' :
+                                'bg-slate-50 border-slate-200 text-slate-700'
+                            }`}
+                        >
+                            {status === 'loading' ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : status === 'connected' ? (
+                                <CheckCircle2 className="h-4 w-4" />
+                            ) : (
+                                <XCircle className="h-4 w-4" />
+                            )}
+                            <span className="text-sm font-medium uppercase tracking-wider">
+                                {status === 'loading' ? 'Verificando...' : status === 'connected' ? 'Conectado' : 'Desconectado'}
+                            </span>
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    handleLogout();
+                                    checkStatus();
+                                    fetchScheduledMessages();
                                 }}
-                                className="ml-1 hover:bg-red-100 text-red-600 p-1 rounded-full transition-colors"
-                                title="Cerrar sesión"
+                                disabled={refreshing}
+                                className="ml-2 hover:bg-black/5 p-1 rounded-full transition-colors"
+                                title="Refrescar estado"
                             >
-                                <LogOut className="h-4 w-4" />
+                                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                             </button>
-                        )}
+
+                            {status === 'connected' && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleLogout();
+                                    }}
+                                    className="ml-1 hover:bg-red-100 text-red-600 p-1 rounded-full transition-colors"
+                                    title="Cerrar sesión"
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
