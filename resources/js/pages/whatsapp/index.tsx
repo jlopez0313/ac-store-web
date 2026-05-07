@@ -42,7 +42,7 @@ interface Props {
 export default function WhatsappPage({ cuentas }: Props) {
     const { auth } = usePage<any>().props;
     const isSuperAdmin = auth.user.role === 'superadmin';
-    const apiUrl = import.meta.env.VITE_WHATSAPP_API_URL || 'http://localhost:3000/api';
+    const apiUrl = import.meta.env.VITE_WHATSAPP_API_URL || 'http://localhost:3001/api';
 
     const [status, setStatus] = useState<'loading' | 'connected' | 'disconnected'>('loading');
     const [refreshing, setRefreshing] = useState(false);
@@ -96,13 +96,17 @@ export default function WhatsappPage({ cuentas }: Props) {
 
     useEffect(() => {
         try {
+            // En producción, apiUrl será "https://bodegastock.com/whatsapp-api"
+            // El socket debe conectar al origen (dominio) directamente
             const socketUrl = new URL(apiUrl).origin;
             const socket = io(socketUrl, {
-                auth: { userId: auth.user.id }
+                auth: { userId: auth.user.id },
+                secure: true,
+                transports: ['websocket', 'polling']
             });
 
             socket.on('connect', () => {
-                console.log('✅ Conectado al socket de WhatsApp con ID:', auth.user.id);
+                console.log('✅ Conectado al socket de WhatsApp (Producción)');
             });
 
             socket.on('whatsapp-status-changed', (data: any) => {

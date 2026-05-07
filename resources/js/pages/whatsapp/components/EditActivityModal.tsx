@@ -125,14 +125,26 @@ export function EditActivityModal({
 
         const [year, month, day] = formData.fecha.split('-').map(Number);
         const [hour, minute] = formData.hora.split(':').map(Number);
-        const localDate = new Date(year, month - 1, day, hour, minute);
+        const scheduledDate = new Date(year, month - 1, day, hour, minute);
+        const now = new Date();
+        const minAllowedDate = new Date(now.getTime() + 2 * 60 * 1000);
 
-        if (isNaN(localDate.getTime())) {
+        if (isNaN(scheduledDate.getTime())) {
             Swal.fire('Error', 'Fecha u hora inválida', 'error');
             return;
         }
 
-        const scheduledTime = localDate.toISOString();
+        if (scheduledDate < minAllowedDate) {
+            Swal.fire({
+                title: 'Hora inválida',
+                text: 'La hora de programación debe ser al menos 2 minutos posterior a la hora actual.',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+            return;
+        }
+
+        const scheduledTime = scheduledDate.toISOString();
 
         setLoading(true);
         try {
