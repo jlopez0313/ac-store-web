@@ -23,10 +23,7 @@ class FacturasController extends Controller
         $query = Venta::with(['local', 'creator', 'detalles.bodega', 'detalles.cambio', 'cuenta']);
 
         if ($user->hasRole('local')) {
-            $query->where(function($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('creado_por', $user->id);
-            });
+            $query->where('user_id', $user->id);
         } elseif (!$isSuper) {
             $query->whereIn('cuenta_id', $user->getAccessibleAccountIds());
         }
@@ -38,7 +35,7 @@ class FacturasController extends Controller
         } elseif ($tab === 'cerradas') {
             $query->where('estado', 'cerrada');
         } elseif ($tab === 'pendientes') {
-            $query->where('estado', 'pendiente'); 
+            $query->where('estado', 'pendiente');
         } elseif ($tab === 'sin_precio') {
             $query->where('total', 0);
         }

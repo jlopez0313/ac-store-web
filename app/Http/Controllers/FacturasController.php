@@ -18,10 +18,7 @@ class FacturasController extends Controller
             ->orderBy('id', 'desc');
 
         if ($user->hasRole('local')) {
-            $query->where(function($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('creado_por', $user->id);
-            });
+            $query->where('user_id', $user->id);
         } elseif (!$isSuper) {
             $query->whereIn('cuenta_id', $user->getAccessibleAccountIds());
         }
@@ -34,7 +31,7 @@ class FacturasController extends Controller
             $query->where('estado', 'cerrada');
         } elseif ($tab === 'pendientes') {
             // Placeholder: for now assume 'pendiente' status or logic
-            $query->where('estado', 'pendiente'); 
+            $query->where('estado', 'pendiente');
         } elseif ($tab === 'sin_precio') {
             $query->where('total', 0);
         }

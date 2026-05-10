@@ -1,19 +1,19 @@
-import AppLayout from '@/layouts/app-layout';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { Head } from '@inertiajs/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SelectField } from '@/components/ui/form/SelectField';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { SelectField } from '@/components/ui/form/SelectField';
 import { Modal } from '@/components/ui/Modal';
-import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
 import { showAlert } from '@/plugins/sweetalert';
-import { Megaphone, Send, Users, User, Landmark, Info, AlertTriangle, CheckCircle, XCircle, Eye, History, Clock } from 'lucide-react';
+import { Head } from '@inertiajs/react';
+import axios from 'axios';
+import { AlertTriangle, CheckCircle, Clock, Eye, History, Info, Landmark, Megaphone, Send, User, Users, XCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const breadcrumbs = [
     { title: 'Anuncios', href: '/anuncios' },
@@ -25,11 +25,11 @@ export default function NotificationsIndex() {
     const [cuentas, setCuentas] = useState<any[]>([]);
     const [usuarios, setUsuarios] = useState<any[]>([]);
     const [announcements, setAnnouncements] = useState<any[]>([]);
-    
+
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
     const [stats, setStats] = useState<any[]>([]);
     const [loadingStats, setLoadingStats] = useState(false);
-    
+
     const [formData, setFormData] = useState({
         title: '',
         message: '',
@@ -235,7 +235,6 @@ export default function NotificationsIndex() {
                         <CardContent>
                             <div className="border rounded-xl p-6 bg-white dark:bg-slate-950 shadow-lg border-slate-200 dark:border-slate-800 max-w-sm mx-auto">
                                 <div className="flex items-center gap-3 mb-4">
-                                    {typeOptions.find(o => o.value === formData.type)?.icon({ className: `h-6 w-6 ${typeOptions.find(o => o.value === formData.type)?.color}` })}
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Hoy, {new Date().toLocaleTimeString()}</span>
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
@@ -330,8 +329,8 @@ export default function NotificationsIndex() {
                                                             {ann.read_count} / {ann.notifications_count}
                                                         </span>
                                                         <div className="w-16 h-1 bg-slate-100 dark:bg-slate-800 rounded-full mt-1 overflow-hidden">
-                                                            <div 
-                                                                className="h-full bg-indigo-500" 
+                                                            <div
+                                                                className="h-full bg-indigo-500"
                                                                 style={{ width: `${(ann.read_count / ann.notifications_count) * 100}%` }}
                                                             />
                                                         </div>
