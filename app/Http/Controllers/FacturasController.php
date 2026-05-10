@@ -18,7 +18,10 @@ class FacturasController extends Controller
             ->orderBy('id', 'desc');
 
         if ($user->hasRole('local')) {
-            $query->where('user_id', $user->id);
+            $query->where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('creado_por', $user->id);
+            });
         } elseif (!$isSuper) {
             $query->whereIn('cuenta_id', $user->getAccessibleAccountIds());
         }

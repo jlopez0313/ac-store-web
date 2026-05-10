@@ -130,7 +130,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('muestras/references', [App\Http\Controllers\MuestrasController::class, 'getReferencesByAccount'])->name('api.muestras.references');
         Route::get('muestras/stock', [App\Http\Controllers\MuestrasController::class, 'getStock'])->name('api.muestras.stock');
         Route::apiResource('muestras-crud', App\Http\Controllers\MuestrasController::class)->names('api.muestras_crud');
+    });
 
+    // Operaciones y Reportes (Accesibles por todos los roles autorizados, incluyendo locales)
+    Route::middleware(['role:superadmin|admin|bodega|local'])->group(function () {
         // Cambios y Devoluciones
         Route::get('cambios', [App\Http\Controllers\Api\CambiosController::class, 'index'])->name('api.cambios.index');
         Route::get('cambios/invoices', [App\Http\Controllers\CambiosController::class, 'getClosedInvoices'])->name('api.cambios.invoices');
