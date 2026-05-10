@@ -28,5 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'No tienes los permisos necesarios para realizar esta acción.',
+                ], 403);
+            }
+
+            return back()->with('error', 'No tienes los permisos necesarios para acceder a esta ruta.');
+        });
     })->create();

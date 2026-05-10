@@ -19,6 +19,23 @@ class ReferenciaSearchController extends Controller
         $query = Referencia::with(['marca', 'cuenta'])
             ->withSum(['inventarios as total_stock' => function ($q) use ($user, $isSuper, $request) {
                 $q->where('stock', '>', 0);
+                if (!$isSuper) {
+                    if ($user->hasRole('local')) {
+                        $q->whereHas('estanteria.bodega.bodegaAccesos', function ($aq) use ($user) {
+                            $aq->where('user_id', $user->id)
+                               ->where(function ($sq) {
+                                   $sq->where('can_view', true)->orWhere('can_order', true);
+                               });
+                        });
+                    } else {
+                        $q->where('cuenta_id', $user->cuenta_id);
+                    }
+                } elseif ($request->filled('cuenta_id') && $request->cuenta_id !== 'all') {
+                    $q->where('cuenta_id', $request->cuenta_id);
+                }
+            }], 'stock')
+            ->withSum(['inventarios as filtered_stock' => function ($q) use ($user, $isSuper, $request) {
+                $q->where('stock', '>', 0);
                 if ($request->filled('talla')) {
                     $q->where('talla', 'like', '%' . $request->talla . '%');
                 }
@@ -79,13 +96,14 @@ class ReferenciaSearchController extends Controller
         $paginated = $query->paginate($perPage);
 
         $results = [
-            'data' => $paginated->getCollection()->map(function ($item) {
+            'data' => $paginated->getCollection()->map(function ($item) use ($request) {
                 return [
                     'id' => $item->id,
                     'codigo' => $item->codigo,
                     'marca' => $item->marca->nombre ?? 'N/A',
                     'descripcion' => $item->descripcion,
                     'stock' => (int) $item->total_stock,
+                    'filtered_stock' => $request->filled('talla') ? (int) $item->filtered_stock : null,
                     'foto' => $item->foto ? asset('storage/' . ltrim($item->foto, '/')) : null,
                     'cuenta' => $item->cuenta->nombre ?? 'N/A',
                 ];

@@ -68,7 +68,17 @@ class VentaResource extends JsonResource
                         'observacion' => $d->cambio->observacion,
                         'usuario' => $d->cambio->creator->name ?? 'Sistema',
                         'nueva_venta_id' => $d->cambio->nueva_venta_id,
-                    ] : null,
+                    ] : (\App\Models\Cambio::where('nueva_venta_id', $this->id)
+                        ->where('nuevo_inventario_id', $d->inventario_id)
+                        ->first() ? [
+                            'es_nuevo' => true,
+                            'observacion' => \App\Models\Cambio::where('nueva_venta_id', $this->id)
+                                ->where('nuevo_inventario_id', $d->inventario_id)
+                                ->first()->observacion,
+                            'factura_original' => \App\Models\Cambio::where('nueva_venta_id', $this->id)
+                                ->where('nuevo_inventario_id', $d->inventario_id)
+                                ->first()->venta->numero ?? 'N/A',
+                        ] : null),
                 ];
             }) : [],
         ];

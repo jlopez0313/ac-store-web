@@ -113,9 +113,16 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                                 {detalle.observacion}
                                             </div>
                                         )}
-                                        {detalle.cambio?.observacion && (
+                                        {detalle.cambio?.es_nuevo && (
                                             <div className="text-[10px] italic text-indigo-500 leading-tight">
-                                                Cambio: {detalle.cambio.observacion}
+                                                <span className="font-bold uppercase">Cambio</span> de Factura #{detalle.cambio.factura_original}
+                                                {detalle.cambio.observacion && ` - ${detalle.cambio.observacion}`}
+                                            </div>
+                                        )}
+                                        {detalle.cambio && !detalle.cambio.es_nuevo && (
+                                            <div className="text-[10px] italic text-amber-500 leading-tight">
+                                                Ítem cambiado (Original)
+                                                {detalle.cambio.observacion && ` - ${detalle.cambio.observacion}`}
                                             </div>
                                         )}
                                         <div className="flex items-center gap-1.5 text-[10px] tracking-widest text-slate-400 uppercase dark:text-slate-500">

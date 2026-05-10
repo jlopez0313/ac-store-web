@@ -120,11 +120,27 @@ export default function Search({ results: initialResults, filters, cuentas, marc
             width: '350px',
         },
         {
-            name: 'Stock Total',
-            selector: (row: any) => row.stock,
+            name: 'Stock',
+            selector: (row: any) => row.filtered_stock !== null ? row.filtered_stock : row.stock,
             sortable: true,
-            width: '120px',
-            cell: (row: any) => <span className={`font-bold ${row.stock > 0 ? 'text-green-600' : 'text-red-500'}`}>{row.stock}</span>,
+            width: '180px',
+            cell: (row: any) => {
+                const mainStock = row.filtered_stock !== null ? row.filtered_stock : row.stock;
+                const showTotal = row.filtered_stock !== null;
+
+                return (
+                    <div className="flex flex-col">
+                        <span className={`font-bold ${mainStock > 0 ? 'text-slate-900 dark:text-slate-100' : 'text-red-500'}`}>
+                            {mainStock} {mainStock === 1 ? 'unidad' : 'unidades'}
+                        </span>
+                        {showTotal && (
+                            <span className="text-[10px] font-medium text-slate-500 bg-slate-50 dark:bg-slate-500/10 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-500/20 w-fit mt-0.5">
+                                de {row.stock} totales (Talla {talla})
+                            </span>
+                        )}
+                    </div>
+                );
+            },
         },
         ...(isSuperAdmin
             ? [
