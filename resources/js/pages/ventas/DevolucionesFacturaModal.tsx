@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import axios from 'axios';
 import { ImageIcon, Loader2, PackageX } from 'lucide-react';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 
 interface Props {
     isOpen: boolean;
@@ -16,6 +17,7 @@ interface Props {
 export const DevolucionesFacturaModal: React.FC<Props> = ({ isOpen, onClose, facturaId, facturaCodigo }) => {
     const [devoluciones, setDevoluciones] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen && facturaId) {
@@ -73,7 +75,10 @@ export const DevolucionesFacturaModal: React.FC<Props> = ({ isOpen, onClose, fac
                                     {devoluciones.map((d) => (
                                         <TableRow key={d.id}>
                                             <TableCell>
-                                                <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded border border-border bg-muted">
+                                                <div 
+                                                    onClick={() => d.producto?.foto && setViewerImage(`/storage/${d.producto.foto}`)}
+                                                    className={`flex h-9 w-9 items-center justify-center overflow-hidden rounded border border-border bg-muted ${d.producto?.foto ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
+                                                >
                                                     {d.producto?.foto ? (
                                                         <img
                                                             src={`/storage/${d.producto.foto}`}
@@ -120,6 +125,11 @@ export const DevolucionesFacturaModal: React.FC<Props> = ({ isOpen, onClose, fac
                     <Button variant="outline" onClick={onClose}>Cerrar</Button>
                 </div>
             </DialogContent>
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={() => setViewerImage(null)}
+            />
         </Dialog>
     );
 };
