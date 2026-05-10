@@ -219,4 +219,85 @@ class UsuariosController extends Controller
             ]
         ]);
     }
+    public function getSubscriptionDetail(User $usuario)
+    {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
+        $accountIds = $usuario->getAccessibleAccountIds();
+        $detail = [];
+        $defaultPrice = (float) config('constantes.suscripciones.default_user_price', 120000);
+
+        foreach ($accountIds as $cuentaId) {
+            $cuenta = \App\Models\Cuenta::find($cuentaId);
+            $custom = $usuario->accountAccesos()->where('cuenta_id', $cuentaId)->first();
+            
+            $detail[] = [
+                'cuenta_id' => $cuentaId,
+                'cuenta_nombre' => $cuenta->nombre ?? 'N/A',
+                'is_primary' => $cuentaId === $usuario->cuenta_id,
+                'custom_price' => $custom ? $custom->custom_price : null,
+                'default_price' => $defaultPrice,
+                'current_price' => ($custom && $custom->custom_price !== null) ? $custom->custom_price : $defaultPrice,
+            ];
+        }
+
+        return response()->json([
+            'total' => $usuario->precio_suscripcion,
+            'detail' => $detail,
+        ]);
+    }
+
+    public function updateAccountPrice(Request $request, User $usuario)
+    {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
+        $request->validate([
+            'cuenta_id' => 'required|exists:cuentas,id',
+            'custom_price' => 'nullable|numeric|min:0',
+        ]);
+
+        $acceso = \App\Models\AccountAcceso::updateOrCreate(
+            ['user_id' => $usuario->id, 'cuenta_id' => $request->cuenta_id],
+            ['custom_price' => $request->custom_price]
+        );
+
+        // Recalculate total
+        $usuario->update(['precio_suscripcion' => $usuario->calculateSubscriptionPrice()]);
+
+        return response()->json(['success' => true, 'message' => 'Precio actualizado correctamente.', 'total' => $usuario->precio_suscripcion]);
+    }
+
+    public function registerPayment(Request $request, User $usuario)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole('superadmin') && !$user->hasRole('admin')) {
+            abort(403);
+        }
+
+        $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'payment_date' => 'required|date',
+            'next_cutoff_date' => 'nullable|date',
+            'observations' => 'nullable|string',
+        ]);
+
+        \App\Models\UserPayment::create([
+            'user_id' => $usuario->id,
+            'amount' => $request->amount,
+            'payment_date' => $request->payment_date,
+            'next_cutoff_date' => $request->next_cutoff_date,
+            'observations' => $request->observations,
+            'registered_by' => $user->id,
+        ]);
+
+        if ($request->filled('next_cutoff_date')) {
+            $usuario->update(['fecha_vencimiento' => $request->next_cutoff_date]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Pago registrado correctamente.']);
+    }
 }

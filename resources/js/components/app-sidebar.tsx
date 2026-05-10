@@ -27,11 +27,15 @@ import {
     Users,
     Wallet,
     WarehouseIcon,
+    User,
+    Video,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
 export const NAV_ITEMS: NavItem[] = [
     { title: 'Panel principal', url: '/dashboard', icon: Home, roles: ['superadmin', 'admin', 'bodega', 'local'], group: 'principal' },
+    { title: 'Mi Cuenta', url: '/mi-cuenta', icon: User, roles: ['superadmin', 'admin', 'bodega', 'local'], group: 'principal' },
+    { title: 'Videos', url: '/videos', icon: Video, roles: ['superadmin', 'admin', 'bodega', 'local'], group: 'principal' },
     { title: 'Referencias', url: '/referencias', icon: Package, roles: ['superadmin', 'admin', 'bodega'], group: 'principal' },
     { title: 'Inventario', url: '/inventario', icon: BarChart3, roles: ['superadmin', 'admin', 'bodega'], group: 'principal' },
     { title: 'Ajuste Inventarios', url: '/inventario/ajustes', icon: RotateCcw, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },

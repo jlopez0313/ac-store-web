@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\ComprasController as ApiComprasController;
 use App\Http\Controllers\Api\BodegasController as ApiBodegasController;
 use App\Http\Controllers\Api\CategoriasController as ApiCategoriasController;
 use App\Http\Controllers\Api\ScheduledMessageController as ApiScheduledMessageController;
+use App\Http\Controllers\Api\ProfileController as ApiProfileController;
+use App\Http\Controllers\Api\VideoController as ApiVideoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +19,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    // Profile & Account
+    Route::get('profile', [ApiProfileController::class, 'index'])->name('api.profile');
+    Route::post('profile', [ApiProfileController::class, 'update'])->name('api.profile.update');
+
+    // Videos
+    Route::apiResource('videos', ApiVideoController::class)->names('api.videos');
 
     // -------------------------------------------------------------------------
     // PUBLIC / SHARED API ROUTES (Authenticated)
@@ -63,7 +72,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['role:superadmin|admin'])->group(function () {
         Route::apiResource('cuentas', ApiCuentasController::class)->names('api.cuentas');
         Route::get('usuarios/{usuario}/accesos', [ApiUsuariosController::class, 'getAccesos'])->name('api.usuarios.accesos');
+        Route::post('usuarios/{usuario}/register-payment', [ApiUsuariosController::class, 'registerPayment'])->name('api.usuarios.register_payment');
         Route::apiResource('usuarios', ApiUsuariosController::class)->names('api.usuarios');
+        
+        // Superadmin only subscription management
+        Route::middleware(['role:superadmin'])->group(function () {
+            Route::get('usuarios/{usuario}/subscription-detail', [ApiUsuariosController::class, 'getSubscriptionDetail'])->name('api.usuarios.subscription_detail');
+            Route::post('usuarios/{usuario}/account-price', [ApiUsuariosController::class, 'updateAccountPrice'])->name('api.usuarios.account_price');
+        });
         
         Route::post('referencias/bulk-photos/chunk', [App\Http\Controllers\Api\ReferenciaFotoController::class, 'uploadChunk'])->name('api.referencias.bulk-photos.chunk');
         Route::post('referencias/bulk-photos/process', [App\Http\Controllers\Api\ReferenciaFotoController::class, 'processZip'])->name('api.referencias.bulk-photos.process');

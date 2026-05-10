@@ -9,9 +9,11 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
-import { Edit, Plus, Search as SearchIcon, ShieldCheck, Trash, Users } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { CreditCard, Edit, Plus, Receipt, Search as SearchIcon, ShieldCheck, Trash, Users } from 'lucide-react';
+import { useCallback, useEffect, ReactNode, useState } from 'react';
 import { Form } from './Form';
+import RegisterPaymentModal from './RegisterPaymentModal';
+import SubscriptionDetailModal from './SubscriptionDetailModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Panel principal', href: route('dashboard') },
@@ -32,6 +34,8 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
     });
 
     const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
 
     const fetchData = useCallback(
         async (newParams = {}) => {
@@ -150,6 +154,26 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
             action: (id: number) => router.visit(route('usuarios.accesos', { usuario: id })),
         },
         {
+            title: 'Detalle Cobro',
+            icon: CreditCard,
+            hide: (row: any) => row.role !== 'local' || auth.user?.role !== 'superadmin',
+            action: (id: number) => {
+                const user = items.find(u => u.id === id);
+                setSelectedUser(user);
+                setIsSubscriptionModalOpen(true);
+            },
+        },
+        {
+            title: 'Registrar Pago',
+            icon: Receipt,
+            hide: (row: any) => row.role !== 'local',
+            action: (id: number) => {
+                const user = items.find(u => u.id === id);
+                setSelectedUser(user);
+                setIsPaymentModalOpen(true);
+            },
+        },
+        {
             title: 'Gestionar Vendedores',
             icon: Users,
             hide: (row: any) => row.role !== 'local' || !row.maneja_vendedores,
@@ -249,6 +273,23 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
                     default_user_price={default_user_price}
                 />
             </Modal>
+
+            {selectedUser && (
+                <>
+                    <RegisterPaymentModal 
+                        user={selectedUser} 
+                        open={isPaymentModalOpen} 
+                        onOpenChange={setIsPaymentModalOpen} 
+                        onSuccess={fetchData} 
+                    />
+                    <SubscriptionDetailModal 
+                        user={selectedUser} 
+                        open={isSubscriptionModalOpen} 
+                        onOpenChange={setIsSubscriptionModalOpen} 
+                        onSuccess={fetchData} 
+                    />
+                </>
+            )}
         </AppLayout>
     );
 }

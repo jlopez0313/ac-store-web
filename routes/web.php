@@ -22,6 +22,14 @@ Route::middleware(['auth'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
+    Route::get('mi-cuenta', function () {
+        return Inertia::render('account/Index');
+    })->name('account.index');
+
+    Route::get('videos', function () {
+        return Inertia::render('videos/Index');
+    })->name('videos.index');
+
     Route::resource('referencias', ReferenciasController::class);
     Route::get('referencias-busqueda', [App\Http\Controllers\ReferenciaSearchController::class, 'index'])->name('referencias.search');
     Route::get('vendedores', [App\Http\Controllers\VendedorController::class, 'all'])->name('vendedores.index');

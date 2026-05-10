@@ -16,12 +16,16 @@ class ScheduledMessageController extends Controller
         $user = $request->user();
         $query = ScheduledMessage::query();
 
-        // Filtro multi-cuenta: Si no es superadmin, solo ve lo de su cuenta
-        if ($user->role !== 'superadmin') {
+        // Data isolation based on roles
+        if ($user->role === 'superadmin') {
+            if ($request->has('cuenta_id') && $request->cuenta_id != '') {
+                $query->where('cuenta_id', $request->cuenta_id);
+            }
+        } elseif ($user->role === 'admin' || $user->role === 'bodega') {
             $query->where('cuenta_id', $user->cuenta_id);
-        } else if ($request->has('cuenta_id') && $request->cuenta_id != '') {
-            // Si es superadmin y seleccionó una cuenta en el filtro
-            $query->where('cuenta_id', $request->cuenta_id);
+        } elseif ($user->role === 'local') {
+            // Local users only see their own scheduled items
+            $query->where('userId', $user->id);
         }
         
         $messages = $query->where(function($q) {
@@ -74,8 +78,10 @@ class ScheduledMessageController extends Controller
         $user = $request->user();
         $query = ScheduledMessage::where('id', $messageId);
 
-        if ($user->role !== 'superadmin') {
+        if ($user->role === 'admin' || $user->role === 'bodega') {
             $query->where('cuenta_id', $user->cuenta_id);
+        } elseif ($user->role === 'local') {
+            $query->where('userId', $user->id);
         }
 
         $message = $query->where('status', 'pending')->first();
@@ -102,8 +108,10 @@ class ScheduledMessageController extends Controller
         $user = $request->user();
         $query = ScheduledMessage::where('id', $messageId);
 
-        if ($user->role !== 'superadmin') {
+        if ($user->role === 'admin' || $user->role === 'bodega') {
             $query->where('cuenta_id', $user->cuenta_id);
+        } elseif ($user->role === 'local') {
+            $query->where('userId', $user->id);
         }
 
         $message = $query->where('status', 'pending')->first();

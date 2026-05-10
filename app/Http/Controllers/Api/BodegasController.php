@@ -123,7 +123,11 @@ class BodegasController extends Controller
         $user = auth()->user();
         $query = Bodega::where('estado', true)->orderBy('nombre');
 
-        if (!$user->hasRole('superadmin')) {
+        if ($user->role === 'local') {
+            $query->whereHas('bodegaAccesos', function ($q) use ($user) {
+                $q->where('user_id', $user->id)->where('can_view', true);
+            });
+        } elseif ($user->role !== 'superadmin') {
             $query->where('cuenta_id', $user->cuenta_id);
         } elseif ($request->filled('cuenta_id')) {
             $query->where('cuenta_id', $request->cuenta_id);

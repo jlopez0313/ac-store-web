@@ -118,6 +118,16 @@ class User extends Authenticatable
         return $this->hasMany(Venta::class, 'user_id');
     }
 
+    public function accountAccesos()
+    {
+        return $this->hasMany(AccountAcceso::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(UserPayment::class, 'user_id');
+    }
+
     /**
      * Get the number of unique accounts the user has bodega access to.
      */
@@ -134,19 +144,27 @@ class User extends Authenticatable
      */
     public function calculateSubscriptionPrice(): float
     {
-        if ($this->hasRole('superadmin') || $this->hasRole('admin')) {
-            return (float) config('constants.suscripciones.default_user_price', 110000);
+        if ($this->hasRole('superadmin')) {
+            return 0; // Superadmins don't pay? Or fixed price.
         }
 
         if ($this->role === 'local') {
-            $accountsCount = $this->getWarehouseAccountCount();
-            $basePrice = (float) config('constants.suscripciones.default_user_price', 110000);
-            $extraPrice = (float) config('constants.suscripciones.default_user_extra_price', 10000);
-            
-            return $basePrice + (($accountsCount - 1) * $extraPrice);
+            $accountIds = $this->getAccessibleAccountIds();
+            $total = 0;
+            $defaultPrice = (float) config('constantes.suscripciones.default_user_price', 120000);
+
+            foreach ($accountIds as $cuentaId) {
+                $custom = $this->accountAccesos()->where('cuenta_id', $cuentaId)->first();
+                if ($custom && $custom->custom_price !== null) {
+                    $total += $custom->custom_price;
+                } else {
+                    $total += $defaultPrice;
+                }
+            }
+            return $total;
         }
 
-        return (float) config('constants.suscripciones.default_user_price', 110000);
+        return (float) config('constantes.suscripciones.default_user_price', 120000);
     }
 
     /**
@@ -168,5 +186,23 @@ class User extends Authenticatable
             ->toArray();
 
         return array_unique(array_filter(array_merge($ids, $warehouseAccountIds)));
+    }
+
+    /**
+     * Sync account_accesos based on current bodega_accesos.
+     */
+    public function syncAccountAccesos()
+    {
+        $accountIds = $this->getAccessibleAccountIds();
+        
+        foreach ($accountIds as $cuentaId) {
+            AccountAcceso::firstOrCreate(
+                ['user_id' => $this->id, 'cuenta_id' => $cuentaId],
+                ['custom_price' => null]
+            );
+        }
+
+        // Update total price
+        $this->update(['precio_suscripcion' => $this->calculateSubscriptionPrice()]);
     }
 }

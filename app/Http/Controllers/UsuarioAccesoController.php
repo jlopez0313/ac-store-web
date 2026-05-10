@@ -66,9 +66,8 @@ class UsuarioAccesoController extends Controller
             );
         }
 
-        // Update user subscription price
-        $newPrice = $usuario->calculateSubscriptionPrice();
-        $usuario->update(['precio_suscripcion' => $newPrice]);
+        // Update user subscription price and account access tracking
+        $usuario->syncAccountAccesos();
 
         return back()->with('success', 'Permisos actualizados correctamente.');
     }
