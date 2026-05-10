@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAppearance } from '@/hooks/use-appearance';
-import { Sun, Moon, Monitor, CheckCircle2, ShieldCheck, CreditCard, MessageSquare, User as UserIcon } from 'lucide-react';
+import { Sun, Moon, Monitor, CheckCircle2, ShieldCheck, CreditCard, MessageSquare, User as UserIcon, Landmark } from 'lucide-react';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
