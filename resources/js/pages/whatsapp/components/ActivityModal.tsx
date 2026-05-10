@@ -5,11 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/Modal';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ViewerModal } from '@/components/ui/ViewerModal';
+import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Megaphone, Trash2, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
-import { usePage } from '@inertiajs/react';
 
 interface SelectedItem {
     id: string;
@@ -427,7 +427,7 @@ export function ActivityModal({
                                     {selectedItems.map((item) => (
                                         <tr key={item.id} className="bg-white dark:bg-slate-950 group">
                                             <td className="px-4 py-2">
-                                                <div 
+                                                <div
                                                     onClick={() => item.foto && setViewerImage(item.foto)}
                                                     className={`h-10 w-10 rounded-md border overflow-hidden bg-slate-100 ${item.foto ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
                                                 >
@@ -456,7 +456,7 @@ export function ActivityModal({
                                                             className="h-8 text-center text-xs font-bold border-indigo-200 focus-visible:ring-indigo-500"
                                                         />
                                                     </td>
-                                                    <td className="px-4 py-2 text-right font-black text-indigo-600 dark:text-indigo-400">
+                                                    <td className="px-4 py-2 text-right font-medium text-indigo-600 dark:text-indigo-400">
                                                         ${(item.precio * (1 + (item.percentage / 100))).toLocaleString()}
                                                     </td>
                                                 </>
@@ -482,8 +482,8 @@ export function ActivityModal({
                     <Button type="button" variant="outline" onClick={onClose}>
                         Cancelar
                     </Button>
-                    <Button 
-                        type="submit" 
+                    <Button
+                        type="submit"
                         disabled={!!timeError}
                         loading={loadingGroups || loadingBodegas || loadingReferencias}
                     >

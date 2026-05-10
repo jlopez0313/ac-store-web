@@ -211,15 +211,27 @@ class ReferenciasController extends Controller
 
         return response()->json($query->with(['inventarios' => function($q) {
             $q->where('stock', '>', 0);
-        }])->get()->map(function($r) {
-            $precio = $r->inventarios->max('precio_venta');
+        }])->get()->map(function($r) use ($user, $request) {
+            $precioBase = $r->inventarios->max('precio_venta');
+            
+            // Apply discount if user is local and bodega is selected
+            if ($user->role === 'local' && $request->filled('bodega_id')) {
+                $acceso = \App\Models\BodegaAcceso::where('bodega_id', $request->bodega_id)
+                    ->where('user_id', $user->id)
+                    ->first();
+                
+                if ($acceso && $acceso->descuento > 0) {
+                    $precioBase = max(0, $precioBase - $acceso->descuento);
+                }
+            }
+
             $tallas = $r->inventarios->pluck('talla')->unique()->sort()->values()->toArray();
             
             return [
                 'id' => $r->id,
                 'codigo' => $r->codigo,
                 'descripcion' => $r->descripcion,
-                'precio' => $precio,
+                'precio' => $precioBase,
                 'tallas' => $tallas,
                 'foto' => $r->foto ? asset('storage/' . $r->foto) : null,
                 'name' => "{$r->codigo} - " . ($r->descripcion ?: 'Sin descripción')
