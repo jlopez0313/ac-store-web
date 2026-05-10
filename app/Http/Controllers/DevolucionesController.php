@@ -45,7 +45,7 @@ class DevolucionesController extends Controller
         if (!$user->hasRole('superadmin')) {
             $localsQuery->where('cuenta_id', $user->cuenta_id);
         }
-        $locals = $localsQuery->get(['id', 'name']);
+        $locals = $localsQuery->orderBy('name', 'asc')->get(['id', 'name']);
 
         return Inertia::render('devoluciones/Index', [
             'devoluciones' => DevolucionResource::collection($devoluciones),

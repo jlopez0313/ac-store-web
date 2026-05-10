@@ -44,7 +44,7 @@ class MuestrasController extends Controller
         return Inertia::render('muestras/Index', [
             'lista' => MuestraResource::collection($query->paginate($request->input('per_page', 25))->appends($request->all())),
             'cuentas' => $user->role === 'superadmin' ? Cuenta::where('estado', true)->get(['id', 'nombre']) : [],
-            'locals' => User::role('local')->get(['id', 'name']),
+            'locals' => User::role('local')->orderBy('name', 'asc')->get(['id', 'name']),
             'filters' => $request->all(),
         ]);
     }

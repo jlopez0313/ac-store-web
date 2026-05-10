@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/Modal';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import axios from 'axios';
 import { Megaphone, Trash2, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -63,6 +64,7 @@ export function ActivityModal({
         hora: '08:00'
     });
     const [timeError, setTimeError] = useState<string | null>(null);
+    const [viewerImage, setViewerImage] = useState<string | null>(null);
 
     const validateTime = (fecha: string, hora: string) => {
         if (!fecha || !hora) return;
@@ -425,7 +427,10 @@ export function ActivityModal({
                                     {selectedItems.map((item) => (
                                         <tr key={item.id} className="bg-white dark:bg-slate-950 group">
                                             <td className="px-4 py-2">
-                                                <div className="h-10 w-10 rounded-md border overflow-hidden bg-slate-100">
+                                                <div 
+                                                    onClick={() => item.foto && setViewerImage(item.foto)}
+                                                    className={`h-10 w-10 rounded-md border overflow-hidden bg-slate-100 ${item.foto ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
+                                                >
                                                     {item.foto ? (
                                                         <img src={item.foto} alt="" className="h-full w-full object-cover" />
                                                     ) : (
@@ -486,6 +491,11 @@ export function ActivityModal({
                     </Button>
                 </div>
             </form>
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={() => setViewerImage(null)}
+            />
         </Modal>
     );
 }

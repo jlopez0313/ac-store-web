@@ -30,6 +30,7 @@ class DevolucionResource extends JsonResource
             'venta' => $this->whenLoaded('venta', function () {
                 return [
                     'id' => $this->venta->id,
+                    'numero' => $this->venta->numero,
                     'local' => $this->venta->local ? [
                         'id' => $this->venta->local->id,
                         'name' => $this->venta->local->name,

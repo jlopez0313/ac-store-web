@@ -109,12 +109,12 @@ export default function Index({ locals, filters: initialFilters }: any) {
         },
         {
             name: 'Factura de Venta',
-            selector: (row: any) => row.venta_id,
+            selector: (row: any) => row.venta?.numero || row.venta_id,
             width: '160px',
             cell: (row: any) => (
-                <Link href={route('ventas.index', { search: row.venta_id })} className="group flex items-center">
+                <Link href={route('ventas.index', { search: row.venta?.numero || row.venta_id })} className="group flex items-center">
                     <Badge variant="secondary" className="cursor-pointer font-bold transition-colors hover:bg-slate-200">
-                        #{row.venta_id}
+                        #{row.venta?.numero || row.venta_id}
                     </Badge>
                 </Link>
             ),

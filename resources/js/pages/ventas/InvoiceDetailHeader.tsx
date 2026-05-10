@@ -192,7 +192,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                 </Button>
                             </>
                         )}
-                        {factura.detalles?.length > 0 && (
+                        {(factura.detalles?.length > 0 || factura.has_devoluciones) && (
                             <Button
                                 variant="outline"
                                 size="sm"

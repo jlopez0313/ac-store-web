@@ -572,6 +572,7 @@ class VentasController extends Controller
             ->whereHas('ventas', function ($q) use ($cuenta_id) {
                 $q->where('cuenta_id', $cuenta_id);
             })
+            ->orderBy('name', 'asc')
             ->get(['id', 'name']);
 
         return response()->json(['data' => $locals]);

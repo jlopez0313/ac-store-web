@@ -81,6 +81,7 @@ class VentaResource extends JsonResource
                         ] : null),
                 ];
             }) : [],
+            'has_devoluciones' => \App\Models\Devolucion::where('venta_id', $this->id)->exists(),
         ];
     }
 }

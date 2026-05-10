@@ -31,6 +31,7 @@ class CambiosController extends Controller
         }
 
         $locals = User::role('local')
+            ->orderBy('name', 'asc')
             ->get(['id', 'name', 'cuenta_id']);
 
         return Inertia::render('cambios/Index', [

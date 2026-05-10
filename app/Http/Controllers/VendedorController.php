@@ -25,7 +25,7 @@ class VendedorController extends Controller
         return Inertia::render('usuarios/Vendedores', [
             'targetUser' => $usuario->load('cuenta'),
             'cuentas' => $user->hasRole('superadmin') ? Cuenta::orderBy('nombre')->get(['id', 'nombre']) : [],
-            'locals' => User::role('local')->where('cuenta_id', $user->hasRole('superadmin') ? ($usuario->cuenta_id ?? null) : $user->cuenta_id)->get(['id', 'name', 'cuenta_id']),
+            'locals' => User::role('local')->where('cuenta_id', $user->hasRole('superadmin') ? ($usuario->cuenta_id ?? null) : $user->cuenta_id)->orderBy('name', 'asc')->get(['id', 'name', 'cuenta_id']),
         ]);
     }
 
@@ -38,7 +38,7 @@ class VendedorController extends Controller
             'cuentas' => $user->hasRole('superadmin') ? Cuenta::orderBy('nombre')->get(['id', 'nombre']) : [],
             'locals' => User::role('local')->when(!$user->hasRole('superadmin'), function($q) use ($user) {
                 return $q->where('cuenta_id', $user->cuenta_id);
-            })->get(['id', 'name', 'cuenta_id']),
+            })->orderBy('name', 'asc')->get(['id', 'name', 'cuenta_id']),
         ]);
     }
 }
