@@ -214,6 +214,17 @@ export function ActivityModal({
         ));
     };
 
+    const handleUpdateFinalPrice = (id: string, finalPrice: number) => {
+        setSelectedItems(prev => prev.map(item => {
+            if (item.id === id) {
+                // percentage = ((finalPrice / basePrice) - 1) * 100
+                const percentage = item.precio > 0 ? ((finalPrice / item.precio) - 1) * 100 : 0;
+                return { ...item, percentage: Math.round(percentage * 100) / 100 };
+            }
+            return item;
+        }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -416,8 +427,8 @@ export function ActivityModal({
                                         <th className="px-4 py-2 text-right">Precio Base</th>
                                         {isLocal && (
                                             <>
-                                                <th className="px-4 py-2 text-center w-24">% Inc.</th>
-                                                <th className="px-4 py-2 text-right">Precio Final</th>
+                                            <th className="px-4 py-2 text-center w-32">% Inc.</th>
+                                            <th className="px-4 py-2 text-right w-40">Precio Final</th>
                                             </>
                                         )}
                                         <th className="px-4 py-2 w-10"></th>
@@ -456,8 +467,16 @@ export function ActivityModal({
                                                             className="h-8 text-center text-xs font-bold border-indigo-200 focus-visible:ring-indigo-500"
                                                         />
                                                     </td>
-                                                    <td className="px-4 py-2 text-right font-medium text-indigo-600 dark:text-indigo-400">
-                                                        ${(item.precio * (1 + (item.percentage / 100))).toLocaleString()}
+                                                    <td className="px-4 py-2 text-right">
+                                                        <div className="relative">
+                                                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-indigo-400">$</span>
+                                                            <Input
+                                                                type="number"
+                                                                value={Math.round(item.precio * (1 + (item.percentage / 100)))}
+                                                                onChange={(e) => handleUpdateFinalPrice(item.id, Number(e.target.value))}
+                                                                className="h-8 pl-5 text-right text-xs font-bold border-indigo-200 text-indigo-600 focus-visible:ring-indigo-500"
+                                                            />
+                                                        </div>
                                                     </td>
                                                 </>
                                             )}
