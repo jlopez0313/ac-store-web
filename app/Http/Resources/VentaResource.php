@@ -83,6 +83,26 @@ class VentaResource extends JsonResource
             }) : [],
             'has_devoluciones' => \App\Models\Devolucion::where('venta_id', $this->id)->exists() || 
                                  \App\Models\VentaDetalle::where('venta_id', $this->id)->onlyTrashed()->exists(),
+            'devoluciones_detalle' => \App\Models\VentaDetalle::onlyTrashed()
+                ->where('venta_id', $this->id)
+                ->with(['producto', 'eliminador'])
+                ->get()
+                ->map(function($d) {
+                    return [
+                        'id' => $d->id,
+                        'producto' => $d->producto->codigo ?? 'N/A',
+                        'descripcion' => $d->producto->descripcion ?? 'N/A',
+                        'talla' => $d->talla,
+                        'cantidad' => $d->cantidad,
+                        'motivo' => $d->observacion,
+                        'fecha' => $d->deleted_at ? $d->deleted_at->format('Y-m-d H:i') : 'N/A',
+                        'usuario' => $d->eliminador->name ?? 'Sistema',
+                    ];
+                }),
+            'info_cambio' => \App\Models\Cambio::where('nueva_venta_id', $this->id)->first() ? [
+                'observacion' => \App\Models\Cambio::where('nueva_venta_id', $this->id)->first()->observacion,
+                'factura_original' => \App\Models\Cambio::where('nueva_venta_id', $this->id)->first()->venta->numero ?? \App\Models\Cambio::where('nueva_venta_id', $this->id)->first()->venta_id,
+            ] : null,
         ];
     }
 }

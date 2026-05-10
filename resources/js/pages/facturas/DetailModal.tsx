@@ -2,9 +2,10 @@ import { Badge } from '@/components/ui/badge';
 import { DataGrid } from '@/components/ui/DataTable';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Modal } from '@/components/ui/Modal';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import axios from 'axios';
-import { Calendar, Clock, ExternalLink, House, Image as ImageIcon, MapPin, RefreshCcw, Tag, User } from 'lucide-react';
+import { Calendar, Clock, ExternalLink, House, Image as ImageIcon, Info, MapPin, RefreshCcw, Tag, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface DetailModalProps {
@@ -243,6 +244,36 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 							</div>
 						</div>
 
+						{(factura.observaciones || factura.info_cambio) && (
+							<div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/30 rounded-2xl p-5 shadow-sm">
+								<div className="flex items-start gap-3">
+									<div className="mt-1 p-2 bg-amber-100 dark:bg-amber-900/40 rounded-lg">
+										<Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+									</div>
+									<div className="flex-1">
+										<h4 className="text-[10px] font-black text-amber-700 dark:text-amber-500 uppercase tracking-widest mb-2">Observaciones / Notas</h4>
+
+										{factura.info_cambio && (
+											<div className="mb-2 p-2 bg-white/50 dark:bg-black/20 rounded-lg border border-amber-200/50">
+												<span className="text-[11px] font-bold text-amber-800 dark:text-amber-300">
+													🔄 Factura generada por cambio de la Factura #{factura.info_cambio.factura_original}
+												</span>
+												<p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1 italic">
+													"{factura.info_cambio.observacion}"
+												</p>
+											</div>
+										)}
+
+										{factura.observaciones && (
+											<p className="text-sm text-amber-900 dark:text-amber-200 font-medium leading-relaxed">
+												{factura.observaciones}
+											</p>
+										)}
+									</div>
+								</div>
+							</div>
+						)}
+
 						{/* Items Table Section */}
 						<div className="space-y-4">
 							<h3 className="text-sm font-bold text-foreground uppercase flex items-center gap-2">
@@ -268,6 +299,47 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 								/>
 							</div>
 						</div>
+
+						{/* Devoluciones Section */}
+						{factura.devoluciones_detalle?.length > 0 && (
+							<div className="space-y-4 pt-4">
+								<h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 uppercase flex items-center gap-2">
+									Productos Devueltos / Anulados
+								</h3>
+								<div className="bg-rose-50/30 dark:bg-rose-950/10 rounded-2xl border border-rose-200 dark:border-rose-900/30 overflow-hidden shadow-sm">
+									<Table>
+										<TableHeader className="bg-rose-100/50 dark:bg-rose-900/20">
+											<TableRow>
+												<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400">Referencia</TableHead>
+												<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 text-center">Talla</TableHead>
+												<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400">Motivo</TableHead>
+												<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 text-right">Procesado Por</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{factura.devoluciones_detalle.map((dev: any) => (
+												<TableRow key={dev.id} className="border-rose-100 dark:border-rose-900/20">
+													<TableCell>
+														<div className="flex flex-col">
+															<span className="font-bold text-sm text-rose-900 dark:text-rose-200">{dev.producto}</span>
+															<span className="text-[10px] text-rose-600/70 dark:text-rose-400/50 uppercase truncate max-w-[200px]">{dev.descripcion}</span>
+														</div>
+													</TableCell>
+													<TableCell className="text-center font-bold text-rose-700 dark:text-rose-300">{dev.talla}</TableCell>
+													<TableCell className="text-xs text-rose-600 dark:text-rose-400 italic">"{dev.motivo || 'Sin motivo'}"</TableCell>
+													<TableCell className="text-right">
+														<div className="flex flex-col items-end">
+															<span className="text-xs font-bold text-rose-900 dark:text-rose-200">{dev.usuario}</span>
+															<span className="text-[10px] text-rose-500 font-mono">{dev.fecha}</span>
+														</div>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</div>
+							</div>
+						)}
 
 						{/* Premium Footer Totals */}
 						<div className="flex justify-end p-3 bg-muted rounded-2xl shadow-lg border border-border">
