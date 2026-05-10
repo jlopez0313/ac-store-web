@@ -204,6 +204,11 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                                     <div className="flex items-center gap-3">
                                                         <Warehouse className={`h-5 w-5 transition-colors ${isOpen ? 'text-primary' : 'text-muted-foreground'}`} />
                                                         <span className="text-sm font-bold uppercase tracking-wide">{bodega}</span>
+                                                        {bodegaItems[0]?.descuento > 0 && (
+                                                            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-none px-1.5 py-0 h-4">
+                                                                - ${Number(bodegaItems[0].descuento).toLocaleString()}
+                                                            </Badge>
+                                                        )}
                                                     </div>
                                                     <div className="flex items-center gap-3">
                                                         <Badge variant="secondary" className="font-bold">
@@ -246,7 +251,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                                                         ${Number(item.precio_compra).toLocaleString()}
                                                                     </TableCell>
                                                                     <TableCell className="text-foreground text-right text-xs font-medium">
-                                                                        ${Number(item.precio_venta).toLocaleString()}
+                                                                        ${Number(item.precio_ajustado).toLocaleString()}
                                                                     </TableCell>
                                                                     <TableCell className="pr-6 text-right">
                                                                         <div className="flex items-center justify-end gap-1">

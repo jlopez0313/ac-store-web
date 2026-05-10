@@ -14,6 +14,15 @@ class InventarioResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user = auth()->user();
+        $descuento = 0;
+        if ($user && $user->role === 'local') {
+            $acceso = \App\Models\BodegaAcceso::where('user_id', $user->id)
+                ->where('bodega_id', $this->estanteria->bodega_id)
+                ->first();
+            $descuento = $acceso ? (int) $acceso->descuento : 0;
+        }
+
         return [
             'id' => $this->id,
             'referencia_id' => $this->referencia_id,
@@ -28,6 +37,8 @@ class InventarioResource extends JsonResource
             'stock' => $this->stock,
             'precio_compra' => $this->precio_compra,
             'precio_venta' => $this->precio_venta,
+            'descuento' => $descuento,
+            'precio_ajustado' => max(0, $this->precio_venta - $descuento),
         ];
     }
 }
