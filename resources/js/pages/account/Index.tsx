@@ -67,7 +67,7 @@ export default function AccountIndex() {
         }
     };
 
-    if (loading) return null;
+    if (loading || !data) return null;
 
     const breadcrumbs = [
         { title: 'Inicio', href: '/dashboard' },
