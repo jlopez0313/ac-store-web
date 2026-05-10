@@ -7,10 +7,18 @@
     --fc-button-hover-border-color: #cbd5e1;
     --fc-button-active-bg-color: #f1f5f9;
     --fc-button-active-border-color: #94a3b8;
-    --fc-today-bg-color: rgba(16, 185, 129, 0.03);
+    --fc-today-bg-color: rgba(16, 185, 129, 0.1);
     --fc-event-bg-color: #10b981;
     --fc-event-border-color: #10b981;
     font-size: 0.8rem;
+
+    .fc-day-today {
+        .fc-daygrid-day-number {
+            color: #059669 !important;
+            font-weight: 800;
+            font-size: 0.85rem;
+        }
+    }
 
     .fc-button {
         font-size: 0.75rem;
