@@ -72,7 +72,16 @@ class InventariosController extends Controller
             ->orderBy('stock', 'desc');
 
         if (!$isSuper) {
-            $query->where('cuenta_id', $user->cuenta_id);
+            if ($user->hasRole('local')) {
+                $query->whereHas('estanteria.bodega.bodegaAccesos', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->where(function ($sq) {
+                          $sq->where('can_view', true)->orWhere('can_order', true);
+                      });
+                });
+            } else {
+                $query->where('cuenta_id', $user->cuenta_id);
+            }
         }
 
         return response()->json([
