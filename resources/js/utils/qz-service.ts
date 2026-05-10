@@ -61,10 +61,6 @@ export const connectQZ = async (): Promise<boolean> => {
             connected = true;
             console.log('QZ Tray connected');
             
-            // Optional: log printers to verify connection is operational
-            const printers = await qz.printers.find();
-            console.log('Impresoras disponibles:', printers);
-            
             return true;
         } catch (err: any) {
             connected = false;
