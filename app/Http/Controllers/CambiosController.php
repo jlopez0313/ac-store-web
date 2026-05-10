@@ -138,17 +138,21 @@ class CambiosController extends Controller
                 ]);
 
                 // 5. Create a new Venta record for the replacement item
-                // Total is now the difference to pay
-                $cuentaId = $detalleOriginal->venta->cuenta_id;
-                $nextNumero = (Venta::where('cuenta_id', $cuentaId)->max('numero') ?? 0) + 1;
+                $originalVenta = $detalleOriginal->venta;
+                $cuentaId = $originalVenta->cuenta_id;
+                $userId = $originalVenta->user_id;
 
-                $nuevaVenta = Venta::create([
+                // Calculate next consecutive number for this account
+                $nextNumero = (\App\Models\Venta::where('cuenta_id', $cuentaId)->max('numero') ?? 0) + 1;
+
+                $nuevaVenta = \App\Models\Venta::create([
                     'numero'      => $nextNumero,
-                    'user_id'     => $detalleOriginal->venta->user_id,
+                    'user_id'     => $userId,
                     'cuenta_id'   => $cuentaId,
                     'fecha'       => now()->format('Y-m-d'),
                     'estado'      => 'cerrada',
                     'observaciones' => "Cambio de producto (Factura Original #{$detalleOriginal->venta_id}). Observación: " . $request->observacion,
+                    'subtotal'    => $diferencia,
                     'total'       => $diferencia,
                 ]);
 
