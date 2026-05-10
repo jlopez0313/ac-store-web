@@ -51,7 +51,7 @@ class FacturasController extends Controller
         }
 
         $granTotal = $query->sum('total');
-        $paginated = $query->orderBy('id', 'desc')->paginate($request->input('per_page', 25));
+        $paginated = $query->orderBy($sortField, $sortOrder)->paginate($request->input('per_page', 25));
 
         return VentaResource::collection($paginated)->additional([
             'meta' => [
