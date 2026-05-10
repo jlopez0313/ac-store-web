@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/Modal';
 import { useCrudPage } from '@/hooks/useCrudPage';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { type BreadcrumbItem, SharedData } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { CreditCard, Edit, Plus, Receipt, Search as SearchIcon, ShieldCheck, Trash, Users } from 'lucide-react';
 import { useCallback, useEffect, ReactNode, useState } from 'react';
@@ -21,6 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ filters: initialFilters, roles, cuentas, estados, default_user_price }: any) {
+    const { auth } = usePage<SharedData>().props;
     const [items, setItems] = useState<any[]>([]);
     const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
     const [loading, setLoading] = useState(true);
