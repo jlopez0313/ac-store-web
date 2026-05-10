@@ -147,7 +147,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
         },
     ];
 
-    const actions = [
+    const moreActions = [
         {
             title: 'Permisos Bodegas',
             icon: ShieldCheck,
@@ -182,6 +182,9 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
                 router.visit(route('usuarios.vendedores', { usuario: id }));
             },
         },
+    ];
+
+    const actions = [
         {
             title: 'Editar',
             icon: Edit,
@@ -238,6 +241,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
                         currentPage={meta.current_page}
                         paginationPerPage={meta.per_page}
                         actions={actions}
+                        moreActions={moreActions}
                         processing={loading}
                         serverSide={true}
                         paginationServer={true}
