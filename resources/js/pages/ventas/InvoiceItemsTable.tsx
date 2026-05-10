@@ -108,6 +108,16 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                         <div className="text-sm leading-tight font-medium text-slate-900 dark:text-slate-100">
                                             {detalle.producto?.descripcion}
                                         </div>
+                                        {detalle.observacion && (
+                                            <div className="text-[10px] italic text-slate-500 leading-tight">
+                                                {detalle.observacion}
+                                            </div>
+                                        )}
+                                        {detalle.cambio?.observacion && (
+                                            <div className="text-[10px] italic text-indigo-500 leading-tight">
+                                                Cambio: {detalle.cambio.observacion}
+                                            </div>
+                                        )}
                                         <div className="flex items-center gap-1.5 text-[10px] tracking-widest text-slate-400 uppercase dark:text-slate-500">
                                             <Tag className="h-2.5 w-2.5" />
                                             {typeof detalle.producto?.marca === 'object'

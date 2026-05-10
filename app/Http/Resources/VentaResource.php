@@ -57,6 +57,8 @@ class VentaResource extends JsonResource
                     'cantidad' => $d->cantidad,
                     'precio_unitario' => $d->precio_unitario,
                     'subtotal' => $d->subtotal,
+                    'estado' => $d->estado,
+                    'observacion' => $d->observacion,
                     'impreso' => (bool) $d->impreso,
                     'precio_sugerido' => $d->inventario->precio_venta ?? 0,
                     'descuento_bodega' => \App\Models\BodegaAcceso::where('user_id', $this->user_id)

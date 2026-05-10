@@ -50,7 +50,7 @@ export const NAV_ITEMS: NavItem[] = [
     { title: 'Cajas', url: '/cajas', icon: Box, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
     { title: 'Muestras', url: '/muestras', icon: Archive, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
     { title: 'Cambios', url: '/cambios', icon: RefreshCcw, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
-    { title: 'WhatsApp', url: '/whatsapp', icon: MessageSquare, roles: ['superadmin', 'admin', 'bodega'], group: 'operaciones' },
+    { title: 'WhatsApp', url: '/whatsapp', icon: MessageSquare, roles: ['superadmin', 'admin', 'bodega', 'local'], group: 'operaciones' },
     { title: 'Devoluciones', url: '/devoluciones', icon: Undo2, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },
     { title: 'Cardex', url: '/cardex', icon: TrendingUp, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },
     { title: 'Ventas', url: '/reporte-ventas', icon: BarChart3, roles: ['superadmin', 'admin', 'bodega'], group: 'reportes' },

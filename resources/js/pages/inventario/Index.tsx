@@ -8,7 +8,7 @@ import { ViewerModal } from '@/components/ui/ViewerModal';
 import AppLayout from '@/layouts/app-layout';
 import { showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Edit, Eye, Image as ImageIcon, Search, Warehouse } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';

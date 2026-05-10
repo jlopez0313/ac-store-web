@@ -19,6 +19,7 @@ interface DetailModalProps {
 export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, referencia, onAdjust }) => {
     const { auth } = usePage().props as any;
     const canAdjust = ['superadmin', 'admin'].includes(auth.user.role);
+    const isLocal = auth.user.role === 'local';
     const [details, setDetails] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [adjustmentOpen, setAdjustmentOpen] = useState(false);
@@ -226,9 +227,9 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                                                 <TableHead className="text-foreground h-10 font-bold">Estantería</TableHead>
                                                                 <TableHead className="text-foreground h-10 text-center font-bold">Talla</TableHead>
                                                                 <TableHead className="text-foreground h-10 text-center font-bold">Stock</TableHead>
-                                                                <TableHead className="text-foreground h-10 text-right font-bold">Costo</TableHead>
+                                                                {!isLocal && <TableHead className="text-foreground h-10 text-right font-bold">Costo</TableHead>}
                                                                 <TableHead className="text-foreground h-10 text-right font-bold">Venta</TableHead>
-                                                                <TableHead className="text-foreground h-10 pr-6 text-right font-bold">Acciones</TableHead>
+                                                                {canAdjust && <TableHead className="text-foreground h-10 pr-6 text-right font-bold">Acciones</TableHead>}
                                                             </TableRow>
                                                         </TableHeader>
                                                         <TableBody>
@@ -247,15 +248,17 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                                                             {item.stock}
                                                                         </span>
                                                                     </TableCell>
-                                                                    <TableCell className="text-muted-foreground text-right text-xs font-medium">
-                                                                        ${Number(item.precio_compra).toLocaleString()}
-                                                                    </TableCell>
+                                                                    {!isLocal && (
+                                                                        <TableCell className="text-muted-foreground text-right text-xs font-medium">
+                                                                            ${Number(item.precio_compra).toLocaleString()}
+                                                                        </TableCell>
+                                                                    )}
                                                                     <TableCell className="text-foreground text-right text-xs font-medium">
                                                                         ${Number(item.precio_ajustado).toLocaleString()}
                                                                     </TableCell>
-                                                                    <TableCell className="pr-6 text-right">
-                                                                        <div className="flex items-center justify-end gap-1">
-                                                                            {canAdjust && (
+                                                                     {canAdjust && (
+                                                                        <TableCell className="pr-6 text-right">
+                                                                            <div className="flex items-center justify-end gap-1">
                                                                                 <Button
                                                                                     variant="ghost"
                                                                                     size="sm"
@@ -265,9 +268,9 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                                                                 >
                                                                                     <Edit className="text-primary h-3.5 w-3.5" />
                                                                                 </Button>
-                                                                            )}
-                                                                        </div>
-                                                                    </TableCell>
+                                                                            </div>
+                                                                        </TableCell>
+                                                                    )}
                                                                 </TableRow>
                                                             ))}
                                                         </TableBody>

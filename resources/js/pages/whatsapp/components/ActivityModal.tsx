@@ -5,9 +5,20 @@ import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/Modal';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import axios from 'axios';
-import { Megaphone, Users } from 'lucide-react';
+import { Megaphone, Trash2, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
+import { usePage } from '@inertiajs/react';
+
+interface SelectedItem {
+    id: string;
+    name: string;
+    codigo: string;
+    precio: number;
+    foto: string;
+    tallas: string[];
+    percentage: number;
+}
 
 interface ActivityModalProps {
     show: boolean;
@@ -32,8 +43,12 @@ export function ActivityModal({
     apiUrl,
     status
 }: ActivityModalProps) {
+    const { auth }: any = usePage().props;
+    const isLocal = auth.user.role === 'local';
+
     const [bodegas, setBodegas] = useState<any[]>([]);
     const [referencias, setReferencias] = useState<any[]>([]);
+    const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
     const [whatsappGroups, setWhatsappGroups] = useState<any[]>([]);
     const [loadingBodegas, setLoadingBodegas] = useState(false);
     const [loadingReferencias, setLoadingReferencias] = useState(false);
@@ -44,7 +59,6 @@ export function ActivityModal({
         grupo_destino: [] as string[],
         cuenta_id: isSuperAdmin ? '' : userCuentaId,
         bodega_id: '',
-        referencias: [] as string[],
         fecha: selectedDate,
         hora: '08:00'
     });
@@ -75,10 +89,10 @@ export function ActivityModal({
                 grupo_destino: [],
                 cuenta_id: isSuperAdmin ? '' : userCuentaId,
                 bodega_id: '',
-                referencias: [],
                 fecha: selectedDate,
                 hora: '08:00'
             });
+            setSelectedItems([]);
             setFilterType('groups');
             setTimeError(null);
         }
@@ -158,21 +172,50 @@ export function ActivityModal({
 
     const handleCuentaChange = (val: string | string[]) => {
         const cuentaId = val as string;
-        setFormData(prev => ({ ...prev, cuenta_id: cuentaId, bodega_id: '', referencias: [] }));
+        setFormData(prev => ({ ...prev, cuenta_id: cuentaId, bodega_id: '' }));
         fetchBodegas(cuentaId);
         fetchReferencias(cuentaId, '');
     };
 
     const handleBodegaChange = (val: string | string[]) => {
         const bodegaId = val as string;
-        setFormData(prev => ({ ...prev, bodega_id: bodegaId, referencias: [] }));
+        setFormData(prev => ({ ...prev, bodega_id: bodegaId }));
         fetchReferencias(formData.cuenta_id as string, bodegaId);
+    };
+
+    const handleAddItem = (refId: string) => {
+        const ref = referencias.find(r => r.id === refId);
+        if (!ref) return;
+
+        if (selectedItems.find(item => item.id === ref.id)) {
+            return; // Already added
+        }
+
+        setSelectedItems(prev => [...prev, {
+            id: ref.id,
+            name: ref.name,
+            codigo: ref.codigo,
+            precio: ref.precio,
+            foto: ref.foto,
+            tallas: ref.tallas,
+            percentage: 0
+        }]);
+    };
+
+    const handleRemoveItem = (id: string) => {
+        setSelectedItems(prev => prev.filter(item => item.id !== id));
+    };
+
+    const handleUpdatePercentage = (id: string, percentage: number) => {
+        setSelectedItems(prev => prev.map(item =>
+            item.id === id ? { ...item, percentage } : item
+        ));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (formData.grupo_destino.length === 0 || formData.referencias.length === 0) {
+        if (formData.grupo_destino.length === 0 || selectedItems.length === 0) {
             Swal.fire('Error', 'Debe seleccionar al menos un destino y una referencia.', 'error');
             return;
         }
@@ -196,20 +239,18 @@ export function ActivityModal({
 
         try {
             for (const grupoId of formData.grupo_destino) {
-                for (const refId of formData.referencias) {
-                    const refData = referencias.find(r => r.id === refId);
-                    if (!refData) continue;
-
+                for (const item of selectedItems) {
+                    const finalPrice = item.precio * (1 + (item.percentage / 100));
                     const formattedPrice = new Intl.NumberFormat('es-CO', {
                         style: 'currency',
                         currency: 'COP',
                         maximumFractionDigits: 0
-                    }).format(refData.precio);
+                    }).format(finalPrice);
 
-                    const message = `*${refData.name}*\n` +
-                        `📌 *Código:* ${refData.codigo}\n` +
+                    const message = `*${item.name}*\n` +
+                        `📌 *Código:* ${item.codigo}\n` +
                         `💰 *Precio:* ${formattedPrice}\n` +
-                        `📏 *Tallas disponibles:* ${refData.tallas.join(', ')}`;
+                        `📏 *Tallas disponibles:* ${item.tallas.join(', ')}`;
 
                     const [year, month, day] = formData.fecha.split('-').map(Number);
                     const [hour, minute] = formData.hora.split(':').map(Number);
@@ -225,10 +266,10 @@ export function ActivityModal({
                         userId: userId,
                         to: grupoId,
                         message: message,
-                        media: (refData.foto && typeof refData.foto === 'string') ? { url: refData.foto } : undefined,
+                        media: (item.foto && typeof item.foto === 'string') ? { url: item.foto } : undefined,
                         scheduledTime: scheduledTime,
                         accountId: formData.cuenta_id,
-                        referenceCode: refData.codigo
+                        referenceCode: item.codigo
                     });
                 }
             }
@@ -345,18 +386,92 @@ export function ActivityModal({
 
                     <SelectField
                         name="referencias"
-                        title="Referencias"
-                        multiple={true}
-                        placeholder="Seleccione referencias"
+                        title="Seleccionar Referencias"
+                        placeholder="Buscar y agregar..."
                         lista={referencias}
                         item={{ idx: 'id', value: 'name' }}
-                        value={formData.referencias}
-                        onChange={(val) => setFormData(prev => ({ ...prev, referencias: val as string[] }))}
+                        value=""
+                        onChange={(val) => handleAddItem(val as string)}
                         error={undefined}
                         disabled={loadingReferencias}
                         isLoading={loadingReferencias}
                     />
                 </div>
+
+                {selectedItems.length > 0 && (
+                    <div className="space-y-4 border rounded-xl overflow-hidden bg-slate-50/30 dark:bg-slate-900/30">
+                        <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 border-b">
+                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Productos Seleccionados ({selectedItems.length})
+                            </span>
+                        </div>
+                        <div className="max-h-[300px] overflow-y-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-white dark:bg-slate-950 text-slate-500 uppercase text-[10px] font-bold sticky top-0 z-10 border-b">
+                                    <tr>
+                                        <th className="px-4 py-2 w-12">Foto</th>
+                                        <th className="px-4 py-2">Referencia</th>
+                                        <th className="px-4 py-2 text-right">Precio Base</th>
+                                        {isLocal && (
+                                            <>
+                                                <th className="px-4 py-2 text-center w-24">% Inc.</th>
+                                                <th className="px-4 py-2 text-right">Precio Final</th>
+                                            </>
+                                        )}
+                                        <th className="px-4 py-2 w-10"></th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {selectedItems.map((item) => (
+                                        <tr key={item.id} className="bg-white dark:bg-slate-950 group">
+                                            <td className="px-4 py-2">
+                                                <div className="h-10 w-10 rounded-md border overflow-hidden bg-slate-100">
+                                                    {item.foto ? (
+                                                        <img src={item.foto} alt="" className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <Megaphone className="h-4 w-4 m-auto mt-3 text-slate-300" />
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <div className="font-bold text-slate-900 dark:text-slate-100">{item.codigo}</div>
+                                                <div className="text-[10px] text-slate-400 truncate max-w-[150px]">{item.name}</div>
+                                            </td>
+                                            <td className="px-4 py-2 text-right font-medium">
+                                                ${item.precio.toLocaleString()}
+                                            </td>
+                                            {isLocal && (
+                                                <>
+                                                    <td className="px-4 py-2">
+                                                        <Input
+                                                            type="number"
+                                                            min="0"
+                                                            value={item.percentage}
+                                                            onChange={(e) => handleUpdatePercentage(item.id, Number(e.target.value))}
+                                                            className="h-8 text-center text-xs font-bold border-indigo-200 focus-visible:ring-indigo-500"
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-2 text-right font-black text-indigo-600 dark:text-indigo-400">
+                                                        ${(item.precio * (1 + (item.percentage / 100))).toLocaleString()}
+                                                    </td>
+                                                </>
+                                            )}
+                                            <td className="px-4 py-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveItem(item.id)}
+                                                    className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
 
                 <div className="flex justify-end gap-3 pt-4 border-t">
                     <Button type="button" variant="outline" onClick={onClose}>
