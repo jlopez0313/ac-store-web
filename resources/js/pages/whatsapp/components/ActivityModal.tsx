@@ -275,11 +275,13 @@ export function ActivityModal({
             for (const grupoId of formData.grupo_destino) {
                 for (const item of selectedItems) {
                     const finalPrice = item.precio * (1 + (item.percentage / 100));
+                    const priceToDisplay = isLocal ? finalPrice : item.precio;
+
                     const formattedPrice = new Intl.NumberFormat('es-CO', {
                         style: 'currency',
                         currency: 'COP',
                         maximumFractionDigits: 0
-                    }).format(finalPrice);
+                    }).format(priceToDisplay);
 
                     const message = `*${item.name}*\n` +
                         `📌 *Código:* ${item.codigo}\n` +
