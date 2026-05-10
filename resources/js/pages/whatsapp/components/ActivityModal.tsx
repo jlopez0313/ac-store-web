@@ -87,12 +87,33 @@ export function ActivityModal({
 
     useEffect(() => {
         if (show) {
+            let initialFecha = selectedDate;
+            let initialHora = '08:00';
+
+            // If selectedDate comes from a time-grid (Week/Day view), it looks like "2023-10-25T14:30:00"
+            if (selectedDate && selectedDate.includes('T')) {
+                const parts = selectedDate.split('T');
+                initialFecha = parts[0];
+                initialHora = parts[1].substring(0, 5); // Get "HH:mm"
+            } else if (selectedDate) {
+                // If it's today, let's set a default time slightly in the future instead of 08:00 if it's already past 08:00
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+                if (selectedDate === todayStr) {
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() + 5);
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    initialHora = `${hours}:${minutes}`;
+                }
+            }
+
             setFormData({
                 grupo_destino: [],
                 cuenta_id: isSuperAdmin ? '' : userCuentaId,
                 bodega_id: '',
-                fecha: selectedDate,
-                hora: '08:00'
+                fecha: initialFecha,
+                hora: initialHora
             });
             setSelectedItems([]);
             setFilterType('groups');
