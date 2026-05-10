@@ -65,6 +65,20 @@
         overflow: hidden;
         border-color: var(--fc-border-color);
     }
+
+    .fc-day-past {
+        background-color: rgba(0, 0, 0, 0.02) !important;
+        opacity: 0.6;
+        
+        .fc-daygrid-day-number {
+            color: #cbd5e1 !important;
+            text-decoration: line-through;
+        }
+
+        .fc-event {
+            filter: grayscale(1) opacity(0.5);
+        }
+    }
 }
 
 .fc-theme-standard td, .fc-theme-standard th {
@@ -90,6 +104,14 @@
         .fc-button-primary:not(:disabled) {
             &.fc-button-active, &:active {
                 color: #f8fafc !important;
+            }
+        }
+
+        .fc-day-past {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+            
+            .fc-daygrid-day-number {
+                color: #475569 !important;
             }
         }
     }
