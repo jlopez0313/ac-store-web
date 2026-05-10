@@ -35,7 +35,7 @@ export const SelectField = ({
     item,
     name,
     title,
-    lista,
+    lista = [],
     value = '',
     multiple = false,
     required = false,
