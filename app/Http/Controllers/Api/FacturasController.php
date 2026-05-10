@@ -22,12 +22,10 @@ class FacturasController extends Controller
 
         $query = Venta::with(['local', 'creator', 'detalles.bodega', 'detalles.cambio', 'cuenta']);
 
-        if (!$isSuper) {
-            if ($user->role === 'local') {
-                $query->where('user_id', $user->id);
-            } else {
-                $query->whereIn('cuenta_id', $user->getAccessibleAccountIds());
-            }
+        if ($user->hasRole('local')) {
+            $query->where('user_id', $user->id);
+        } elseif (!$isSuper) {
+            $query->whereIn('cuenta_id', $user->getAccessibleAccountIds());
         }
 
         // Apply tab filters

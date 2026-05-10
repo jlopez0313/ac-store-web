@@ -29,6 +29,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('notifications/{notification}/read', [App\Http\Controllers\Api\NotificationController::class, 'markAsRead'])->name('api.notifications.read');
     Route::post('notifications/read-all', [App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead'])->name('api.notifications.read_all');
     Route::post('notifications/broadcast', [App\Http\Controllers\Api\NotificationController::class, 'store'])->name('api.notifications.broadcast')->middleware('role:superadmin|admin');
+    Route::get('announcements', [App\Http\Controllers\Api\NotificationController::class, 'announcementsIndex'])->name('api.announcements.index')->middleware('role:superadmin|admin');
+    Route::get('announcements/{announcement}/stats', [App\Http\Controllers\Api\NotificationController::class, 'announcementStats'])->name('api.announcements.stats')->middleware('role:superadmin|admin');
 
     // Videos
     Route::apiResource('videos', ApiVideoController::class)->names('api.videos');

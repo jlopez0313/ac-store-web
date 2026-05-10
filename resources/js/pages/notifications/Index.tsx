@@ -7,10 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { SelectField } from '@/components/SelectField';
+import { Modal } from '@/components/ui/Modal';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { showAlert } from '@/plugins/sweetalert';
-import { Megaphone, Send, Users, User, Landmark, Info, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Megaphone, Send, Users, User, Landmark, Info, AlertTriangle, CheckCircle, XCircle, Eye, History, Clock } from 'lucide-react';
 
 const breadcrumbs = [
     { title: 'Anuncios', href: '/anuncios' },
@@ -18,8 +21,14 @@ const breadcrumbs = [
 
 export default function NotificationsIndex() {
     const [loading, setLoading] = useState(false);
+    const [loadingHistory, setLoadingHistory] = useState(false);
     const [cuentas, setCuentas] = useState<any[]>([]);
     const [usuarios, setUsuarios] = useState<any[]>([]);
+    const [announcements, setAnnouncements] = useState<any[]>([]);
+    
+    const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
+    const [stats, setStats] = useState<any[]>([]);
+    const [loadingStats, setLoadingStats] = useState(false);
     
     const [formData, setFormData] = useState({
         title: '',
@@ -32,6 +41,7 @@ export default function NotificationsIndex() {
     useEffect(() => {
         fetchCuentas();
         fetchUsuarios();
+        fetchHistory();
     }, []);
 
     const fetchCuentas = async () => {
@@ -49,6 +59,31 @@ export default function NotificationsIndex() {
             setUsuarios(response.data.data.map((u: any) => ({ label: `${u.name} (${u.username})`, value: String(u.id) })));
         } catch (error) {
             console.error('Error fetching users:', error);
+        }
+    };
+
+    const fetchHistory = async () => {
+        setLoadingHistory(true);
+        try {
+            const response = await axios.get('/api/announcements');
+            setAnnouncements(response.data);
+        } catch (error) {
+            console.error('Error fetching history:', error);
+        } finally {
+            setLoadingHistory(false);
+        }
+    };
+
+    const fetchStats = async (announcement: any) => {
+        setSelectedAnnouncement(announcement);
+        setLoadingStats(true);
+        try {
+            const response = await axios.get(`/api/announcements/${announcement.id}/stats`);
+            setStats(response.data.stats);
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+        } finally {
+            setLoadingStats(false);
         }
     };
 
@@ -70,6 +105,7 @@ export default function NotificationsIndex() {
                 target_type: 'all',
                 target_id: ''
             });
+            fetchHistory();
         } catch (error) {
             console.error('Error sending notifications:', error);
             showAlert('error', 'Error al enviar los anuncios.');
@@ -94,11 +130,11 @@ export default function NotificationsIndex() {
     return (
         <AppLayout>
             <Head title="Enviar Anuncios" />
-            <div className="flex flex-col gap-4 p-4 md:p-8">
+            <div className="flex flex-col gap-6 p-4 md:p-8">
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
 
-                <div className="grid gap-6 md:grid-cols-2">
-                    <Card className="border-slate-200 shadow-sm dark:border-slate-800">
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <Card className="lg:col-span-2 border-slate-200 shadow-sm dark:border-slate-800">
                         <CardHeader className="bg-slate-50/50 dark:bg-slate-900/50 border-b">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
@@ -231,7 +267,166 @@ export default function NotificationsIndex() {
                         </CardContent>
                     </Card>
                 </div>
+
+                <Card className="border-slate-200 shadow-sm dark:border-slate-800">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b bg-slate-50/30 dark:bg-slate-900/30">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                                <History className="h-5 w-5 text-slate-600" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-lg">Historial de Anuncios</CardTitle>
+                                <CardDescription>Consulta quiénes han leído tus anuncios recientes.</CardDescription>
+                            </div>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={fetchHistory} disabled={loadingHistory}>
+                            <History className={`h-4 w-4 mr-2 ${loadingHistory ? 'animate-spin' : ''}`} />
+                            Actualizar
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow className="bg-slate-50/50 dark:bg-slate-900/50">
+                                        <TableHead className="w-[150px]">Fecha</TableHead>
+                                        <TableHead>Título</TableHead>
+                                        <TableHead>Destinatarios</TableHead>
+                                        <TableHead className="text-center">Leídos</TableHead>
+                                        <TableHead className="text-right">Acciones</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {announcements.length === 0 && !loadingHistory ? (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="text-center py-12 text-slate-400">
+                                                No hay anuncios enviados todavía.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        announcements.map((ann) => (
+                                            <TableRow key={ann.id}>
+                                                <TableCell className="text-xs text-slate-500">
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="h-3 w-3" />
+                                                        {new Date(ann.created_at).toLocaleDateString()}
+                                                    </div>
+                                                    <div className="ml-5">
+                                                        {new Date(ann.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="font-bold text-slate-900 dark:text-white">{ann.title}</div>
+                                                    <div className="text-xs text-slate-400 line-clamp-1">{ann.message}</div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline" className="capitalize text-[10px]">
+                                                        {targetOptions.find(o => o.value === ann.target_type)?.label}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    <div className="flex flex-col items-center">
+                                                        <span className="text-sm font-bold text-indigo-600">
+                                                            {ann.read_count} / {ann.notifications_count}
+                                                        </span>
+                                                        <div className="w-16 h-1 bg-slate-100 dark:bg-slate-800 rounded-full mt-1 overflow-hidden">
+                                                            <div 
+                                                                className="h-full bg-indigo-500" 
+                                                                style={{ width: `${(ann.read_count / ann.notifications_count) * 100}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button variant="ghost" size="sm" onClick={() => fetchStats(ann)}>
+                                                        <Eye className="h-4 w-4 mr-2" />
+                                                        Ver Lectores
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
+
+            {/* Statistics Modal */}
+            <Modal
+                show={!!selectedAnnouncement}
+                onClose={() => setSelectedAnnouncement(null)}
+                title="Estadísticas de Lectura"
+                maxWidth="2xl"
+            >
+                <div className="p-6">
+                    <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <h4 className="font-bold text-slate-900 dark:text-white mb-1">{selectedAnnouncement?.title}</h4>
+                        <p className="text-xs text-slate-500">{selectedAnnouncement?.message}</p>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400">Detalle por Usuario</h5>
+                            <Badge variant="secondary">
+                                Total: {stats.length}
+                            </Badge>
+                        </div>
+
+                        <div className="max-h-[400px] overflow-y-auto border rounded-lg">
+                            <Table>
+                                <TableHeader className="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10">
+                                    <TableRow>
+                                        <TableHead>Usuario</TableHead>
+                                        <TableHead className="text-right">Estado / Fecha Lectura</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {loadingStats ? (
+                                        <TableRow>
+                                            <TableCell colSpan={2} className="text-center py-8">
+                                                Cargando...
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        stats.map((s, idx) => (
+                                            <TableRow key={idx}>
+                                                <TableCell>
+                                                    <div className="font-bold text-sm">{s.user_name}</div>
+                                                    <div className="text-xs text-slate-400">@{s.username}</div>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    {s.read_at ? (
+                                                        <div className="flex flex-col items-end">
+                                                            <Badge className="bg-emerald-500 hover:bg-emerald-600 mb-1">
+                                                                <CheckCircle className="h-3 w-3 mr-1" />
+                                                                Leído
+                                                            </Badge>
+                                                            <span className="text-[10px] text-slate-400 font-mono">{s.read_at}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <Badge variant="outline" className="text-slate-400">
+                                                            <Clock className="h-3 w-3 mr-1" />
+                                                            Pendiente
+                                                        </Badge>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 flex justify-end">
+                        <Button onClick={() => setSelectedAnnouncement(null)}>
+                            Cerrar
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </AppLayout>
     );
 }

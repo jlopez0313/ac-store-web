@@ -19,6 +19,7 @@ interface SelectedItem {
     foto: string;
     tallas: string[];
     percentage: number;
+    descuento?: number;
 }
 
 interface ActivityModalProps {
@@ -221,7 +222,8 @@ export function ActivityModal({
             precio: ref.precio,
             foto: ref.foto,
             tallas: ref.tallas,
-            percentage: 0
+            percentage: 0,
+            descuento: ref.descuento || 0
         }]);
     };
 
@@ -477,7 +479,14 @@ export function ActivityModal({
                                                 <div className="text-[10px] text-slate-400 truncate max-w-[150px]">{item.name}</div>
                                             </td>
                                             <td className="px-4 py-2 text-right font-medium">
-                                                ${item.precio.toLocaleString()}
+                                                <div className="flex flex-col items-end">
+                                                    <span>${item.precio.toLocaleString()}</span>
+                                                    {isLocal && item.descuento && item.descuento > 0 && (
+                                                        <Badge className="mt-1 bg-emerald-500 hover:bg-emerald-600 text-[9px] h-4 px-1.5 border-none">
+                                                            -{item.descuento.toLocaleString()}
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                             </td>
                                             {isLocal && (
                                                 <>

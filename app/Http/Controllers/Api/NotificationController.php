@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Api;
-
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\Notification;
+use App\Models\Announcement;
+use App\Models\User;
 
 class NotificationController extends Controller
 {
@@ -32,17 +31,32 @@ class NotificationController extends Controller
 
         $users = [];
         if ($request->target_type === 'all') {
-            $users = \App\Models\User::all();
+            $users = User::all();
         } elseif ($request->target_type === 'account') {
-            $users = \App\Models\User::where('cuenta_id', $request->target_id)->get();
+            $users = User::where('cuenta_id', $request->target_id)->get();
         } elseif ($request->target_type === 'user') {
-            $user = \App\Models\User::find($request->target_id);
+            $user = User::find($request->target_id);
             if ($user) $users = [$user];
         }
 
+        if (empty($users)) {
+            return response()->json(['message' => 'No se encontraron destinatarios'], 422);
+        }
+
+        // Create master announcement for stats
+        $announcement = Announcement::create([
+            'user_id' => auth()->id(),
+            'title' => $request->title,
+            'message' => $request->message,
+            'type' => $request->type ?? 'info',
+            'target_type' => $request->target_type,
+            'target_id' => $request->target_id,
+        ]);
+
         foreach ($users as $user) {
-            \App\Models\Notification::create([
+            Notification::create([
                 'user_id' => $user->id,
+                'announcement_id' => $announcement->id,
                 'title' => $request->title,
                 'message' => $request->message,
                 'type' => $request->type ?? 'info',
@@ -52,7 +66,35 @@ class NotificationController extends Controller
         return response()->json(['message' => 'Notificaciones enviadas correctamente']);
     }
 
-    public function markAsRead(\App\Models\Notification $notification)
+    public function announcementsIndex()
+    {
+        $announcements = Announcement::withCount(['notifications', 'notifications as read_count' => function ($query) {
+            $query->whereNotNull('read_at');
+        }])->orderBy('created_at', 'desc')->get();
+
+        return response()->json($announcements);
+    }
+
+    public function announcementStats(Announcement $announcement)
+    {
+        $stats = $announcement->notifications()
+            ->with('user:id,name,username')
+            ->get()
+            ->map(function ($n) {
+                return [
+                    'user_name' => $n->user->name,
+                    'username' => $n->user->username,
+                    'read_at' => $n->read_at ? $n->read_at->format('Y-m-d H:i:s') : null,
+                ];
+            });
+
+        return response()->json([
+            'announcement' => $announcement,
+            'stats' => $stats
+        ]);
+    }
+
+    public function markAsRead(Notification $notification)
     {
         if ($notification->user_id !== auth()->id()) {
             return response()->json(['message' => 'No autorizado'], 403);

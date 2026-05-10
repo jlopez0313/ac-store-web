@@ -213,6 +213,7 @@ class ReferenciasController extends Controller
             $q->where('stock', '>', 0);
         }])->get()->map(function($r) use ($user, $request) {
             $precioBase = $r->inventarios->max('precio_venta');
+            $descuento = 0;
             
             // Apply discount if user is local and bodega is selected
             if ($user->role === 'local' && $request->filled('bodega_id')) {
@@ -221,7 +222,8 @@ class ReferenciasController extends Controller
                     ->first();
                 
                 if ($acceso && $acceso->descuento > 0) {
-                    $precioBase = max(0, $precioBase - $acceso->descuento);
+                    $descuento = $acceso->descuento;
+                    $precioBase = max(0, $precioBase - $descuento);
                 }
             }
 
@@ -232,6 +234,7 @@ class ReferenciasController extends Controller
                 'codigo' => $r->codigo,
                 'descripcion' => $r->descripcion,
                 'precio' => $precioBase,
+                'descuento' => $descuento,
                 'tallas' => $tallas,
                 'foto' => $r->foto ? asset('storage/' . $r->foto) : null,
                 'name' => "{$r->codigo} - " . ($r->descripcion ?: 'Sin descripción')
