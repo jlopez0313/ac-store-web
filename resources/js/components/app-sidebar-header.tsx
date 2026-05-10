@@ -1,5 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { PrintNotificationBell } from '@/components/print-notification-bell';
+import { SystemNotificationsBell } from '@/components/system-notifications-bell';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
@@ -24,6 +25,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
             </div>
 
             <div className="flex items-center gap-3">
+                <SystemNotificationsBell />
                 {showPrintBell && <PrintNotificationBell cuentaId={auth.user.cuenta_id} />}
                 <div className="hidden flex-col items-end sm:flex">
                     <span className="text-xs leading-none font-medium">{auth.user.name}</span>

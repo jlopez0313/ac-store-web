@@ -58,6 +58,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/progreso', [ImportacionController::class, 'progreso'])->name('progreso');
         });
         Route::get('referencias-bulk-photos', [ReferenciasController::class, 'bulkPhotos'])->name('referencias.bulk-photos');
+        Route::get('anuncios', function () {
+            return Inertia::render('notifications/Index');
+        })->name('notifications.index');
     });
 
     // Superadmin, Admin & Bodega (Internal Operations)

@@ -69,6 +69,7 @@ export const NAV_ITEMS: NavItem[] = [
     { title: 'Bodegas', url: '/bodegas', icon: WarehouseIcon, roles: ['superadmin', 'admin', 'bodega'], group: 'admin' },
     { title: 'Proveedores', url: '/proveedores', icon: Building2, roles: ['superadmin', 'admin', 'bodega'], group: 'admin' },
     { title: 'Usuarios', url: '/usuarios', icon: Users, roles: ['superadmin', 'admin'], group: 'admin' },
+    { title: 'Anuncios', url: '/anuncios', icon: MessageSquare, roles: ['superadmin', 'admin'], group: 'admin' },
     { title: 'Opciones', url: '/opciones', icon: Settings, roles: ['superadmin', 'admin'], group: 'admin' },
 ];
 

@@ -236,7 +236,7 @@ export function PrintNotificationBell({ cuentaId }: Props) {
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative h-8 w-8 cursor-pointer">
-                    <Bell className="h-4 w-4" />
+                    <Printer className="h-4 w-4" />
                     <Badge className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white">
                         {requests.length}
                     </Badge>
