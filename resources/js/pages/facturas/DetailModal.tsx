@@ -5,7 +5,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import axios from 'axios';
-import { Calendar, Clock, ExternalLink, House, Image as ImageIcon, Info, MapPin, RefreshCcw, Tag, User } from 'lucide-react';
+import { Calendar, ChevronDown, Clock, ExternalLink, House, Image as ImageIcon, Info, MapPin, RefreshCcw, Tag, User } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface DetailModalProps {
@@ -18,6 +18,7 @@ interface DetailModalProps {
 export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factura, onViewInvoice }) => {
 	const [items, setItems] = useState<any[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [showDevoluciones, setShowDevoluciones] = useState(false);
 	const [total, setTotal] = useState(0);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [perPage, setPerPage] = useState(10);
@@ -300,44 +301,63 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 							</div>
 						</div>
 
-						{/* Devoluciones Section */}
+						{/* Devoluciones Section (Accordion) */}
 						{factura.devoluciones_detalle?.length > 0 && (
-							<div className="space-y-4 pt-4">
-								<h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 uppercase flex items-center gap-2">
-									Productos Devueltos / Anulados
-								</h3>
-								<div className="bg-rose-50/30 dark:bg-rose-950/10 rounded-2xl border border-rose-200 dark:border-rose-900/30 overflow-hidden shadow-sm">
-									<Table>
-										<TableHeader className="bg-rose-100/50 dark:bg-rose-900/20">
-											<TableRow>
-												<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400">Referencia</TableHead>
-												<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 text-center">Talla</TableHead>
-												<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400">Motivo</TableHead>
-												<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 text-right">Procesado Por</TableHead>
-											</TableRow>
-										</TableHeader>
-										<TableBody>
-											{factura.devoluciones_detalle.map((dev: any) => (
-												<TableRow key={dev.id} className="border-rose-100 dark:border-rose-900/20">
-													<TableCell>
-														<div className="flex flex-col">
-															<span className="font-bold text-sm text-rose-900 dark:text-rose-200">{dev.producto}</span>
-															<span className="text-[10px] text-rose-600/70 dark:text-rose-400/50 uppercase truncate max-w-[200px]">{dev.descripcion}</span>
-														</div>
-													</TableCell>
-													<TableCell className="text-center font-bold text-rose-700 dark:text-rose-300">{dev.talla}</TableCell>
-													<TableCell className="text-xs text-rose-600 dark:text-rose-400 italic">"{dev.motivo || 'Sin motivo'}"</TableCell>
-													<TableCell className="text-right">
-														<div className="flex flex-col items-end">
-															<span className="text-xs font-bold text-rose-900 dark:text-rose-200">{dev.usuario}</span>
-															<span className="text-[10px] text-rose-500 font-mono">{dev.fecha}</span>
-														</div>
-													</TableCell>
+							<div className="space-y-3 pt-4">
+								<button
+									onClick={() => setShowDevoluciones(!showDevoluciones)}
+									className="w-full flex items-center justify-between p-4 bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 rounded-2xl transition-all hover:bg-rose-100/50 dark:hover:bg-rose-900/30 group"
+								>
+									<div className="flex items-center gap-3">
+										<div className="p-2 bg-rose-100 dark:bg-rose-900/40 rounded-lg text-rose-600 dark:text-rose-400">
+											<RefreshCcw className={`h-4 w-4 ${showDevoluciones ? 'animate-spin-slow' : ''}`} />
+										</div>
+										<div className="text-left">
+											<h3 className="text-sm font-bold text-rose-700 dark:text-rose-300 uppercase tracking-tight">
+												Productos Devueltos / Anulados
+											</h3>
+											<p className="text-[10px] text-rose-600/70 dark:text-rose-400/60 font-medium uppercase">
+												{factura.devoluciones_detalle.length} {factura.devoluciones_detalle.length === 1 ? 'producto detectado' : 'productos detectados'}
+											</p>
+										</div>
+									</div>
+									<ChevronDown className={`h-5 w-5 text-rose-400 transition-transform duration-300 ${showDevoluciones ? 'rotate-180' : ''}`} />
+								</button>
+
+								{showDevoluciones && (
+									<div className="bg-rose-50/30 dark:bg-rose-950/10 rounded-2xl border border-rose-200 dark:border-rose-900/30 overflow-hidden shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+										<Table>
+											<TableHeader className="bg-rose-100/50 dark:bg-rose-900/20">
+												<TableRow>
+													<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400">Referencia</TableHead>
+													<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 text-center">Talla</TableHead>
+													<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400">Motivo</TableHead>
+													<TableHead className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 text-right">Procesado Por</TableHead>
 												</TableRow>
-											))}
-										</TableBody>
-									</Table>
-								</div>
+											</TableHeader>
+											<TableBody>
+												{factura.devoluciones_detalle.map((dev: any) => (
+													<TableRow key={dev.id} className="border-rose-100 dark:border-rose-900/20">
+														<TableCell>
+															<div className="flex flex-col">
+																<span className="font-bold text-sm text-rose-900 dark:text-rose-200">{dev.producto}</span>
+																<span className="text-[10px] text-rose-600/70 dark:text-rose-400/50 uppercase truncate max-w-[200px]">{dev.descripcion}</span>
+															</div>
+														</TableCell>
+														<TableCell className="text-center font-bold text-rose-700 dark:text-rose-300">{dev.talla}</TableCell>
+														<TableCell className="text-xs text-rose-600 dark:text-rose-400 italic">"{dev.motivo || 'Sin motivo'}"</TableCell>
+														<TableCell className="text-right">
+															<div className="flex flex-col items-end">
+																<span className="text-xs font-bold text-rose-900 dark:text-rose-200">{dev.usuario}</span>
+																<span className="text-[10px] text-rose-500 font-mono">{dev.fecha}</span>
+															</div>
+														</TableCell>
+													</TableRow>
+												))}
+											</TableBody>
+										</Table>
+									</div>
+								)}
 							</div>
 						)}
 
