@@ -47,7 +47,7 @@ class DevolucionResource extends JsonResource
                     'codigo' => $this->producto->codigo,
                     'descripcion' => $this->producto->descripcion,
                     'marca' => $this->producto->marca,
-                    'foto' => $this->producto->foto,
+                    'foto' => $this->producto->foto ? asset('storage/' . ltrim(str_replace('storage/', '', ltrim($this->producto->foto, '/')), '/')) : null,
                 ];
             }),
             'bodega' => $this->whenLoaded('bodega', function () {

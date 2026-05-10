@@ -76,12 +76,15 @@ export const DevolucionesFacturaModal: React.FC<Props> = ({ isOpen, onClose, fac
                                         <TableRow key={d.id}>
                                             <TableCell>
                                                 <div 
-                                                    onClick={() => d.producto?.foto && setViewerImage(`/storage/${d.producto.foto}`)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (d.producto?.foto) setViewerImage(d.producto.foto);
+                                                    }}
                                                     className={`flex h-9 w-9 items-center justify-center overflow-hidden rounded border border-border bg-muted ${d.producto?.foto ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
                                                 >
                                                     {d.producto?.foto ? (
                                                         <img
-                                                            src={`/storage/${d.producto.foto}`}
+                                                            src={d.producto.foto}
                                                             alt={d.producto.codigo}
                                                             className="h-full w-full object-cover"
                                                         />
