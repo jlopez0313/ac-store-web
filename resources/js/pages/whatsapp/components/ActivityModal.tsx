@@ -445,11 +445,11 @@ export function ActivityModal({
                                     <tr>
                                         <th className="px-4 py-2 w-12">Foto</th>
                                         <th className="px-4 py-2">Referencia</th>
-                                        <th className="px-4 py-2 text-right">Precio Base</th>
+                                        <th className="px-4 py-2">Precio Base</th>
                                         {isLocal && (
                                             <>
-                                            <th className="px-4 py-2 text-center w-32">% Inc.</th>
-                                            <th className="px-4 py-2 text-right w-40">Precio Final</th>
+                                                <th className="px-4 py-2 w-32">% Inc.</th>
+                                                <th className="px-4 py-2 w-40">Precio Final</th>
                                             </>
                                         )}
                                         <th className="px-4 py-2 w-10"></th>
