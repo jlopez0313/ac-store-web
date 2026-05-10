@@ -18,7 +18,7 @@ interface SoporteData {
 }
 
 export function printSoporteVenta(data: SoporteData, returnHtml = false): string | void {
-    const footer = data.footer || import.meta.env.VITE_APP_NAME || ' / WhatsApp / 300 000 0000';
+    const footer = data.footer || `${import.meta.env.VITE_APP_NAME || 'BodegaStock'} / ${import.meta.env.VITE_SUPPORT_URL || 'bodegastock.com'} / WA: ${import.meta.env.VITE_SUPPORT_WHATSAPP || '322 5086903'}`;
     const now = new Date();
     const fecha = now.toLocaleDateString('es-CO');
     const hora = now.toLocaleTimeString('es-CO');

@@ -1,24 +1,24 @@
-import AppLayout from '@/layouts/app-layout';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { Head } from '@inertiajs/react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useAppearance } from '@/hooks/use-appearance';
-import { Sun, Moon, Monitor, CheckCircle2, ShieldCheck, CreditCard, MessageSquare, User as UserIcon, Landmark } from 'lucide-react';
-import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAppearance } from '@/hooks/use-appearance';
+import AppLayout from '@/layouts/app-layout';
+import { Head } from '@inertiajs/react';
+import axios from 'axios';
+import { CheckCircle2, CreditCard, Landmark, MessageSquare, Monitor, Moon, ShieldCheck, Sun, User as UserIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function AccountIndex() {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const { appearance, updateAppearance } = useAppearance();
-    
+
     // Form state
     const [profileForm, setProfileForm] = useState({
         name: '',
@@ -87,7 +87,7 @@ export default function AccountIndex() {
                         <TabsTrigger value="profile">Perfil</TabsTrigger>
                         <TabsTrigger value="permissions">Permisos</TabsTrigger>
                         <TabsTrigger value="payments">Pagos</TabsTrigger>
-                        <TabsTrigger value="contact">Contacto</TabsTrigger>
+                        <TabsTrigger value="contact">Soporte</TabsTrigger>
                     </TabsList>
 
                     {/* PROFILE TAB */}
@@ -105,50 +105,50 @@ export default function AccountIndex() {
                                     <form onSubmit={handleUpdateProfile} className="space-y-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="name">Nombre Completo</Label>
-                                            <Input 
-                                                id="name" 
-                                                value={profileForm.name} 
-                                                onChange={e => setProfileForm({...profileForm, name: e.target.value})} 
-                                                required 
+                                            <Input
+                                                id="name"
+                                                value={profileForm.name}
+                                                onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                                                required
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="username">Nombre de Usuario</Label>
-                                            <Input 
-                                                id="username" 
-                                                value={profileForm.username} 
-                                                onChange={e => setProfileForm({...profileForm, username: e.target.value})} 
-                                                required 
+                                            <Input
+                                                id="username"
+                                                value={profileForm.username}
+                                                onChange={e => setProfileForm({ ...profileForm, username: e.target.value })}
+                                                required
                                             />
                                             <p className="text-[0.8rem] text-muted-foreground">Si el usuario ya existe, se le asignará un sufijo numérico (01, 02...).</p>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="email">Correo Electrónico</Label>
-                                            <Input 
-                                                id="email" 
-                                                type="email" 
-                                                value={profileForm.email} 
-                                                onChange={e => setProfileForm({...profileForm, email: e.target.value})} 
-                                                required 
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                value={profileForm.email}
+                                                onChange={e => setProfileForm({ ...profileForm, email: e.target.value })}
+                                                required
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-4 pt-2">
                                             <div className="space-y-2">
                                                 <Label htmlFor="password">Nueva Contraseña</Label>
-                                                <Input 
-                                                    id="password" 
-                                                    type="password" 
-                                                    value={profileForm.password} 
-                                                    onChange={e => setProfileForm({...profileForm, password: e.target.value})} 
+                                                <Input
+                                                    id="password"
+                                                    type="password"
+                                                    value={profileForm.password}
+                                                    onChange={e => setProfileForm({ ...profileForm, password: e.target.value })}
                                                 />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="password_confirmation">Confirmar</Label>
-                                                <Input 
-                                                    id="password_confirmation" 
-                                                    type="password" 
-                                                    value={profileForm.password_confirmation} 
-                                                    onChange={e => setProfileForm({...profileForm, password_confirmation: e.target.value})} 
+                                                <Input
+                                                    id="password_confirmation"
+                                                    type="password"
+                                                    value={profileForm.password_confirmation}
+                                                    onChange={e => setProfileForm({ ...profileForm, password_confirmation: e.target.value })}
                                                 />
                                             </div>
                                         </div>
@@ -169,24 +169,24 @@ export default function AccountIndex() {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="grid grid-cols-3 gap-4">
-                                        <Button 
-                                            variant={appearance === 'light' ? 'default' : 'outline'} 
+                                        <Button
+                                            variant={appearance === 'light' ? 'default' : 'outline'}
                                             className="flex flex-col h-20 gap-2"
                                             onClick={() => updateAppearance('light')}
                                         >
                                             <Sun className="h-5 w-5" />
                                             Claro
                                         </Button>
-                                        <Button 
-                                            variant={appearance === 'dark' ? 'default' : 'outline'} 
+                                        <Button
+                                            variant={appearance === 'dark' ? 'default' : 'outline'}
                                             className="flex flex-col h-20 gap-2"
                                             onClick={() => updateAppearance('dark')}
                                         >
                                             <Moon className="h-5 w-5" />
                                             Oscuro
                                         </Button>
-                                        <Button 
-                                            variant={appearance === 'system' ? 'default' : 'outline'} 
+                                        <Button
+                                            variant={appearance === 'system' ? 'default' : 'outline'}
                                             className="flex flex-col h-20 gap-2"
                                             onClick={() => updateAppearance('system')}
                                         >
@@ -207,7 +207,7 @@ export default function AccountIndex() {
                                             </div>
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-muted-foreground">Valor Mensual:</span>
-                                                <span className="font-bold text-primary">${data.user.precio_suscripcion?.toLocaleString()}</span>
+                                                <span className="font-bold text-primary">${data.user.precio_suscripcion?.toLocaleString('es-CO', { minimumFractionDigits: 0 })}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -250,10 +250,10 @@ export default function AccountIndex() {
                                                     {perm.can_order ? <CheckCircle2 className="h-4 w-4 text-green-500 mx-auto" /> : '-'}
                                                 </TableCell>
                                                 <TableCell className="text-center">
-                                                    {perm.descuento > 0 ? <Badge variant="outline">{perm.descuento}%</Badge> : '0%'}
+                                                    {perm.descuento > 0 ? <Badge variant="outline">${perm.descuento.toLocaleString('es-CO', { minimumFractionDigits: 0 })}</Badge> : '$0'}
                                                 </TableCell>
                                                 <TableCell className="text-right font-mono text-muted-foreground">
-                                                    ${perm.precio_acceso.toLocaleString()}
+                                                    ${perm.precio_acceso.toLocaleString('es-CO', { minimumFractionDigits: 0 })}
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -298,7 +298,7 @@ export default function AccountIndex() {
                                             {data.payments.map((payment: any) => (
                                                 <TableRow key={payment.id}>
                                                     <TableCell>{payment.payment_date}</TableCell>
-                                                    <TableCell className="font-bold">${payment.amount.toLocaleString()}</TableCell>
+                                                    <TableCell className="font-bold">${payment.amount.toLocaleString('es-CO', { minimumFractionDigits: 0 })}</TableCell>
                                                     <TableCell>{payment.next_cutoff_date}</TableCell>
                                                     <TableCell className="text-muted-foreground">{payment.registered_by}</TableCell>
                                                 </TableRow>
@@ -359,9 +359,9 @@ export default function AccountIndex() {
                                     <div>
                                         <h4 className="font-bold">WhatsApp de Soporte</h4>
                                         <p className="text-sm text-muted-foreground mb-3">Disponible para dudas técnicas y reportes de pago.</p>
-                                        <a 
-                                            href={`https://wa.me/${data.contacts.whatsapp.replace(/\+/g, '')}`} 
-                                            target="_blank" 
+                                        <a
+                                            href={`https://wa.me/${data.contacts.whatsapp.replace(/\+/g, '')}`}
+                                            target="_blank"
                                             className="inline-flex items-center text-sm font-bold text-green-600 hover:underline"
                                         >
                                             {data.contacts.whatsapp}
@@ -376,11 +376,28 @@ export default function AccountIndex() {
                                     <div>
                                         <h4 className="font-bold">Correo Electrónico</h4>
                                         <p className="text-sm text-muted-foreground mb-3">Para solicitudes administrativas o formales.</p>
-                                        <a 
-                                            href={`mailto:${data.contacts.email}`} 
+                                        <a
+                                            href={`mailto:${data.contacts.email}`}
                                             className="inline-flex items-center text-sm font-bold text-blue-600 hover:underline"
                                         >
                                             {data.contacts.email}
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start gap-4 p-4 rounded-xl border hover:bg-muted/50 transition-colors">
+                                    <div className="p-3 rounded-full bg-purple-500/10 text-purple-600">
+                                        <Monitor className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold">Página Web</h4>
+                                        <p className="text-sm text-muted-foreground mb-3">Visita nuestro sitio oficial para más información.</p>
+                                        <a
+                                            href={data.contacts.url}
+                                            target="_blank"
+                                            className="inline-flex items-center text-sm font-bold text-purple-600 hover:underline"
+                                        >
+                                            {data.contacts.url}
                                         </a>
                                     </div>
                                 </div>

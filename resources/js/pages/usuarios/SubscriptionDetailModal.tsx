@@ -97,7 +97,7 @@ export default function SubscriptionDetailModal({ user, open, onOpenChange, onSu
                                                 {item.is_primary && <Badge variant="secondary" className="text-[0.6rem] h-4 mt-1">Cuenta Principal</Badge>}
                                             </TableCell>
                                             <TableCell className="text-right text-muted-foreground line-through decoration-muted-foreground/30">
-                                                ${item.default_price.toLocaleString()}
+                                                ${item.default_price.toLocaleString('es-CO', { minimumFractionDigits: 0 })}
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 <Input 
@@ -130,7 +130,7 @@ export default function SubscriptionDetailModal({ user, open, onOpenChange, onSu
                                 <p className="text-xs text-muted-foreground">Suma de todos los precios (estándar o personalizados).</p>
                             </div>
                             <div className="text-2xl font-bold text-primary">
-                                ${total.toLocaleString()}
+                                ${total.toLocaleString('es-CO', { minimumFractionDigits: 0 })}
                             </div>
                         </div>
                     </div>

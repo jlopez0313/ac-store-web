@@ -123,7 +123,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
         },
         {
             name: 'Precio Suscripción',
-            selector: (row: any) => `$${Number(row.precio_suscripcion || 0).toLocaleString()}`,
+            selector: (row: any) => `$${Number(row.precio_suscripcion || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })}`,
             sortable: true,
             sortField: 'precio_suscripcion',
         },

@@ -210,14 +210,14 @@ function wrapHtml(bodyContent: string, title = 'Ticket de Devolución'): string 
 
 /** Returns one full HTML document per item — use for QZ so each item = one print job + one cut */
 export function buildReturnPageHtml(data: ReturnPrintData): string[] {
-    const footer = data.footer || import.meta.env.VITE_APP_NAME || ' / WhatsApp / 300 000 0000';
+    const footer = data.footer || `${import.meta.env.VITE_APP_NAME || 'BodegaStock'} / ${import.meta.env.VITE_SUPPORT_URL || 'bodegastock.com'} / WA: ${import.meta.env.VITE_SUPPORT_WHATSAPP || '322 5086903'}`;
     return data.items.map((item) =>
         wrapHtml(buildReturnTicketHtml(item, data.localName, footer))
     );
 }
 
 export function printReturns(data: ReturnPrintData, returnHtml = false): string | void {
-    const footer = data.footer || import.meta.env.VITE_APP_NAME || ' / WhatsApp / 300 000 0000';
+    const footer = data.footer || `${import.meta.env.VITE_APP_NAME || 'BodegaStock'} / ${import.meta.env.VITE_SUPPORT_URL || 'bodegastock.com'} / WA: ${import.meta.env.VITE_SUPPORT_WHATSAPP || '322 5086903'}`;
     const ticketsHtml = data.items.map((item) => buildReturnTicketHtml(item, data.localName, footer)).join('');
 
     const html = wrapHtml(ticketsHtml);

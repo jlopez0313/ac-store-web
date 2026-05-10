@@ -52,14 +52,8 @@ class ProfileController extends Controller
                     'registered_by' => $p->registeredBy->name ?? 'N/A',
                 ];
             }),
-            'contacts' => [
-                'whatsapp' => config('app.support_whatsapp', env('SUPPORT_WHATSAPP', 'N/A')),
-                'email' => config('app.support_email', env('SUPPORT_EMAIL', 'N/A')),
-            ],
-            'payment_methods' => config('app.payment_methods', [
-                ['name' => 'Bancolombia', 'details' => 'Ahorros: 123-456789-01'],
-                ['name' => 'Nequi', 'details' => '300 000 0000'],
-            ]),
+            'contacts' => config('constantes.plataforma.contacto'),
+            'payment_methods' => config('constantes.plataforma.metodos_pago'),
         ]);
     }
 
