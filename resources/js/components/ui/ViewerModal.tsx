@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
@@ -8,6 +9,19 @@ interface ViewerModalProps {
 }
 
 export const ViewerModal = ({ show, image, onClose }: ViewerModalProps) => {
+    useEffect(() => {
+        if (!show) return;
+
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        window.addEventListener('keydown', handleEscape);
+        return () => window.removeEventListener('keydown', handleEscape);
+    }, [show, onClose]);
+
     if (!show || !image) return null;
 
     const src = image.startsWith('http') || image.startsWith('/') ? image : `/storage/${image}`;
