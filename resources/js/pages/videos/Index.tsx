@@ -286,7 +286,6 @@ export default function VideosIndex() {
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
-    </AppLayout>
+        </AppLayout>
     );
 }
