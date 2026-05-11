@@ -50,6 +50,10 @@ class Cuenta extends Model
         return [
             'username' => $username,
             'password' => ucfirst($username) . "@2026",
+            'views' => [
+                'etiquetas' => "vista_etiquetas_cuenta_{$this->id}",
+                'muestras' => "vista_muestras_cuenta_{$this->id}",
+            ]
         ];
     }
 }

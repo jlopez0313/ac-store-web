@@ -12,7 +12,9 @@ class CuentaObserver
      */
     public function created(Cuenta $cuenta): void
     {
-        $viewName = "vista_etiquetas_cuenta_{$cuenta->id}";
+        $creds = $cuenta->getDbViewCredentials();
+        $viewName = $creds['views']['etiquetas'];
+        $muestraViewName = $creds['views']['muestras'];
 
         DB::statement("
             CREATE OR REPLACE VIEW `{$viewName}` AS
@@ -21,7 +23,6 @@ class CuentaObserver
             WHERE cuenta_id = {$cuenta->id}
         ");
 
-        $muestraViewName = "vista_muestras_cuenta_{$cuenta->id}";
         DB::statement("
             CREATE OR REPLACE VIEW `{$muestraViewName}` AS
             SELECT Referencia, Descripcion, Talla, CodigoBarras, LocalDestino, FechaCreacion
@@ -31,7 +32,6 @@ class CuentaObserver
 
         // MySQL User Automation
         $dbName = DB::getDatabaseName();
-        $creds = $cuenta->getDbViewCredentials();
         $username = $creds['username'];
         $password = $creds['password'];
 
@@ -42,7 +42,7 @@ class CuentaObserver
                 DB::statement("GRANT SELECT ON `{$dbName}`.`{$viewName}` TO '{$username}'@'%'");
                 DB::statement("GRANT SELECT ON `{$dbName}`.`{$muestraViewName}` TO '{$username}'@'%'");
                 DB::statement("FLUSH PRIVILEGES");
-                \Log::info("This user created: {$username} | Password: {$password} | Access to: {$viewName}");
+                \Log::info("This user created: {$username} | Password: {$password} | Views: {$viewName}, {$muestraViewName}");
             } catch (\Exception $e) {
                 \Log::error("Error creating MySQL user for account {$cuenta->id}: " . $e->getMessage());
             }
