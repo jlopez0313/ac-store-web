@@ -60,12 +60,18 @@ export function PrintNotificationBell({ cuentaId }: Props) {
     useEffect(() => {
         if (!auth.user.impresion_principal || !auth.user.nombre_impresora || requests.length === 0) return;
 
-        const latestRequest = requests[0];
-        if (latestRequest.key && !processedKeys.current.has(latestRequest.key)) {
-            processedKeys.current.add(latestRequest.key);
-            handlePrint(latestRequest);
-        }
-    }, [requests, auth.user]);
+        const processQueue = async () => {
+            // Process ALL pending requests that haven't been processed yet, one by one
+            for (const request of requests) {
+                if (request.key && !processedKeys.current.has(request.key)) {
+                    processedKeys.current.add(request.key);
+                    await handlePrint(request);
+                }
+            }
+        };
+
+        processQueue();
+    }, [requests, auth.user.impresion_principal, auth.user.nombre_impresora]);
 
     // Connect to QZ tray on mount if impresion_principal is active
     useEffect(() => {
