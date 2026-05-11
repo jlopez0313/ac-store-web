@@ -95,9 +95,10 @@ class InventariosController extends Controller
                     ->update(['stock' => 0]);
             }
 
-            // 3. Update global prices for the TARGET shelf
+            // 3. Update global prices for ALL shelves of this reference in the account
+            $cuenta_id = auth()->user()->cuenta_id ?? Referencia::find($referenciaId)->cuenta_id;
             Inventario::where('referencia_id', $referenciaId)
-                ->where('estanteria_id', $targetEstanteriaId)
+                ->where('cuenta_id', $cuenta_id)
                 ->update([
                     'precio_compra' => $request->precio_compra,
                     'precio_venta' => $request->precio_venta,
