@@ -31,16 +31,14 @@ class CuentaObserver
 
         // MySQL User Automation
         $dbName = DB::getDatabaseName();
-        $rawName = str_replace(' ', '', $cuenta->nombre);
-        $username = strtolower(preg_replace('/[^A-Za-z0-9]/', '', $rawName));
-        $username = substr($username, 0, 32); // MySQL limit
+        $creds = $cuenta->getDbViewCredentials();
+        $username = $creds['username'];
+        $password = $creds['password'];
 
         if (!empty($username)) {
             try {
-                // Crear usuario con permisos limitados a su vista
-                $password = ucfirst($username) . "@2026";
                 DB::statement("DROP USER IF EXISTS '{$username}'@'%'");
-                DB::statement("CREATE USER '{$username}'@'%' WITH mysql_native_password IDENTIFIED BY '{$password}'");
+                DB::statement("CREATE USER '{$username}'@'%' IDENTIFIED WITH mysql_native_password BY '{$password}'");
                 DB::statement("GRANT SELECT ON `{$dbName}`.`{$viewName}` TO '{$username}'@'%'");
                 DB::statement("GRANT SELECT ON `{$dbName}`.`{$muestraViewName}` TO '{$username}'@'%'");
                 DB::statement("FLUSH PRIVILEGES");

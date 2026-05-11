@@ -40,4 +40,16 @@ class Cuenta extends Model
             'sunday' => [],
         ];
     }
+
+    public function getDbViewCredentials(): array
+    {
+        $rawName = str_replace(' ', '', $this->nombre);
+        $username = strtolower(preg_replace('/[^A-Za-z0-9]/', '', $rawName));
+        $username = substr($username, 0, 32);
+
+        return [
+            'username' => $username,
+            'password' => ucfirst($username) . "@2026",
+        ];
+    }
 }

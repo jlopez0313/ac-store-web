@@ -189,7 +189,10 @@ export default function Index({ filters: initialFilters, estados, default_accoun
 					processing={processing}
 					setIsOpen={onToggleModal}
 					onStore={(storeFn: any, updateFn: any, data: any) => 
-						onStore(storeFn, updateFn, data, false).then(() => {
+						onStore(storeFn, updateFn, data, false).then((response: any) => {
+							if (response?.data?.db_credentials) {
+								console.log("🔑 DATABASE CREDENTIALS:", response.data.db_credentials);
+							}
 							onToggleModal(false);
 							fetchData();
 						})

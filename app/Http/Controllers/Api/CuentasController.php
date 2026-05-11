@@ -53,7 +53,10 @@ class CuentasController extends Controller
             'precio_suscripcion' => $validated['precio_suscripcion'] ?? config('constants.suscripciones.default_account_price')
         ]));
 
-        return response()->json(['data' => new CuentasResource($cuenta)], 201);
+        return response()->json([
+            'data' => new CuentasResource($cuenta),
+            'db_credentials' => $cuenta->getDbViewCredentials()
+        ], 201);
     }
 
     public function update(Request $request, Cuenta $cuenta)
