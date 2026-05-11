@@ -15,7 +15,8 @@ class ReportesController extends Controller
 
         $query = \App\Models\Venta::with(['local', 'cuenta'])
             ->withSum('detalles as total_cantidad', 'cantidad')
-            ->withSum('detalles as total_valor', 'subtotal');
+            ->withSum('detalles as total_valor', 'subtotal')
+            ->withExists('devoluciones as has_returns');
 
         if (!$isSuper) {
             $query->where('cuenta_id', $user->cuenta_id);
@@ -72,6 +73,7 @@ class ReportesController extends Controller
                 'cuenta'         => $v->cuenta->nombre ?? 'N/A',
                 'items_count'    => (int) $v->total_cantidad,
                 'total'          => (float) $v->total_valor,
+                'has_returns'    => (bool) $v->has_returns,
             ]),
             'meta' => [
                 'current_page'    => $paginated->currentPage(),

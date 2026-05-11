@@ -449,6 +449,20 @@ export default function Ventas({ cuentas, locales }: any) {
                         </div>
                     </div>
 
+                    {selectedInvoice?.has_returns && (
+                        <div className="flex justify-end">
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-9 gap-2 border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-orange-900/50 dark:bg-orange-950/20 dark:text-orange-400"
+                                onClick={() => handleViewReturns(selectedInvoice)}
+                            >
+                                <RefreshCw className="h-4 w-4 text-orange-500" />
+                                Ver Devoluciones de Factura
+                            </Button>
+                        </div>
+                    )}
+
                     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs dark:border-slate-700 dark:bg-slate-900">
                         <DataGrid
                             data={invoiceDetails}
