@@ -40,21 +40,19 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 		if (isOpen && referencia) {
 			let initialDetails: { talla: string; stock: number }[] = [];
 			const jsonStr = referencia.categoria?.variaciones_json;
+			const categorySizes = new Set<string>();
 
+			// 1. Get sizes from category variations
 			if (jsonStr) {
 				try {
 					const parsed = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
 					if (Array.isArray(parsed)) {
-						initialDetails = parsed.map((item: any) => {
+						parsed.forEach((item: any) => {
 							let sizeLabel = String(item);
 							if (typeof item === 'object' && item !== null) {
 								sizeLabel = String(item.text || item.nombre || item.talla || item.valor || Object.values(item)[0] || JSON.stringify(item));
 							}
-							const existing = items.find(i => String(i.talla) === sizeLabel);
-							return {
-								talla: sizeLabel,
-								stock: existing ? Number(existing.stock) : 0
-							};
+							categorySizes.add(sizeLabel);
 						});
 					}
 				} catch (e) {
@@ -62,12 +60,22 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 				}
 			}
 
-			if (initialDetails.length === 0) {
-				initialDetails = items.map((item) => ({
-					talla: item.talla,
-					stock: item.stock,
-				}));
-			}
+			// 2. Prioritize items that ALREADY exist in stock (even if not in category)
+			items.forEach(item => {
+				initialDetails.push({
+					talla: String(item.talla),
+					stock: Number(item.stock)
+				});
+				categorySizes.delete(String(item.talla)); // Avoid duplicates
+			});
+
+			// 3. Add remaining category sizes with 0 stock
+			categorySizes.forEach(sizeLabel => {
+				initialDetails.push({
+					talla: sizeLabel,
+					stock: 0
+				});
+			});
 
 			setForm({
 				precio_compra: items[0]?.precio_compra || referencia.precio_compra || 0,
