@@ -13,6 +13,7 @@ import {
     Home,
     Image as ImageIcon,
     Landmark,
+    LogOut,
     MessageSquare,
     Package,
     Receipt,
@@ -24,12 +25,11 @@ import {
     Tag,
     TrendingUp,
     Undo2,
+    User,
     Users,
+    Video,
     Wallet,
     WarehouseIcon,
-    User,
-    Video,
-    LogOut,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
