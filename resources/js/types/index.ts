@@ -21,6 +21,7 @@ export interface NavItem {
     isActive?: boolean;
     roles: string[];
     group: string;
+    method?: 'get' | 'post' | 'put' | 'patch' | 'delete';
 }
 
 export interface SharedData {

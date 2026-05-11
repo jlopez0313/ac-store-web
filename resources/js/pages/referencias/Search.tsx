@@ -189,7 +189,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                                     />
                                 </div>
                             )}
-
+                            {/*
                             <div className="space-y-2 lg:col-span-2">
                                 <Label htmlFor="marca">Marca</Label>
                                 <Input
@@ -200,7 +200,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                                     className="h-10 bg-white dark:bg-slate-800"
                                 />
                             </div>
-
+*/}
                             <div className="space-y-2 lg:col-span-2">
                                 <Label htmlFor="codigo">Código</Label>
                                 <Input
