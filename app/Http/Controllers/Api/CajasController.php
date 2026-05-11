@@ -24,7 +24,9 @@ class CajasController extends Controller
                 $q->whereHas('referencia', function ($rq) use ($search) {
                     $rq->where('codigo', 'like', "%{$search}%")
                         ->orWhere('descripcion', 'like', "%{$search}%")
-                        ->orWhere('marca', 'like', "%{$search}%");
+                        ->orWhereHas('marca', function ($mq) use ($search) {
+                            $mq->where('nombre', 'like', "%{$search}%");
+                        });
                 });
             });
         }
