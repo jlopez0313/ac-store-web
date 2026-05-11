@@ -72,7 +72,7 @@ export const NAV_ITEMS: NavItem[] = [
     { title: 'Usuarios', url: '/usuarios', icon: Users, roles: ['superadmin', 'admin'], group: 'admin' },
     { title: 'Anuncios', url: '/anuncios', icon: MessageSquare, roles: ['superadmin', 'admin'], group: 'admin' },
     { title: 'Opciones', url: '/opciones', icon: Settings, roles: ['superadmin', 'admin'], group: 'admin' },
-    { title: 'Salir', url: '/logout', icon: LogOut, roles: ['superadmin', 'admin', 'bodega', 'local'], group: 'principal', method: 'post' },
+    { title: 'Cerrar sesión', url: route('logout'), icon: LogOut, roles: ['superadmin', 'admin', 'bodega', 'local'], group: 'principal', method: 'post' },
 ];
 
 export const GROUP_META = {
