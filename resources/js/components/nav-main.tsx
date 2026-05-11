@@ -13,15 +13,21 @@ export function NavMain({ groupedItems = [] }: { groupedItems: { group: string; 
                         {group.items.map((item) => (
                             <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton asChild isActive={item.url === page.url}>
-                                    <Link 
-                                        href={item.url} 
-                                        method={item.method || 'get'} 
-                                        as={item.method && item.method !== 'get' ? 'button' : 'a'}
-                                        prefetch={!item.method || item.method === 'get'}
-                                    >
-                                        {item.icon && <item.icon />}
-                                        <span>{item.title}</span>
-                                    </Link>
+                                    {item.method === 'post' ? (
+                                        <Link 
+                                            href={item.url} 
+                                            method="post" 
+                                            as="button"
+                                        >
+                                            {item.icon && <item.icon />}
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    ) : (
+                                        <Link href={item.url} prefetch>
+                                            {item.icon && <item.icon />}
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    )}
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         ))}
