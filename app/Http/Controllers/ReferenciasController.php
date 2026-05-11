@@ -93,11 +93,6 @@ class ReferenciasController extends Controller
 
         $referencia = Referencia::create($data);
         
-        // Mark OTHER references and ALL samples as already printed (true)
-        Referencia::where('cuenta_id', $data['cuenta_id'])
-            ->where('id', '!=', $referencia->id)
-            ->update(['impreso' => true]);
-
         \App\Models\Muestra::where('cuenta_id', $data['cuenta_id'])->update(['impreso' => true]);
 
         return response()->json([

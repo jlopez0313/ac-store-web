@@ -6,6 +6,7 @@ import { showAlert } from '@/plugins/sweetalert';
 import { buildReceiptPageHtml, printReceipts } from '@/utils/printReceipt';
 import { buildReturnPageHtml } from '@/utils/printReturn';
 import { buildCambioPageHtml } from '@/utils/printCambio';
+import { buildStickerPageHtml } from '@/utils/printStickers';
 import { printSoporteVenta } from '@/utils/printSoporteVenta';
 import { connectQZ, disconnectQZ, printWithQZ } from '@/utils/qz-service';
 import { usePage } from '@inertiajs/react';
@@ -218,6 +219,37 @@ export function PrintNotificationBell({ cuentaId }: Props) {
                 } else {
                     printSoporteVenta(soporteData);
                 }
+            } else if (request.type === 'stickers') {
+                const response = await axios.get(route('api.stickers.index'), {
+                    params: { ids: request.ids || [] }
+                });
+                const stickers = response.data.data;
+
+                if (!stickers || stickers.length === 0) {
+                    showAlert('info', 'No se encontraron etiquetas pendientes.');
+                    if (request.key) await removePrintRequest(effectiveCuentaId, request.key);
+                    return;
+                }
+
+                if (auth.user.impresion_principal && auth.user.nombre_impresora) {
+                    const pages = buildStickerPageHtml(stickers);
+                    for (const page of pages) {
+                        await printWithQZ(auth.user.nombre_impresora, page);
+                    }
+                } else {
+                    const pages = buildStickerPageHtml(stickers);
+                    // For manual print, we'll open a window with all of them
+                    const win = window.open('', '_blank');
+                    if (win) {
+                        win.document.write(pages.join('<div style="page-break-after:always"></div>'));
+                        win.document.close();
+                    }
+                }
+
+                // Mark as printed (this deletes them)
+                await axios.post(route('api.stickers.mark_printed'), {
+                    ids: stickers.map((s: any) => s.id)
+                });
             }
 
             // Successfully printed everything, now remove the request

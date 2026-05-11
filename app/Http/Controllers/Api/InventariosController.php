@@ -144,6 +144,9 @@ class InventariosController extends Controller
         $item = Inventario::with(['referencia.marca', 'estanteria.bodega'])
             ->findOrFail($id);
 
+        // Mark as printed
+        $item->update(['impreso' => true]);
+
         $ref = $item->referencia;
         $marca = $ref->marca?->nombre ?: 'N/A';
         $descripcion = $ref->descripcion;

@@ -39,6 +39,7 @@ class InventarioResource extends JsonResource
             'precio_venta' => $this->precio_venta,
             'descuento' => $descuento,
             'precio_ajustado' => max(0, $this->precio_venta - $descuento),
+            'impreso' => (bool) $this->impreso,
         ];
     }
 }

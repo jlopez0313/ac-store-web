@@ -10,9 +10,10 @@ import { showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { Edit, Eye, Image as ImageIcon, Search, Warehouse } from 'lucide-react';
+import { Edit, Eye, Image as ImageIcon, Printer, Search, Warehouse } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { AdjustmentModal } from './AdjustmentModal';
+import { CreateStickersModal } from './CreateStickersModal';
 import { DetailModal } from './DetailModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -39,6 +40,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 
 	const [selectedReferencia, setSelectedReferencia] = useState<any>(null);
 	const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+	const [isStickersModalOpen, setIsStickersModalOpen] = useState(false);
 
 	// Adjustment related state
 	const [adjustmentOpen, setAdjustmentOpen] = useState(false);
@@ -188,6 +190,36 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 				setSelectedReferencia(row);
 				setIsDetailModalOpen(true);
 			}
+		},
+		{
+			title: 'Imprimir',
+			icon: Printer,
+			isLoading: (id: any, row: any) => actionLoading && selectedReferencia?.id === row.id,
+			action: async (id: any, row: any) => {
+				setSelectedReferencia(row);
+				setActionLoading(true);
+				try {
+					const response = await axios.get(route('api.inventario.detail', { referencia: row.id }));
+					const details = response.data.data;
+					if (details.length > 0) {
+						const loc = details[0];
+						setSelectedShelf({
+							id: loc.estanteria_id,
+							nombre: loc.estanteria_nombre,
+							bodega_id: loc.bodega_id,
+							bodega_nombre: loc.bodega_nombre,
+						});
+					} else {
+						setSelectedShelf(null);
+					}
+					setIsStickersModalOpen(true);
+				} catch (error) {
+					console.error('Error fetching details for stickers:', error);
+					setIsStickersModalOpen(true);
+				} finally {
+					setActionLoading(false);
+				}
+			}
 		}
 	];
 
@@ -255,6 +287,17 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 					/>
 				</div>
 			</div>
+
+			<CreateStickersModal
+				isOpen={isStickersModalOpen}
+				onClose={() => {
+					setIsStickersModalOpen(false);
+					setSelectedShelf(null);
+				}}
+				referencia={selectedReferencia}
+				bodegas={bodegas}
+				initialShelf={selectedShelf}
+			/>
 
 			<DetailModal
 				isOpen={isDetailModalOpen}

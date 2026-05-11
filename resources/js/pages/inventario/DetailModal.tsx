@@ -4,7 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import axios from 'axios';
-import { Edit, Info, Package, Tag, Warehouse } from 'lucide-react';
+import { Edit, Info, Package, Printer, Tag, Warehouse } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
 import { AdjustmentModal } from './AdjustmentModal';
@@ -14,10 +14,11 @@ interface DetailModalProps {
     onClose: () => void;
     referencia: any;
     onAdjust?: (shelf: any, details: any[]) => void;
+    onPrint?: (shelf: any) => void;
     bodegas?: any[];
 }
 
-export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, referencia, onAdjust, bodegas = [] }) => {
+export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, referencia, onAdjust, onPrint, bodegas = [] }) => {
     const { auth } = usePage().props as any;
     const canAdjust = ['superadmin', 'admin'].includes(auth.user.role);
     const isLocal = auth.user.role === 'local';
@@ -270,6 +271,20 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                                                                     title="Ajustar"
                                                                                 >
                                                                                     <Edit className="text-primary h-3.5 w-3.5" />
+                                                                                </Button>
+                                                                                <Button
+                                                                                    variant="ghost"
+                                                                                    size="sm"
+                                                                                    className="hover:bg-primary/10 h-7 w-7 cursor-pointer p-0"
+                                                                                    onClick={() => onPrint && onPrint({
+                                                                                        id: item.estanteria_id,
+                                                                                        nombre: item.estanteria_nombre,
+                                                                                        bodega_id: item.bodega_id,
+                                                                                        bodega_nombre: item.bodega_nombre,
+                                                                                    })}
+                                                                                    title="Imprimir"
+                                                                                >
+                                                                                    <Printer className="text-indigo-500 h-3.5 w-3.5" />
                                                                                 </Button>
                                                                             </div>
                                                                         </TableCell>

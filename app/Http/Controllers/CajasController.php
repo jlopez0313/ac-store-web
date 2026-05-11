@@ -68,6 +68,11 @@ class CajasController extends Controller
         try {
             DB::beginTransaction();
 
+            // Clear previous pending stickers for this account before starting new batch
+            \App\Models\EtiquetaPendiente::where('cuenta_id', $caja->cuenta_id)
+                ->where('impreso', false)
+                ->delete();
+
             foreach ($request->tallas as $item) {
                 $estanteriaId = $request->input('estanteria_id') ?: ($item['estanteria_id'] ?? null);
 
@@ -90,7 +95,8 @@ class CajasController extends Controller
                     ]
                 );
 
-                $inventario->increment('stock', $item['qty']);
+                $inventario->stock += $item['qty'];
+                $inventario->save();
 
                 // 2. Register Transfer History
                 $inventario->load('estanteria');
@@ -105,16 +111,40 @@ class CajasController extends Controller
                     'cantidad' => $item['qty'],
                     'user_id' => auth()->id(),
                 ]);
+
+                // 3. Generate Pending Stickers (One record per unit)
+                for ($i = 0; $i < $item['qty']; $i++) {
+                    \App\Models\EtiquetaPendiente::create([
+                        'cuenta_id' => $caja->cuenta_id,
+                        'referencia_id' => $caja->referencia_id,
+                        'estanteria_id' => $estanteriaId,
+                        'talla' => $item['size'],
+                        'cantidad' => 1,
+                        'impreso' => false,
+                    ]);
+                }
             }
 
-            // 3. Update or remove Caja record
+            // 4. Update or remove Caja record
             if ($totalTallado == $caja->cantidad) {
                 $caja->delete();
             } else {
                 $caja->decrement('cantidad', $totalTallado);
             }
 
-            // 4. Mark all samples as already printed (true)
+            // 5. Notify Firebase for real-time printing
+            try {
+                $firebase = app('firebase.database');
+                $firebase->getReference("print_requests/{$caja->cuenta_id}")->push([
+                    'type' => 'stickers',
+                    'created_at' => now()->timestamp * 1000,
+                    'local_name' => auth()->user()->cuenta->nombre ?? 'Principal',
+                ]);
+            } catch (\Exception $e) {
+                \Log::error("Error pushing tallado stickers to Firebase: " . $e->getMessage());
+            }
+
+            // 6. Mark all samples as already printed (true)
             \App\Models\Muestra::where('cuenta_id', $caja->cuenta_id)->update(['impreso' => true]);
 
             DB::commit();

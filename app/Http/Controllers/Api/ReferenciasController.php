@@ -84,10 +84,6 @@ class ReferenciasController extends Controller
      */
     public function store(Request $request)
     {
-        if ($request->has('impreso')) {
-            $request->merge(['impreso' => filter_var($request->impreso, FILTER_VALIDATE_BOOLEAN)]);
-        }
-
         $validated = $request->validate([
             'codigo' => 'required|string|max:255|unique:referencias,codigo',
             'marca_id' => 'required|string|max:255',
@@ -95,7 +91,6 @@ class ReferenciasController extends Controller
             'descripcion' => 'nullable|string',
             'foto' => 'nullable|image', // Max 2MB
             'cuenta_id' => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
-            'impreso' => 'nullable|boolean',
         ]);
 
         if (!auth()->user()->hasRole('superadmin')) {
@@ -132,10 +127,6 @@ class ReferenciasController extends Controller
      */
     public function update(Request $request, Referencia $referencia)
     {
-        if ($request->has('impreso')) {
-            $request->merge(['impreso' => filter_var($request->impreso, FILTER_VALIDATE_BOOLEAN)]);
-        }
-
         $validated = $request->validate([
             'codigo' => 'required|string|max:255|unique:referencias,codigo,' . $referencia->id,
             'marca_id' => 'required|string|max:255',
@@ -143,7 +134,6 @@ class ReferenciasController extends Controller
             'descripcion' => 'nullable|string',
             'foto' => 'nullable|image',
             'cuenta_id' => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
-            'impreso' => 'nullable|boolean',
         ]);
 
         if (!auth()->user()->hasRole('superadmin')) {

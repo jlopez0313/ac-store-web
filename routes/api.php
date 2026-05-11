@@ -131,6 +131,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('muestras/references', [App\Http\Controllers\MuestrasController::class, 'getReferencesByAccount'])->name('api.muestras.references');
         Route::get('muestras/stock', [App\Http\Controllers\MuestrasController::class, 'getStock'])->name('api.muestras.stock');
         Route::apiResource('muestras-crud', App\Http\Controllers\MuestrasController::class)->names('api.muestras_crud');
+
+        // Stickers / Etiquetas
+        Route::get('stickers', [App\Http\Controllers\Api\StickersController::class, 'index'])->name('api.stickers.index');
+        Route::post('stickers', [App\Http\Controllers\Api\StickersController::class, 'store'])->name('api.stickers.store');
+        Route::post('stickers/mark-printed', [App\Http\Controllers\Api\StickersController::class, 'markAsPrinted'])->name('api.stickers.mark_printed');
     });
 
     // Operaciones y Reportes (Accesibles por todos los roles autorizados, incluyendo locales)

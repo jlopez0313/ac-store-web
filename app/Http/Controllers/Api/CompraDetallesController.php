@@ -47,6 +47,12 @@ class CompraDetallesController extends Controller
 
             if ($detalle->modo === 'tallado' && !empty($detalle->tallas)) {
                 $cuenta_id = auth()->user()->cuenta_id ?? $compra->cuenta_id;
+
+                // Clear previous pending stickers for this account before starting new batch from purchase
+                \App\Models\EtiquetaPendiente::where('cuenta_id', $cuenta_id)
+                    ->where('impreso', false)
+                    ->delete();
+
                 foreach ($detalle->tallas as $tallaData) {
                     $inventario = Inventario::updateOrCreate(
                         [
@@ -61,6 +67,30 @@ class CompraDetallesController extends Controller
                         ]
                     );
                     $inventario->increment('stock', $tallaData['qty']);
+
+                    // Generate Pending Stickers (One record per unit)
+                    for ($i = 0; $i < $tallaData['qty']; $i++) {
+                        \App\Models\EtiquetaPendiente::create([
+                            'cuenta_id' => $cuenta_id,
+                            'referencia_id' => $detalle->referencia_id,
+                            'estanteria_id' => $tallaData['estanteria_id'],
+                            'talla' => $tallaData['size'],
+                            'cantidad' => 1,
+                            'impreso' => false,
+                        ]);
+                    }
+                }
+
+                // Notify Firebase for real-time printing
+                try {
+                    $firebase = app('firebase.database');
+                    $firebase->getReference("print_requests/{$cuenta_id}")->push([
+                        'type' => 'stickers',
+                        'created_at' => now()->timestamp * 1000,
+                        'local_name' => auth()->user()->cuenta->nombre ?? 'Principal',
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error("Error pushing purchase stickers to Firebase: " . $e->getMessage());
                 }
             }
 

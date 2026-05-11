@@ -15,39 +15,7 @@ class Inventario extends Model
     
     protected static function booted()
     {
-        static::saved(function ($inventario) {
-            // Check if stock increased or it's a new record with stock > 0
-            $isNew = $inventario->wasRecentlyCreated;
-            $stockIncreased = false;
-
-            if ($isNew) {
-                if ($inventario->stock > 0) {
-                    $stockIncreased = true;
-                }
-            } else if ($inventario->isDirty('stock')) {
-                $oldStock = $inventario->getOriginal('stock') ?? 0;
-                if ($inventario->stock > $oldStock) {
-                    $stockIncreased = true;
-                }
-            }
-
-            if ($stockIncreased) {
-                if (!static::$wipePerformed) {
-                    // Mark ALL references of this account as printed
-                    Referencia::where('cuenta_id', $inventario->cuenta_id)
-                        ->where('impreso', false)
-                        ->update(['impreso' => true]);
-                    
-                    static::$wipePerformed = true;
-                }
-
-                // Mark current reference as NOT printed
-                $referencia = $inventario->referencia;
-                if ($referencia) {
-                    $referencia->update(['impreso' => false]);
-                }
-            }
-        });
+        //
     }
 
     protected $fillable = [

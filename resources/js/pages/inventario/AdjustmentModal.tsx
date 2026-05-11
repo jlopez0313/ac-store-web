@@ -37,12 +37,6 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
-		console.log("AdjustmentModal items:", items);
-		console.log("AdjustmentModal estanteria:", estanteria);
-		console.log("AdjustmentModal bodegas:", bodegas);
-	}, [isOpen, items, estanteria, bodegas]);
-
-	useEffect(() => {
 		if (isOpen && referencia) {
 			let initialDetails: { talla: string; stock: number }[] = [];
 			const jsonStr = referencia.categoria?.variaciones_json;
@@ -166,8 +160,9 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 						<Input
 							id="precio_compra"
 							type="number"
-							value={form.precio_compra}
-							onChange={(e) => setForm({ ...form, precio_compra: Number(e.target.value) })}
+							value={form.precio_compra === 0 ? '' : form.precio_compra}
+							onChange={(e) => setForm({ ...form, precio_compra: e.target.value === '' ? 0 : Number(e.target.value) })}
+							placeholder="0"
 							required
 						/>
 					</div>
@@ -176,8 +171,9 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 						<Input
 							id="precio_venta"
 							type="number"
-							value={form.precio_venta}
-							onChange={(e) => setForm({ ...form, precio_venta: Number(e.target.value) })}
+							value={form.precio_venta === 0 ? '' : form.precio_venta}
+							onChange={(e) => setForm({ ...form, precio_venta: e.target.value === '' ? 0 : Number(e.target.value) })}
+							placeholder="0"
 							required
 						/>
 					</div>
