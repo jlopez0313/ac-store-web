@@ -162,6 +162,7 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 							type="number"
 							value={form.precio_compra === 0 ? '' : form.precio_compra}
 							onChange={(e) => setForm({ ...form, precio_compra: e.target.value === '' ? 0 : Number(e.target.value) })}
+							onWheel={(e) => e.currentTarget.blur()}
 							placeholder="0"
 							required
 						/>
@@ -173,6 +174,7 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 							type="number"
 							value={form.precio_venta === 0 ? '' : form.precio_venta}
 							onChange={(e) => setForm({ ...form, precio_venta: e.target.value === '' ? 0 : Number(e.target.value) })}
+							onWheel={(e) => e.currentTarget.blur()}
 							placeholder="0"
 							required
 						/>
@@ -199,6 +201,7 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 											className="text-center"
 											value={det.stock}
 											onChange={(e) => handleStockChange(det.talla, e.target.value)}
+											onWheel={(e) => e.currentTarget.blur()}
 											min="0"
 											required
 										/>
