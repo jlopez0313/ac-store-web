@@ -101,14 +101,14 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                         <div className="flex items-center gap-2">
                             <Badge
                                 variant="outline"
-                                className={`px-2 py-1 text-[10px] font-bold shadow-sm transition-all ${isFiltering 
+                                className={`px-3 py-1.5 text-sm font-bold shadow-sm transition-all ${isFiltering 
                                     ? 'border-amber-200 bg-amber-50 text-amber-700 animate-in fade-in zoom-in duration-300' 
                                     : 'border-indigo-200 bg-indigo-50/50 text-indigo-700'
                                 }`}
                                 title={isFiltering ? 'Mostrando total filtrado' : 'Total de unidades en la factura'}
                             >
-                                <ShoppingCart className={`mr-1.5 h-3 w-3 ${isFiltering ? 'text-amber-500' : 'text-indigo-500'}`} />
-                                {filteredTotalQty ?? 0} Uds. {isFiltering && <span className="ml-1 text-[8px] opacity-70">(Filtrado)</span>}
+                                <ShoppingCart className={`mr-2 h-4 w-4 ${isFiltering ? 'text-amber-500' : 'text-indigo-500'}`} />
+                                {filteredTotalQty ?? 0} Uds. {isFiltering && <span className="ml-1 text-[10px] opacity-70">(Filtrado)</span>}
                                 {isFiltering && (
                                     <span className="ml-1.5 flex h-1.5 w-1.5">
                                         <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-amber-400 opacity-75"></span>

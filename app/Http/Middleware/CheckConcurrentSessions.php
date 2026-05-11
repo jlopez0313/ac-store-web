@@ -20,20 +20,22 @@ class CheckConcurrentSessions
         if (Auth::check()) {
             $user = Auth::user();
             $limit = $user->limite_sesiones ?? 2;
+            $currentSessionId = $request->session()->getId();
 
-            // Get all sessions for this user, ordered by last activity (newest first)
-            $sessions = DB::table('sessions')
+            // Count other active sessions for this user (excluding the current one)
+            $otherSessionsCount = DB::table('sessions')
                 ->where('user_id', $user->id)
-                ->orderBy('last_activity', 'desc')
-                ->get();
+                ->where('id', '!=', $currentSessionId)
+                ->count();
 
-            if ($sessions->count() > $limit) {
-                // Keep the 'limit' newest sessions, delete the rest
-                $sessionsToDelete = $sessions->slice($limit);
-                
-                DB::table('sessions')
-                    ->whereIn('id', $sessionsToDelete->pluck('id'))
-                    ->delete();
+            if ($otherSessionsCount >= $limit) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')->withErrors([
+                    'email' => 'Has alcanzado el límite de ' . $limit . ' sesiones simultáneas. Por favor, cierra sesión en otro dispositivo para poder ingresar.',
+                ]);
             }
         }
 
