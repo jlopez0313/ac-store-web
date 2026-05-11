@@ -4,7 +4,7 @@ import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Modal } from '@/components/ui/Modal';
 import { showAlert } from '@/plugins/sweetalert';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { ArrowLeftRight, ChevronRight, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -16,8 +16,11 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
     const [viewerImage, setViewerImage] = useState<string | null>(null);
     const viewerOpenRef = useRef(false);
 
+    const { auth } = usePage().props as any;
+    const isSuperAdmin = !!cuentas?.length;
+
     // Form data
-    const [selectedCuenta, setSelectedCuenta] = useState('');
+    const [selectedCuenta, setSelectedCuenta] = useState(isSuperAdmin ? '' : String(auth.user.cuenta_id));
     const [selectedRef, setSelectedRef] = useState('');
     const [inventoryDetails, setInventoryDetails] = useState<any[]>([]);
 
@@ -189,7 +192,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
         );
     };
 
-    const isSuperAdmin = !!cuentas?.length;
+    // const isSuperAdmin = !!cuentas?.length; (Moved up)
 
     // Formatted list for references selector
     const referenciasOptions = referencias.map((r) => ({ id: r.id, display: `${r.codigo} - ${r.descripcion}` }));
