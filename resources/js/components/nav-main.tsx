@@ -1,6 +1,6 @@
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 
 export function NavMain({ groupedItems = [] }: { groupedItems: { group: string; label: string; items: NavItem[] }[] }) {
     const page = usePage();
@@ -14,14 +14,16 @@ export function NavMain({ groupedItems = [] }: { groupedItems: { group: string; 
                             <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton asChild isActive={item.url === page.url}>
                                     {item.method === 'post' ? (
-                                        <Link 
-                                            href={item.url} 
-                                            method="post" 
-                                            as="button"
+                                        <button 
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                router.post(item.url);
+                                            }}
+                                            className="w-full text-left"
                                         >
                                             {item.icon && <item.icon />}
                                             <span>{item.title}</span>
-                                        </Link>
+                                        </button>
                                     ) : (
                                         <Link href={item.url} prefetch>
                                             {item.icon && <item.icon />}
