@@ -1228,11 +1228,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
             if ($estanteNombre === '') {
                 $estanteNombre = 'GENERAL';
             } else {
-                // Si viene algo, le ponemos prefijo "ESTANTE " si no lo tiene, para mantener consistencia
                 $estanteNombre = strtoupper($estanteNombre);
-                if (!str_starts_with($estanteNombre, 'ESTANTE')) {
-                    $estanteNombre = 'ESTANTE ' . $estanteNombre;
-                }
             }
 
             if (!isset($estanteriasCache[$bodegaId][$estanteNombre])) {

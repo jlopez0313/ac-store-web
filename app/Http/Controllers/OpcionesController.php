@@ -59,7 +59,7 @@ class OpcionesController extends Controller
             'horarios_ventas.saturday' => ['present', 'array'],
             'horarios_ventas.sunday' => ['present', 'array'],
             'horarios_ventas.*.*' => ['array', 'size:2'],
-            'horarios_ventas.*.*.*' => ['string', 'regex:/^\d{2}:\d{2}$/'],
+            'horarios_ventas.*.*.*' => ['string', 'regex:/^\d{2}:\d{2}(:\d{2})?$/'],
             'bloquear_festivos' => ['required', 'boolean'],
         ]);
 
@@ -70,8 +70,17 @@ class OpcionesController extends Controller
             return back()->withErrors(['cuenta' => 'No hay una cuenta seleccionada.']);
         }
 
+        // Normalizar horarios para que siempre sean HH:MM
+        $horarios = $request->input('horarios_ventas');
+        foreach ($horarios as $day => $ranges) {
+            foreach ($ranges as $i => $range) {
+                $horarios[$day][$i][0] = substr($range[0], 0, 5);
+                $horarios[$day][$i][1] = substr($range[1], 0, 5);
+            }
+        }
+
         $cuenta->update([
-            'horarios_ventas' => $request->input('horarios_ventas'),
+            'horarios_ventas' => $horarios,
             'bloquear_festivos' => $request->input('bloquear_festivos'),
         ]);
 
