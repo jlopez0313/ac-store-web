@@ -16,6 +16,7 @@ const PASOS_MAESTROS = [
 ];
 
 const PASO_INVENTARIO = { key: 'inventario', label: 'Inventario', icon: '📦' };
+const PASO_ESTANTERIA_INVENTARIO = { key: 'estanteria_inventario', label: 'Actualizar Estanterías', icon: '📍' };
 
 const PASOS_TRANSACCIONES = [
     { key: 'traslados', label: 'Traslados', icon: '🔄' },
@@ -39,6 +40,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
     // Section toggles
     const [secMaestros, setSecMaestros] = useState(true);
     const [secInventario, setSecInventario] = useState(true);
+    const [secEstanteria, setSecEstanteria] = useState(false);
     const [secTransacciones, setSecTransacciones] = useState(true);
 
     // Inventario: importar desde referencia
@@ -175,7 +177,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
     const iniciarProceso = async () => {
         if (!cuentaId) return alert('Selecciona una cuenta');
         if (necesitaExcel && !excelFile) return alert('Selecciona el archivo Excel');
-        if (!secMaestros && !secInventario && !secTransacciones) return alert('Selecciona al menos una sección');
+        if (!secMaestros && !secInventario && !secEstanteria && !secTransacciones) return alert('Selecciona al menos una sección');
 
         setUploading(true);
         setProgreso({ paso: 'subiendo', pct: 0, mensaje: 'Subiendo archivos...', logs: [] });
@@ -209,17 +211,18 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
             }
 
             // 2. Subir CSV de inventario si existe
-            if (secInventario && csvFile && !csvUploadDone) {
+            if ((secInventario || secEstanteria) && csvFile && !csvUploadDone) {
                 setProgreso((prev) => (prev ? { ...prev, pct: 0, mensaje: 'Subiendo CSV inventario...' } : null));
                 await subirCsv(uid);
             }
 
             // 3. Construir parámetro solo (comma-separated steps de secciones activas)
             let soloParam = '';
-            if (!secMaestros || !secInventario || !secTransacciones) {
+            if (!secMaestros || !secInventario || !secEstanteria || !secTransacciones) {
                 const steps: string[] = [];
                 if (secMaestros) steps.push(...PASOS_MAESTROS.map((p) => p.key));
                 if (secInventario) steps.push(PASO_INVENTARIO.key);
+                if (secEstanteria) steps.push(PASO_ESTANTERIA_INVENTARIO.key);
                 if (secTransacciones) steps.push(...PASOS_TRANSACCIONES.map((p) => p.key));
                 soloParam = steps.join(',');
             }
@@ -250,7 +253,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
 
     // Derived: which files are needed based on active sections
     const necesitaExcel = secMaestros || secTransacciones;
-    const _algunaSeccion = secMaestros || secInventario || secTransacciones;
+    const _algunaSeccion = secMaestros || secInventario || secEstanteria || secTransacciones;
     const estaListo = !!(cuentaId && _algunaSeccion && (!necesitaExcel || excelFile));
 
     return (
@@ -509,7 +512,30 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                             <PasoRow paso={PASO_INVENTARIO} index={6} disabled={!secInventario} progreso={progreso} />
                         </div>
 
-                        {secInventario && !csvFile && (
+                        {/* Nueva sección: Solo estantería */}
+                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={secEstanteria}
+                                    onChange={(e) => {
+                                        setSecEstanteria(e.target.checked);
+                                        if (e.target.checked) setSecInventario(false); // Mutualmente excluyentes para evitar errores si el formato es distinto
+                                    }}
+                                    disabled={estaActivo}
+                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 dark:border-gray-600 dark:bg-gray-700"
+                                />
+                                <div>
+                                    <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-200">2.1 Actualizar Estanterías (CSV)</h2>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Solo modifica la ubicación física del stock actual</p>
+                                </div>
+                            </div>
+                            <div className="mt-2 divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100 dark:divide-gray-700 dark:border-gray-700">
+                                <PasoRow paso={PASO_ESTANTERIA_INVENTARIO} index={6} disabled={!secEstanteria} progreso={progreso} />
+                            </div>
+                        </div>
+
+                        {(secInventario || secEstanteria) && !csvFile && (
                             <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/30">
                                 <p className="text-xs text-amber-700 dark:text-amber-400">
                                     Si no subes CSV, el inventario se generará desde el Excel (más lento).

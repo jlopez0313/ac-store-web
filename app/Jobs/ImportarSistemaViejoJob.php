@@ -81,9 +81,9 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
         // Determinar pasos activos (soloStep puede ser comma-separated)
         $stepsActivos = $this->soloStep ? array_map('trim', explode(',', $this->soloStep)) : [];
-        $soloInventario = $stepsActivos === ['inventario'];
 
-        // El Excel es necesario salvo que solo se importe inventario con CSV propio
+        // El Excel es necesario salvo que solo se importe inventario o estantería con CSV propio
+        $soloInventario = ($this->soloStep === 'inventario' || $this->soloStep === 'estanteria_inventario');
         $necesitaExcel = !$soloInventario || !$this->csvFilePath;
         if ($necesitaExcel && !file_exists($this->filePath)) {
             $this->log('ERROR: archivo no encontrado: ' . $this->filePath);
@@ -111,6 +111,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
             'traslados' => fn() => $this->importarTraslados(),
             'ventas' => fn() => $this->importarVentas(),
             'muestras' => fn() => $this->importarMuestras(),
+            'estanteria_inventario' => fn() => $this->importarEstanteriasInventario(),
         ];
 
         $totalPasos = count($pasos);
@@ -1166,6 +1167,183 @@ class ImportarSistemaViejoJob implements ShouldQueue
         }
 
         $this->log("  {$insertados} insertados | {$omitidos} omitidos");
+    }
+
+    private function importarEstanteriasInventario(): void
+    {
+        $this->ensureMaps();
+        $csvPath = $this->ensureCsvInventario();
+        if (!$csvPath) {
+            $this->log('  ERROR: No se pudo encontrar o generar el CSV.');
+            return;
+        }
+
+        $this->log('  Iniciando actualización masiva de estanterías desde CSV...');
+        
+        $handle = fopen($csvPath, 'r');
+        $delimiter = $this->detectDelimiter($handle);
+        
+        $rowCount = 0;
+        $actualizados = 0;
+        $omitidos = 0;
+        $noEncontrados = 0;
+
+        // Caché de estanterías para evitar miles de consultas
+        // bodega_id -> [nombre -> id]
+        $estanteriasCache = [];
+
+        while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+            $rowCount++;
+            // Saltar cabecera
+            if ($rowCount === 1 && (($row[0] ?? '') === 'ID' || ($row[0] ?? '') === 'Cod')) {
+                continue;
+            }
+
+            // Indices según el usuario:
+            // Referencia: 2, Talla: 5, Bodega (Id_Ubicacion): 7, Hora_Venta: 16, Estante: 21
+            $refCode = trim((string)($row[2] ?? ''));
+            $talla = strtoupper(trim((string)($row[5] ?? '')));
+            $bodegaIdViejo = trim((string)($row[7] ?? ''));
+            $horaVenta = trim((string)($row[16] ?? ''));
+            $estanteNombre = trim((string)($row[21] ?? ''));
+
+            // 1. Solo procesar si NO se ha vendido (Hora_Venta vacío)
+            if ($horaVenta !== '') {
+                $omitidos++;
+                continue;
+            }
+
+            if (!$refCode || !$bodegaIdViejo) {
+                continue;
+            }
+
+            // 2. Mapear Bodega
+            $bodegaId = $this->mapBodegas[$bodegaIdViejo] ?? null;
+            if (!$bodegaId) {
+                $omitidos++;
+                continue;
+            }
+
+            // 3. Resolver Estantería
+            if ($estanteNombre === '') {
+                $estanteNombre = 'GENERAL';
+            } else {
+                // Si viene algo, le ponemos prefijo "ESTANTE " si no lo tiene, para mantener consistencia
+                $estanteNombre = strtoupper($estanteNombre);
+                if (!str_starts_with($estanteNombre, 'ESTANTE')) {
+                    $estanteNombre = 'ESTANTE ' . $estanteNombre;
+                }
+            }
+
+            if (!isset($estanteriasCache[$bodegaId][$estanteNombre])) {
+                $estExisting = DB::table('estanterias')
+                    ->where('bodega_id', $bodegaId)
+                    ->where('nombre', $estanteNombre)
+                    ->first();
+
+                if ($estExisting) {
+                    $estanteriasCache[$bodegaId][$estanteNombre] = $estExisting->id;
+                } else if (!$this->dryRun) {
+                    $newId = DB::table('estanterias')->insertGetId([
+                        'bodega_id' => $bodegaId,
+                        'nombre' => $estanteNombre,
+                        'estado' => 1,
+                        'creado_por' => $this->userId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    $estanteriasCache[$bodegaId][$estanteNombre] = $newId;
+                } else {
+                    $estanteriasCache[$bodegaId][$estanteNombre] = 999; // Fake ID para dry-run
+                }
+            }
+
+            $estanteriaId = $estanteriasCache[$bodegaId][$estanteNombre];
+
+            // 4. Buscar la Referencia en el sistema nuevo
+            if (!isset($this->mapReferencias[$refCode])) {
+                $ref = DB::table('referencias')
+                    ->where('cuenta_id', $this->cuentaId)
+                    ->where('codigo', $refCode)
+                    ->first();
+                
+                if ($ref) {
+                    $this->mapReferencias[$refCode] = $ref->id;
+                } else {
+                    $noEncontrados++;
+                    continue;
+                }
+            }
+            $referenciaId = $this->mapReferencias[$refCode];
+
+            // 5. Actualizar Inventario (Fusión si ya existe en destino)
+            if (!$this->dryRun) {
+                // Obtener todos los registros que vamos a mover (pueden ser varios si el filtro fue por bodega)
+                $oldRecords = DB::table('inventarios')
+                    ->where('cuenta_id', $this->cuentaId)
+                    ->where('referencia_id', $referenciaId)
+                    ->where('talla', $talla)
+                    ->whereIn('estanteria_id', function($q) use ($bodegaId) {
+                        $q->select('id')->from('estanterias')->where('bodega_id', $bodegaId);
+                    })
+                    ->where('estanteria_id', '!=', $estanteriaId) // No mover si ya está en el destino
+                    ->get();
+
+                foreach ($oldRecords as $old) {
+                    // ¿Ya existe el mismo producto/talla en la estantería de destino?
+                    $targetExists = DB::table('inventarios')
+                        ->where('cuenta_id', $this->cuentaId)
+                        ->where('referencia_id', $referenciaId)
+                        ->where('talla', $talla)
+                        ->where('estanteria_id', $estanteriaId)
+                        ->first();
+
+                    if ($targetExists) {
+                        // FUSIONAR: Sumar stock al destino y borrar el viejo
+                        DB::table('inventarios')
+                            ->where('id', $targetExists->id)
+                            ->update([
+                                'stock' => $targetExists->stock + $old->stock,
+                                'updated_at' => now()
+                            ]);
+                        DB::table('inventarios')->where('id', $old->id)->delete();
+                    } else {
+                        // MOVER: Simplemente cambiar el ID de estantería
+                        DB::table('inventarios')
+                            ->where('id', $old->id)
+                            ->update([
+                                'estanteria_id' => $estanteriaId,
+                                'updated_at' => now()
+                            ]);
+                    }
+                    $actualizados++;
+                }
+            } else {
+                $actualizados++;
+            }
+
+            if ($rowCount % 5000 === 0) {
+                $this->log("    > Procesadas {$rowCount} filas...");
+            }
+        }
+
+        fclose($handle);
+        $this->log("  Finalizado: {$actualizados} actualizados, {$noEncontrados} no encontrados en inventario, {$omitidos} omitidos (ya vendidos o sin mapeo).");
+    }
+
+    private function detectDelimiter($handle): string
+    {
+        $firstLine = fgets($handle);
+        rewind($handle);
+        $delimiter = ',';
+        if ($firstLine) {
+            $semicolons = substr_count($firstLine, ';');
+            $commas = substr_count($firstLine, ',');
+            if ($semicolons > $commas) {
+                $delimiter = ';';
+            }
+        }
+        return $delimiter;
     }
 
     // ─────────────────────────────────────────────────────

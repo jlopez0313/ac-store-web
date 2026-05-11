@@ -145,7 +145,7 @@ class ImportacionController extends Controller
         $solo = $request->input('solo', '');
 
         // Validar cada paso individual
-        $pasosValidos = ['categorias', 'marcas', 'users_locales', 'proveedores', 'bodegas', 'referencias', 'inventario', 'traslados', 'compras', 'ventas', 'muestras'];
+        $pasosValidos = ['categorias', 'marcas', 'users_locales', 'proveedores', 'bodegas', 'referencias', 'inventario', 'traslados', 'compras', 'ventas', 'muestras', 'estanteria_inventario'];
         if ($solo) {
             $pasosSolicitados = array_map('trim', explode(',', $solo));
             foreach ($pasosSolicitados as $p) {
@@ -164,9 +164,18 @@ class ImportacionController extends Controller
             $csvFilePath = $csvPath;
         }
 
-        // El Excel solo es necesario si se importa algo distinto de solo inventario
-        $soloInventario = $solo === 'inventario';
-        $necesitaExcel = !$soloInventario || !$csvFilePath;
+        // El Excel solo es necesario si se importa algo distinto de solo inventario o estantería
+        $pasosSoloCsv = ['inventario', 'estanteria_inventario'];
+        $soloCsv = !empty($solo);
+        if ($solo) {
+            foreach ($pasosSolicitados as $p) {
+                if (!in_array($p, $pasosSoloCsv)) {
+                    $soloCsv = false;
+                    break;
+                }
+            }
+        }
+        $necesitaExcel = !$soloCsv || !$csvFilePath;
 
         if ($necesitaExcel && !file_exists($filePath)) {
             return response()->json(['error' => 'Archivo Excel no encontrado. ¿Se completó el upload?'], 422);
