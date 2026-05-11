@@ -2,15 +2,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Edit, ExternalLink, Image as ImageIcon, Package, RefreshCcw, Tag, Trash, Warehouse } from 'lucide-react';
-import React from 'react';
+import { Search, Edit, ExternalLink, Image as ImageIcon, Package, RefreshCcw, Tag, Trash, Warehouse } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
 
 interface InvoiceItemsTableProps {
     factura: any;
     isAdmin: boolean;
     bodegas: any[];
     selectedDetailIds: number[];
+    searchTerm: string;
+    onSearchChange: (value: string) => void;
     onToggleSelectAll: () => void;
     onToggleSelectDetail: (id: number) => void;
     onUpdatePrice: (detalle: any) => void;
@@ -24,6 +27,8 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
     isAdmin,
     bodegas,
     selectedDetailIds,
+    searchTerm,
+    onSearchChange,
     onToggleSelectAll,
     onToggleSelectDetail,
     onUpdatePrice,
@@ -31,6 +36,15 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
     onViewInvoice,
     onViewImage,
 }) => {
+    const filteredDetalles = useMemo(() => {
+        if (!searchTerm) return factura.detalles || [];
+        const term = searchTerm.toLowerCase();
+        return (factura.detalles || []).filter((d: any) => 
+            d.producto?.codigo?.toLowerCase().includes(term) ||
+            d.producto?.descripcion?.toLowerCase().includes(term)
+        );
+    }, [factura.detalles, searchTerm]);
+
     const getPriceHighlight = (detalle: any) => {
         const sugerido = Number(detalle.precio_sugerido || 0);
         const descuento = Number(detalle.descuento_bodega || 0);
@@ -45,19 +59,32 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
     };
 
     return (
-        <Card className="flex min-w-0 flex-col overflow-hidden border-slate-200 shadow-sm dark:border-slate-700">
-            <CardContent className="custom-scrollbar max-h-[calc(100vh-25rem)] w-full max-w-full min-w-0 flex-1 overflow-x-auto overflow-y-auto p-0">
-                <Table>
-                    <TableHeader className="sticky top-0 z-10 bg-slate-50/50 backdrop-blur-sm dark:bg-slate-800/50">
-                        <TableRow>
-                            <TableHead className="w-12 px-4 py-3">
-                                {isAdmin && factura.estado === 'abierta' && (
-                                    <Checkbox
-                                        checked={factura.detalles?.length > 0 && selectedDetailIds.length === factura.detalles?.length}
-                                        onCheckedChange={onToggleSelectAll}
-                                    />
-                                )}
-                            </TableHead>
+        <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-end">
+                <div className="relative w-full max-w-sm">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input
+                        placeholder="Buscar por código o descripción..."
+                        value={searchTerm}
+                        onChange={(e) => onSearchChange(e.target.value)}
+                        className="h-9 rounded-xl border-slate-200 bg-white pl-9 text-xs focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900"
+                    />
+                </div>
+            </div>
+
+            <Card className="flex min-w-0 flex-col overflow-hidden border-slate-200 shadow-sm dark:border-slate-700">
+                <CardContent className="custom-scrollbar max-h-[calc(100vh-25rem)] w-full max-w-full min-w-0 flex-1 overflow-x-auto overflow-y-auto p-0">
+                    <Table>
+                        <TableHeader className="sticky top-0 z-10 bg-slate-50/50 backdrop-blur-sm dark:bg-slate-800/50">
+                            <TableRow>
+                                <TableHead className="w-12 px-4 py-3">
+                                    {isAdmin && factura.estado === 'abierta' && (
+                                        <Checkbox
+                                            checked={filteredDetalles.length > 0 && selectedDetailIds.length === filteredDetalles.length}
+                                            onCheckedChange={onToggleSelectAll}
+                                        />
+                                    )}
+                                </TableHead>
                             <TableHead className="w-16 font-bold text-slate-700 dark:text-slate-300">Foto</TableHead>
                             <TableHead className="w-28 font-bold text-slate-700 dark:text-slate-300">Ref</TableHead>
                             <TableHead className="font-bold text-slate-700 dark:text-slate-300">Producto</TableHead>
@@ -68,10 +95,10 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                             <TableHead className="w-12"></TableHead>
                         </TableRow>
                     </TableHeader>
-                    <TableBody>
-                        {factura.detalles?.map((detalle: any) => (
-                            <TableRow
-                                key={detalle.id}
+                        <TableBody>
+                            {filteredDetalles.map((detalle: any) => (
+                                <TableRow
+                                    key={detalle.id}
                                 className={cn(
                                     'group border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50/30 dark:border-slate-800 dark:hover:bg-slate-800/30',
                                     !detalle.impreso && 'bg-yellow-50/60 dark:bg-yellow-950/20',
@@ -263,7 +290,8 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                         )}
                     </TableBody>
                 </Table>
-            </CardContent>
-        </Card>
+                </CardContent>
+            </Card>
+        </div>
     );
 };

@@ -51,6 +51,7 @@ class ProveedoresController extends Controller
             'documento'      => 'required|string|max:50',
             'telefono'       => 'nullable|string|max:20',
             'correo'         => 'nullable|email|max:255',
+            'estado'         => 'required|boolean',
             'cuenta_id'      => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
         ]);
 
@@ -93,6 +94,7 @@ class ProveedoresController extends Controller
             'documento'      => 'required|string|max:50',
             'telefono'       => 'nullable|string|max:20',
             'correo'         => 'nullable|email|max:255',
+            'estado'         => 'required|boolean',
             'cuenta_id'      => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
         ]);
 

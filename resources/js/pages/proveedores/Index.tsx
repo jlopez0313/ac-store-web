@@ -55,7 +55,7 @@ export default function Index({ filters: initialFilters, cuentas, tipos_document
     }, [filters.page, filters.per_page, filters.sort_field, filters.sort_order]);
 
     const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(null, (params: any) => ({
-        url: route('api.proveedores.destroy', { proveedor: params.id }),
+        url: route('api.proveedores.destroy', { proveedore: params.id }),
     }));
 
     const handleSearch = (search: string) => {
@@ -87,14 +87,30 @@ export default function Index({ filters: initialFilters, cuentas, tipos_document
         },
         ...(isSuperAdmin
             ? [
-                  {
-                      name: 'Cuenta / Empresa',
-                      selector: (row: any) => row.cuenta?.nombre || 'N/A',
-                      sortable: true,
-                      sortField: 'cuenta_id',
-                  },
-              ]
+                {
+                    name: 'Cuenta / Empresa',
+                    selector: (row: any) => row.cuenta?.nombre || 'N/A',
+                    sortable: true,
+                    sortField: 'cuenta_id',
+                },
+            ]
             : []),
+        {
+            name: 'Estado',
+            selector: (row: any) => (
+                <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${row.estado
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800'
+                            : 'bg-slate-50 text-slate-500 border border-slate-200 dark:bg-slate-900/50 dark:text-slate-400 dark:border-slate-800'
+                        }`}
+                >
+                    {row.estado ? 'Activo' : 'Inactivo'}
+                </span>
+            ),
+            sortable: true,
+            sortField: 'estado',
+            width: '100px',
+        },
         {
             name: 'Registrado',
             selector: (row: any) => row.created_at,

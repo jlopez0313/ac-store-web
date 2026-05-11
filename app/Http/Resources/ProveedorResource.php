@@ -22,6 +22,7 @@ class ProveedorResource extends JsonResource
             'documento'      => $this->documento,
             'telefono'       => $this->telefono,
             'correo'         => $this->correo,
+            'estado'         => (int) $this->estado,
             'cuenta'         => $this->whenLoaded('cuenta'),
             'created_at'     => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at'     => $this->updated_at->format('Y-m-d H:i:s'),

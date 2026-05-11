@@ -17,6 +17,8 @@ interface InvoiceDetailHeaderProps {
     factura: any;
     isAdmin: boolean;
     selectedDetailIds: number[];
+    filteredTotalQty?: number;
+    isFiltering?: boolean;
     isLocal?: boolean;
     onBulkDelete: () => void;
     onAddProduct: () => void;
@@ -30,6 +32,8 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
     isAdmin,
     isLocal = false,
     selectedDetailIds,
+    filteredTotalQty,
+    isFiltering = false,
     onBulkDelete,
     onAddProduct,
     onCloseFactura,
@@ -94,15 +98,34 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                         </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 text-right">
-                        <Badge
-                            variant="outline"
-                            className={`px-3 py-1 text-xs ${factura.estado === 'cerrada'
-                                ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
-                                : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                        <div className="flex items-center gap-2">
+                            <Badge
+                                variant="outline"
+                                className={`px-2 py-1 text-[10px] font-bold shadow-sm transition-all ${isFiltering 
+                                    ? 'border-amber-200 bg-amber-50 text-amber-700 animate-in fade-in zoom-in duration-300' 
+                                    : 'border-indigo-200 bg-indigo-50/50 text-indigo-700'
                                 }`}
-                        >
-                            {factura.estado === 'cerrada' ? 'Cerrada' : 'Abierta'}
-                        </Badge>
+                                title={isFiltering ? 'Mostrando total filtrado' : 'Total de unidades en la factura'}
+                            >
+                                <ShoppingCart className={`mr-1.5 h-3 w-3 ${isFiltering ? 'text-amber-500' : 'text-indigo-500'}`} />
+                                {filteredTotalQty ?? 0} Uds. {isFiltering && <span className="ml-1 text-[8px] opacity-70">(Filtrado)</span>}
+                                {isFiltering && (
+                                    <span className="ml-1.5 flex h-1.5 w-1.5">
+                                        <span className="animate-ping absolute inline-flex h-1.5 w-1.5 rounded-full bg-amber-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
+                                    </span>
+                                )}
+                            </Badge>
+                            <Badge
+                                variant="outline"
+                                className={`px-3 py-1 text-xs ${factura.estado === 'cerrada'
+                                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
+                                    : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                    }`}
+                            >
+                                {factura.estado === 'cerrada' ? 'Cerrada' : 'Abierta'}
+                            </Badge>
+                        </div>
                         <div className="text-xs font-medium text-slate-400 uppercase dark:text-slate-500">
                             {new Date(factura.fecha).toLocaleDateString()}
                         </div>

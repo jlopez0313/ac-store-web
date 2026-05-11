@@ -479,8 +479,8 @@ class ImportarSistemaViejoJob implements ShouldQueue
                     'documento' => $documentoFinal,
                     'email' => $emailUso,
                     'password' => Hash::make($documentoFinal),
-                    'estado' => $estado,
-                    'precio_suscripcion' => config('constants.suscripciones.default_user_price'),
+                    'estado' => 0, // Inactivo por defecto al importar
+                    'precio_suscripcion' => 0, // Valor 0 al importar
                     'email_verified_at' => now(),
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -563,8 +563,8 @@ class ImportarSistemaViejoJob implements ShouldQueue
                         'documento' => $documento,
                         'email' => $email,
                         'password' => Hash::make($documento),
-                        'estado' => 1,
-                        'precio_suscripcion' => config('constants.suscripciones.default_user_price'),
+                        'estado' => 0, // Inactivo por defecto al importar
+                        'precio_suscripcion' => 0, // Valor 0 al importar
                         'email_verified_at' => now(),
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -599,7 +599,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
                         'user_id' => $userId, // Se asocia a su propio usuario local
                         'nombre' => $nombreNorm,
                         'documento' => $documento,
-                        'estado' => 1,
+                        'estado' => 0, // Inactivo por defecto al importar
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
@@ -655,6 +655,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
                         'documento' => $nit ?: '000000',
                         'telefono' => $telefono,
                         'correo' => $email,
+                        'estado' => 0, // Inactivo por defecto al importar
                         'creado_por' => $this->userPorDefecto ?: null,
                         'created_at' => now(),
                         'updated_at' => now(),
@@ -702,7 +703,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 $bodegaId = $existing ? $existing->id : DB::table('bodegas')->insertGetId([
                     'cuenta_id' => $this->cuentaId,
                     'nombre' => $nombre,
-                    'estado' => $activo ? 1 : 0,
+                    'estado' => 0, // Inactiva por defecto al importar
                     'creado_por' => $this->userPorDefecto ?: null,
                     'created_at' => now(),
                     'updated_at' => now(),

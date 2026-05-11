@@ -94,6 +94,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
             selector: (row: any) => row.username,
             sortable: true,
             sortField: 'username',
+            width: '200px',
         },
         {
             name: 'Email',

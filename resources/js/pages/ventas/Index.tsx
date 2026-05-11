@@ -12,7 +12,7 @@ import { printWithQZ } from '@/utils/qz-service';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Plus, ShoppingCart } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AddDetailModal } from './AddDetailModal';
 import { CreateModal } from './CreateModal';
 
@@ -258,6 +258,31 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
     };
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const filteredDetalles = useMemo(() => {
+        if (!selectedFactura?.detalles) return [];
+        if (!searchTerm) return selectedFactura.detalles;
+        const term = searchTerm.toLowerCase();
+        return selectedFactura.detalles.filter((d: any) => 
+            d.producto?.codigo?.toLowerCase().includes(term) ||
+            d.producto?.descripcion?.toLowerCase().includes(term)
+        );
+    }, [selectedFactura?.detalles, searchTerm]);
+
+    const filteredTotalQty = useMemo(() => {
+        return filteredDetalles.reduce((acc: number, d: any) => acc + Number(d.cantidad), 0);
+    }, [filteredDetalles]);
+
+    // Reset local search and selection when switching invoices or searching
+    useEffect(() => {
+        setSearchTerm('');
+        setSelectedDetailIds([]);
+    }, [selectedFactura?.id]);
+
+    useEffect(() => {
+        setSelectedDetailIds([]);
+    }, [searchTerm]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -301,6 +326,8 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                     isAdmin={isAdmin}
                                     isLocal={auth.user.role === 'local'}
                                     selectedDetailIds={selectedDetailIds}
+                                    filteredTotalQty={filteredTotalQty}
+                                    isFiltering={searchTerm.length > 0}
                                     onBulkDelete={handleBulkDelete}
                                     onAddProduct={() => {
                                         setSelectedRef(null);
@@ -448,11 +475,13 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                     isAdmin={isAdmin}
                                     bodegas={bodegas}
                                     selectedDetailIds={selectedDetailIds}
+                                    searchTerm={searchTerm}
+                                    onSearchChange={setSearchTerm}
                                     onToggleSelectAll={() => {
-                                        if (selectedDetailIds.length === (selectedFactura.detalles?.length || 0)) {
+                                        if (selectedDetailIds.length === (filteredDetalles.length || 0)) {
                                             setSelectedDetailIds([]);
                                         } else {
-                                            setSelectedDetailIds(selectedFactura.detalles?.map((d: any) => d.id) || []);
+                                            setSelectedDetailIds(filteredDetalles.map((d: any) => d.id));
                                         }
                                     }}
                                     onToggleSelectDetail={(id) => {

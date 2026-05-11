@@ -13,6 +13,7 @@ type ThisForm = {
 	telefono: string;
 	correo: string;
 	cuenta_id: string;
+	estado: number;
 };
 
 export const Form = ({ id, tiposDocs, cuentas, onClose, processing, onStore, onGetItem, onReload }: any) => {
@@ -25,6 +26,7 @@ export const Form = ({ id, tiposDocs, cuentas, onClose, processing, onStore, onG
 		telefono: '',
 		correo: '',
 		cuenta_id: '',
+		estado: 0,
 	});
 
 	const submit: FormEventHandler = async (e) => {
@@ -33,7 +35,7 @@ export const Form = ({ id, tiposDocs, cuentas, onClose, processing, onStore, onG
 		try {
 			await onStore(
 				() => ({ url: route('api.proveedores.store') }),
-				() => ({ url: route('api.proveedores.update', { proveedor: id }) }), // proveedor is the parameter
+				() => ({ url: route('api.proveedores.update', { proveedore: id }) }), // proveedore is the parameter
 				data,
 				false,
 				(err: any) => {
@@ -60,7 +62,7 @@ export const Form = ({ id, tiposDocs, cuentas, onClose, processing, onStore, onG
 		}
 		const getItem = async () => {
 			const item: any = await onGetItem(
-				() => ({ url: route('api.proveedores.show', { proveedor: id }) }),
+				() => ({ url: route('api.proveedores.show', { proveedore: id }) }),
 				{},
 			);
 			if (item) {
@@ -71,6 +73,7 @@ export const Form = ({ id, tiposDocs, cuentas, onClose, processing, onStore, onG
 					telefono: item.telefono || '',
 					correo: item.correo || '',
 					cuenta_id: item.cuenta_id || '',
+					estado: item.estado,
 				});
 			}
 		};
@@ -144,6 +147,20 @@ export const Form = ({ id, tiposDocs, cuentas, onClose, processing, onStore, onG
 							value={data.correo}
 							onChange={(val) => setData('correo', val as string)}
 							error={errors.correo}
+						/>
+
+						<SelectField
+							name="estado"
+							title="Estado del Proveedor"
+							required
+							value={data.estado}
+							onChange={(val) => setData('estado', Number(val))}
+							lista={[
+								{ id: 1, nombre: 'Activo' },
+								{ id: 0, nombre: 'Inactivo' },
+							]}
+							item={{ idx: 'id', value: 'nombre' }}
+							error={errors.estado}
 						/>
 
 					</div>

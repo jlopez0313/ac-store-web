@@ -57,6 +57,7 @@ export default function Accesos({ bodega }: any) {
 	const columns = [
 		{
 			name: 'Usuario Local',
+			selector: (row: any) => row.nombre,
 			cell: (row: any) => (
 				<div className="flex flex-col py-2">
 					<span className="font-bold text-foreground">{row.nombre}</span>
@@ -74,6 +75,8 @@ export default function Accesos({ bodega }: any) {
 		},
 		{
 			name: 'Ver Stock',
+			selector: (row: any) => row.can_view ? 1 : 0,
+			sortable: true,
 			cell: (row: any) => (
 				row.can_view ? (
 					<Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 gap-1">
@@ -88,6 +91,8 @@ export default function Accesos({ bodega }: any) {
 		},
 		{
 			name: 'Pedir Stock',
+			selector: (row: any) => row.can_order ? 1 : 0,
+			sortable: true,
 			cell: (row: any) => (
 				row.can_order ? (
 					<Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 gap-1">
@@ -102,6 +107,7 @@ export default function Accesos({ bodega }: any) {
 		},
 		{
 			name: 'Descuento',
+			selector: (row: any) => Number(row.descuento || 0),
 			cell: (row: any) => (
 				<span className="font-bold text-emerald-600">
 					${Number(row.descuento || 0).toLocaleString()}
@@ -156,7 +162,8 @@ export default function Accesos({ bodega }: any) {
 						total={items.length}
 						actions={actions}
 						processing={loading}
-						onSort={() => { }}
+						sortServer={false}
+						paginationServer={false}
 						fetchPage={() => { }}
 						setPageSize={() => { }}
 					/>
