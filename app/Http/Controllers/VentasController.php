@@ -486,6 +486,21 @@ class VentasController extends Controller
         $detalle->delete();
     }
 
+    public function updateObservaciones(Request $request, \App\Models\Venta $venta)
+    {
+        $request->validate([
+            'observaciones' => 'nullable|string',
+            'observaciones_local' => 'nullable|string',
+        ]);
+
+        $venta->update($request->only(['observaciones', 'observaciones_local']));
+
+        return response()->json([
+            'message' => 'Observaciones actualizadas correctamente.',
+            'data' => $venta
+        ]);
+    }
+
     public function closeVenta(\App\Models\Venta $venta)
     {
         if (!auth()->user()->hasAnyRole(['admin', 'bodega', 'superadmin'])) {

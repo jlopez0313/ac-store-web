@@ -35,6 +35,7 @@ class VentaResource extends JsonResource
             'total' => $this->total,
             'subtotal' => $this->subtotal,
             'observaciones' => $this->observaciones,
+            'observaciones_local' => $this->observaciones_local,
             'cuenta_id' => $this->cuenta_id,
             'cuenta' => $this->cuenta->nombre ?? 'N/A',
             'vendedor' => $this->vendedor ? $this->vendedor->nombre : ($this->creator ? $this->creator->name : ($this->local->name ?? 'N/A')),

@@ -72,7 +72,8 @@ class MuestrasController extends Controller
             ->get()
             ->filter(function ($item) {
                 $hasSubdiv = !empty($item->subdivision_stock) && collect($item->subdivision_stock)->sum() > 0;
-                return $item->stock > 0 || $hasSubdiv;
+                $hasLocation = $item->estanteria && $item->estanteria->bodega;
+                return ($item->stock > 0 || $hasSubdiv) && $hasLocation;
             })
             ->values()
             ->map(function ($item) {

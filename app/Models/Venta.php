@@ -18,6 +18,7 @@ class Venta extends Model
         'fecha',
         'estado',
         'observaciones',
+        'observaciones_local',
         'subtotal',
         'total',
     ];

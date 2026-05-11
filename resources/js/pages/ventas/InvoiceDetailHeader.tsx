@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { showAlert } from '@/plugins/sweetalert';
 import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { ChevronDown, FileText, PackageX, Plus, Printer, ShoppingCart, Warehouse } from 'lucide-react';
-import React, { useState } from 'react';
+import { ChevronDown, FileText, PackageX, Plus, Printer, Save, ShoppingCart, Warehouse } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { BulkDiscountModal } from './BulkDiscountModal';
 import { DevolucionesFacturaModal } from './DevolucionesFacturaModal';
 import { ReopenInvoiceModal } from './ReopenInvoiceModal';
@@ -42,6 +43,30 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
     const [isReopenModalOpen, setIsReopenModalOpen] = useState(false);
     const [isDevolucionesModalOpen, setIsDevolucionesModalOpen] = useState(false);
     const [applying, setApplying] = useState(false);
+    const [obs, setObs] = useState(factura.observaciones_local || '');
+    const [isSavingObs, setIsSavingObs] = useState(false);
+
+    useEffect(() => {
+        setObs(factura.observaciones_local || '');
+    }, [factura.observaciones_local]);
+
+    const handleSaveObsLocal = async (newObs: string) => {
+        setIsSavingObs(true);
+        try {
+            const response = await axios.post(route('api.ventas.update_observaciones', { venta: factura.id }), {
+                observaciones_local: newObs
+            });
+            showAlert('success', 'Observaciones del local actualizadas');
+            if (onUpdateFactura) {
+                onUpdateFactura(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error saving local observations:', error);
+            showAlert('error', 'No se pudieron guardar las observaciones del local');
+        } finally {
+            setIsSavingObs(false);
+        }
+    };
 
     const sameRefItemsCount = React.useMemo(() => {
         if (!selectedDetailIds.length || !factura.detalles) return 0;
@@ -209,6 +234,30 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                         <span className="text-2xl font-bold text-slate-900 dark:text-white">
                             ${Number(factura.detalles?.reduce((acc: number, d: any) => acc + Number(d.subtotal), 0) || 0).toLocaleString()}
                         </span>
+                    </div>
+                </div>
+
+                <div className="border-t border-slate-100 pt-2 dark:border-slate-700">
+                    <div className="space-y-2">
+                        <Label className="text-muted-foreground text-[10px] font-bold uppercase tracking-tight">Observaciones</Label>
+                        <div className="relative group">
+                            <Textarea
+                                value={obs}
+                                onChange={(e) => setObs(e.target.value)}
+                                placeholder="Escriba aquí sus observaciones o notas sobre esta factura..."
+                                className="min-h-[60px] resize-none border-slate-200 bg-white/50 pr-12 focus:bg-white dark:border-slate-700 dark:bg-slate-800/50"
+                            />
+                            {(obs !== (factura.observaciones_local || '')) && (
+                                <Button
+                                    size="sm"
+                                    onClick={() => handleSaveObsLocal(obs)}
+                                    disabled={isSavingObs}
+                                    className="absolute bottom-2 right-2 h-8 w-8 rounded-lg p-0 shadow-lg transition-all hover:scale-105 active:scale-95"
+                                >
+                                    <Save className={`h-4 w-4 ${isSavingObs ? 'animate-pulse' : ''}`} />
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </CardContent>

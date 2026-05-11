@@ -71,6 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('ventas/{venta}/reabrir', [App\Http\Controllers\Api\VentasController::class, 'reopenVenta'])->name('api.ventas.reopen');
     Route::post('ventas/{venta}/cerrar', [App\Http\Controllers\Api\VentasController::class, 'closeVenta'])->name('api.ventas.cerrar');
     Route::post('ventas/{venta}/mark-printed', [App\Http\Controllers\Api\VentasController::class, 'markPrinted'])->name('api.ventas.mark_printed');
+    Route::post('ventas/{venta}/observaciones', [App\Http\Controllers\Api\VentasController::class, 'updateObservaciones'])->name('api.ventas.update_observaciones');
     Route::get('ventas-locales', [App\Http\Controllers\Api\VentasController::class, 'getLocalesWithInvoices'])->name('api.ventas.locales_with_invoices');
     Route::apiResource('vendedores', App\Http\Controllers\Api\VendedorController::class)->names('api.vendedores');
 

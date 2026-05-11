@@ -200,6 +200,21 @@ class VentasController extends Controller
 
 
 
+    public function updateObservaciones(Request $request, Venta $venta)
+    {
+        $request->validate([
+            'observaciones' => 'nullable|string',
+            'observaciones_local' => 'nullable|string',
+        ]);
+
+        $venta->update($request->only(['observaciones', 'observaciones_local']));
+
+        return response()->json([
+            'message' => 'Observaciones actualizadas correctamente.',
+            'data' => new VentaResource($venta->fresh(['local', 'detalles.producto', 'detalles.estanteria.bodega']))
+        ]);
+    }
+
     public function reopenVenta(Request $request, Venta $venta)
     {
         $user = auth()->user();

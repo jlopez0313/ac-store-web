@@ -307,8 +307,12 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         setDetailModalOpen(true);
                                     }}
                                     onCloseFactura={handleCloseFactura}
-                                    onUpdateFactura={(updatedDetalles) => {
-                                        setSelectedFactura({ ...selectedFactura, detalles: updatedDetalles });
+                                    onUpdateFactura={(data) => {
+                                        if (Array.isArray(data)) {
+                                            setSelectedFactura({ ...selectedFactura, detalles: data });
+                                        } else {
+                                            setSelectedFactura(data);
+                                        }
                                         fetchData();
                                     }}
                                     onPrint={async (type) => {
