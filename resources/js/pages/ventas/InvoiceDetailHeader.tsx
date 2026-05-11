@@ -168,7 +168,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                         Agregar Producto
                                     </Button>
                                 )}
-                                {factura.detalles?.length > 0 && isAdmin && (
+                                {isAdmin && (
                                     <Button
                                         variant="outline"
                                         size="sm"
