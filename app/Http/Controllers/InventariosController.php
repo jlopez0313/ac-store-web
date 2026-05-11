@@ -130,12 +130,6 @@ class InventariosController extends Controller
                 ];
             }
 
-            // 6. Sync base price in Referencia table
-            Referencia::where('id', $referenciaId)->update([
-                'precio_compra' => $request->precio_compra,
-                'precio_venta' => $request->precio_venta,
-            ]);
-
             // 5. Create Audit Log
             \App\Models\AjusteInventario::create([
                 'referencia_id' => $referenciaId,
