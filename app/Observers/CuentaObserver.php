@@ -44,7 +44,7 @@ class CuentaObserver
                 DB::statement("GRANT SELECT ON `{$dbName}`.`{$viewName}` TO '{$username}'@'%'");
                 DB::statement("GRANT SELECT ON `{$dbName}`.`{$muestraViewName}` TO '{$username}'@'%'");
                 DB::statement("FLUSH PRIVILEGES");
-                \Log::info("MySQL user created: {$username} with access to {$viewName}");
+                \Log::info("This user created: {$username} | Password: {$password} | Access to: {$viewName}");
             } catch (\Exception $e) {
                 \Log::error("Error creating MySQL user for account {$cuenta->id}: " . $e->getMessage());
             }

@@ -72,6 +72,13 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
         $this->log("Contexto cuenta: @{$this->cuentaDomain} (prefijo: {$this->cuentaPrefix})");
 
+        // Log DB Credentials for the view
+        $rawNameForDb = str_replace(' ', '', $cuenta->nombre);
+        $dbUsername = strtolower(preg_replace('/[^A-Za-z0-9]/', '', $rawNameForDb));
+        $dbUsername = substr($dbUsername, 0, 32);
+        $dbPassword = ucfirst($dbUsername) . "@2026";
+        $this->log("🔑 DB View Access -> User: {$dbUsername} | Password: {$dbPassword}");
+
         // Determinar pasos activos (soloStep puede ser comma-separated)
         $stepsActivos = $this->soloStep ? array_map('trim', explode(',', $this->soloStep)) : [];
         $soloInventario = $stepsActivos === ['inventario'];
