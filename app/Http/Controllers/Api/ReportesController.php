@@ -13,13 +13,32 @@ class ReportesController extends Controller
         $user = auth()->user();
         $isSuper = $user->role === 'superadmin';
 
-        $query = VentaDetalle::with([
-            'venta.local',
-            'venta.cuenta',
-            'producto.marca',
-            'estanteria.bodega',
-        ])
-        ->whereHas('venta', function ($q) use ($user, $isSuper, $request) {
+        $query = \App\Models\Venta::with(['local', 'cuenta'])
+            ->withSum('detalles as total_cantidad', 'cantidad')
+            ->withSum('detalles as total_valor', 'subtotal');
+
+        if (!$isSuper) {
+            $query->where('cuenta_id', $user->cuenta_id);
+        } elseif ($request->filled('cuenta_id') && $request->cuenta_id !== 'all') {
+            $query->where('cuenta_id', $request->cuenta_id);
+        }
+
+        if ($request->filled('local_id')) {
+            $query->where('user_id', $request->local_id);
+        }
+
+        if ($request->filled('desde')) {
+            $query->whereDate('fecha', '>=', $request->desde);
+        }
+        if ($request->filled('hasta')) {
+            $query->whereDate('fecha', '<=', $request->hasta);
+        }
+
+        $query->whereHas('detalles'); // Only invoices with items
+        $query->orderByDesc('id');
+
+        // Totals for KPIs (using VentaDetalle to get the same logic as before)
+        $detailsQuery = \App\Models\VentaDetalle::whereHas('venta', function ($q) use ($user, $isSuper, $request) {
             if (!$isSuper) {
                 $q->where('cuenta_id', $user->cuenta_id);
             } elseif ($request->filled('cuenta_id') && $request->cuenta_id !== 'all') {
@@ -36,34 +55,23 @@ class ReportesController extends Controller
             if ($request->filled('hasta')) {
                 $q->whereDate('fecha', '<=', $request->hasta);
             }
-        })
-        ->orderByDesc('id');
+        });
 
-        // Totals before pagination
-        $totalVentas    = (clone $query)->sum('subtotal');
-        $totalProductos = (clone $query)->sum('cantidad');
-        $totalFacturas  = (clone $query)->distinct()->count('venta_id');
+        $totalVentas    = (clone $detailsQuery)->sum('subtotal');
+        $totalProductos = (clone $detailsQuery)->sum('cantidad');
+        $totalFacturas  = (clone $detailsQuery)->distinct()->count('venta_id');
 
         $paginated = $query->paginate($request->input('per_page', 25));
 
         return response()->json([
-            'data' => $paginated->getCollection()->map(fn($d) => [
-                'id'             => $d->id,
-                'factura_id'     => $d->venta_id,
-                'factura_numero' => $d->venta->numero ?? '-',
-                'fecha'          => $d->venta->fecha?->format('Y-m-d') ?? '-',
-                'local'          => $d->venta->local->name ?? 'N/A',
-                'cuenta'         => $d->venta->cuenta->nombre ?? 'N/A',
-                'codigo'         => $d->producto->codigo ?? 'N/A',
-                'descripcion'    => $d->producto->descripcion ?? 'N/A',
-                'marca'          => $d->producto->marca->nombre ?? 'N/A',
-                'foto'           => $d->producto->foto ? asset('storage/' . ltrim($d->producto->foto, '/')) : null,
-                'talla'          => $d->talla,
-                'bodega'         => $d->estanteria->bodega->nombre ?? 'N/A',
-                'cantidad'       => $d->cantidad,
-                'precio_sugerido'=> $d->inventario->precio_venta ?? 0,
-                'precio_unitario'=> $d->precio_unitario,
-                'subtotal'       => $d->subtotal,
+            'data' => $paginated->getCollection()->map(fn($v) => [
+                'id'             => $v->id,
+                'factura_numero' => $v->numero ?? '-',
+                'fecha'          => $v->fecha?->format('Y-m-d') ?? '-',
+                'local'          => $v->local->name ?? 'N/A',
+                'cuenta'         => $v->cuenta->nombre ?? 'N/A',
+                'items_count'    => (int) $v->total_cantidad,
+                'total'          => (float) $v->total_valor,
             ]),
             'meta' => [
                 'current_page'    => $paginated->currentPage(),

@@ -4,12 +4,13 @@ import { DataGrid } from '@/components/ui/DataTable';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Modal } from '@/components/ui/Modal';
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { BarChart3, ImageIcon, Package, Search, ShoppingCart, X } from 'lucide-react';
+import { BarChart3, Calendar, Eye, Hash, ImageIcon, MapPin, Package, RefreshCw, Search, ShoppingCart, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -37,6 +38,17 @@ export default function Ventas({ cuentas, locales }: any) {
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
 
+    // Invoice details modal
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+    const [invoiceDetails, setInvoiceDetails] = useState<any[]>([]);
+    const [loadingDetails, setLoadingDetails] = useState(false);
+
+    // Returns modal
+    const [isReturnsModalOpen, setIsReturnsModalOpen] = useState(false);
+    const [returnsData, setReturnsData] = useState<any[]>([]);
+    const [loadingReturns, setLoadingReturns] = useState(false);
+
     const fetchData = useCallback(async (params: any = {}) => {
         setLoading(true);
         try {
@@ -62,39 +74,51 @@ export default function Ventas({ cuentas, locales }: any) {
         setSearched(false);
     };
 
+    const handleViewDetails = async (invoice: any) => {
+        setSelectedInvoice(invoice);
+        setIsDetailsModalOpen(true);
+        setLoadingDetails(true);
+        try {
+            const response = await axios.get(route('api.ventas.detalles', { venta: invoice.id }));
+            setInvoiceDetails(response.data.data);
+        } catch (e) {
+            console.error("Error fetching invoice details:", e);
+        } finally {
+            setLoadingDetails(false);
+        }
+    };
+
+    const handleViewReturns = async (invoice: any) => {
+        setIsReturnsModalOpen(true);
+        setLoadingReturns(true);
+        try {
+            const response = await axios.get(route('api.ventas.devoluciones', { venta: invoice.id }));
+            setReturnsData(response.data.data);
+        } catch (e) {
+            console.error("Error fetching returns:", e);
+        } finally {
+            setLoadingReturns(false);
+        }
+    };
+
     const columns = [
         {
-            name: 'Foto',
-            width: '70px',
-            cell: (row: any) => (
-                <button
-                    type="button"
-                    onClick={() => row.foto && setViewerImage(row.foto)}
-                    className={`my-1 flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-border bg-muted transition-transform ${row.foto ? 'hover:scale-110 active:scale-95 cursor-pointer' : 'cursor-default'}`}
-                >
-                    {row.foto ? (
-                        <img src={row.foto} alt={row.codigo} className="h-full w-full object-cover" />
-                    ) : (
-                        <ImageIcon className="h-4 w-4 text-slate-400" />
-                    )}
-                </button>
-            ),
-        },
-        {
             name: 'Factura',
-            selector: (row: any) => row.factura_numero || row.factura_id,
-            width: '90px',
+            selector: (row: any) => row.factura_numero,
+            width: '120px',
+            cell: (row: any) => <span className="font-bold text-indigo-600">{row.factura_numero}</span>,
+            sortable: true,
         },
         {
             name: 'Fecha',
             selector: (row: any) => row.fecha,
-            width: '110px',
+            width: '120px',
             sortable: true,
         },
         ...(isSuper ? [{
             name: 'Cuenta',
             selector: (row: any) => row.cuenta,
-            width: '120px',
+            width: '150px',
         }] : []),
         {
             name: 'Local',
@@ -102,65 +126,144 @@ export default function Ventas({ cuentas, locales }: any) {
             grow: 1,
         },
         {
+            name: 'Items',
+            selector: (row: any) => row.items_count,
+            width: '100px',
+            center: true,
+            cell: (row: any) => (
+                <div className="flex items-center gap-2">
+                    <Package className="h-3 w-3 text-slate-400" />
+                    <span className="font-semibold">{row.items_count}</span>
+                </div>
+            )
+        },
+        {
+            name: 'Total Factura',
+            selector: (row: any) => row.total,
+            width: '150px',
+            right: true,
+            cell: (row: any) => (
+                <span className="font-bold text-emerald-600">
+                    ${Number(row.total || 0).toLocaleString()}
+                </span>
+            ),
+        },
+        {
+            name: 'Acciones',
+            width: '100px',
+            center: true,
+            cell: (row: any) => (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    onClick={() => handleViewDetails(row)}
+                    title="Ver detalle"
+                >
+                    <Eye className="h-4 w-4" />
+                </Button>
+            )
+        }
+    ];
+
+    const detailColumns = [
+        {
+            name: 'Foto',
+            width: '80px',
+            cell: (row: any) => {
+                const fotoUrl = row.producto?.foto ? asset('storage/' + ltrim(row.producto.foto, '/')) : null;
+                return (
+                    <div
+                        onClick={() => fotoUrl && setViewerImage(fotoUrl)}
+                        className={`my-1 flex h-10 w-10 items-center justify-center overflow-hidden rounded border border-border bg-muted ${fotoUrl ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                    >
+                        {fotoUrl ? (
+                            <img src={fotoUrl} className="h-full w-full object-cover" />
+                        ) : (
+                            <ImageIcon className="h-4 w-4 text-slate-400" />
+                        )}
+                    </div>
+                );
+            },
+        },
+        {
             name: 'Código',
-            selector: (row: any) => row.codigo,
-            width: '110px',
-            cell: (row: any) => <span className="font-bold">{row.codigo}</span>,
+            selector: (row: any) => row.producto?.codigo,
+            width: '120px',
+            cell: (row: any) => <span className="font-bold">{row.producto?.codigo}</span>,
         },
         {
             name: 'Descripción',
-            selector: (row: any) => row.descripcion,
-            grow: 2,
+            selector: (row: any) => row.producto?.descripcion,
+            grow: 1,
             wrap: true,
-        },
-        {
-            name: 'Marca',
-            selector: (row: any) => row.marca,
-            width: '110px',
         },
         {
             name: 'Talla',
             selector: (row: any) => row.talla,
-            width: '80px',
-        },
-        {
-            name: 'Bodega',
-            selector: (row: any) => row.bodega,
-            width: '120px',
+            width: '75px',
+            center: true,
         },
         {
             name: 'Cant.',
             selector: (row: any) => row.cantidad,
             width: '70px',
-            cell: (row: any) => <span className="font-bold text-center w-full">{row.cantidad}</span>,
+            center: true,
         },
         {
-            name: 'P. Unit.',
+            name: 'Precio',
             selector: (row: any) => row.precio_unitario,
             width: '110px',
-            cell: (row: any) => {
-                const sugerido = Number(row.precio_sugerido || 0);
-                const unitario = Number(row.precio_unitario || 0);
-                let cls = 'font-semibold px-2 rounded border text-xs';
-                if (sugerido > 0 && unitario < sugerido) {
-                    cls += ' bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800';
-                } else if (sugerido > 0 && unitario === sugerido) {
-                    cls += ' text-slate-700 border-transparent';
-                } else {
-                    cls += ' text-slate-700 border-transparent';
-                }
-                return <span className={cls}>${unitario.toLocaleString()}</span>;
-            },
+            cell: (row: any) => `$${Number(row.precio_unitario || 0).toLocaleString()}`,
         },
         {
             name: 'Subtotal',
             selector: (row: any) => row.subtotal,
-            width: '120px',
-            cell: (row: any) => (
-                <span className="font-bold text-green-600">${Number(row.subtotal || 0).toLocaleString()}</span>
-            ),
+            width: '110px',
+            cell: (row: any) => <span className="font-bold text-emerald-600">${Number(row.subtotal || 0).toLocaleString()}</span>,
         },
     ];
+
+    const returnColumns = [
+        {
+            name: 'Fecha',
+            selector: (row: any) => row.fecha_devolucion ? new Date(row.fecha_devolucion).toLocaleDateString() : 'N/A',
+            width: '120px',
+        },
+        {
+            name: 'Producto',
+            selector: (row: any) => row.producto?.codigo,
+            width: '120px',
+            cell: (row: any) => <span className="font-bold">{row.producto?.codigo}</span>,
+        },
+        {
+            name: 'Talla',
+            selector: (row: any) => row.talla,
+            width: '75px',
+            center: true,
+        },
+        {
+            name: 'Cant.',
+            selector: (row: any) => row.cantidad,
+            width: '75px',
+            center: true,
+        },
+        {
+            name: 'Subtotal',
+            selector: (row: any) => row.subtotal,
+            right: true,
+            cell: (row: any) => <span className="font-bold text-red-600">-${Number(row.subtotal || 0).toLocaleString()}</span>,
+        },
+    ];
+
+    const ltrim = (str: string, char: string) => {
+        if (!str) return '';
+        return str.startsWith(char) ? str.substring(char.length) : str;
+    };
+
+    const asset = (path: string) => {
+        return window.location.origin + '/' + path;
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -296,6 +399,109 @@ export default function Ventas({ cuentas, locales }: any) {
                     </div>
                 )}
             </div>
+
+            <Modal
+                show={isDetailsModalOpen}
+                onClose={() => setIsDetailsModalOpen(false)}
+                title={`Detalle de Factura: ${selectedInvoice?.factura_numero}`}
+                maxWidth="4xl"
+            >
+                <div className="space-y-5 p-1">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400">
+                                <MapPin className="h-5 w-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Local</span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{selectedInvoice?.local}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                                <Calendar className="h-5 w-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Fecha</span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-white">{selectedInvoice?.fecha}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+                                <Package className="h-5 w-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Unidades</span>
+                                <span className="text-sm font-bold text-slate-900 dark:text-white">{selectedInvoice?.items_count} Items</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-emerald-50/30 p-3 dark:border-emerald-900/20 dark:bg-emerald-950/20">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400">
+                                <ShoppingCart className="h-5 w-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600/70">Total Venta</span>
+                                <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">${Number(selectedInvoice?.total || 0).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                        <DataGrid
+                            data={invoiceDetails}
+                            columns={detailColumns}
+                            total={invoiceDetails.length}
+                            processing={loadingDetails}
+                            onSort={() => { }}
+                            fetchPage={() => { }}
+                            setPageSize={() => { }}
+                        />
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <Button onClick={() => setIsDetailsModalOpen(false)}>
+                            Cerrar
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal
+                show={isReturnsModalOpen}
+                onClose={() => setIsReturnsModalOpen(false)}
+                title={`Devoluciones - Factura: ${selectedInvoice?.factura_numero}`}
+                maxWidth="2xl"
+            >
+                <div className="space-y-4 p-1">
+                    {returnsData.length > 0 ? (
+                        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                            <DataGrid
+                                data={returnsData}
+                                columns={returnColumns}
+                                total={returnsData.length}
+                                processing={loadingReturns}
+                                onSort={() => { }}
+                                fetchPage={() => { }}
+                                setPageSize={() => { }}
+                            />
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 dark:border-slate-800 dark:bg-slate-900/50">
+                            <RefreshCw className="mb-2 h-8 w-8 text-slate-300" />
+                            <p className="text-sm text-slate-400 font-medium">Esta factura no tiene devoluciones registradas.</p>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end">
+                        <Button variant="outline" onClick={() => setIsReturnsModalOpen(false)}>
+                            Volver al detalle
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
             <ViewerModal
                 show={!!viewerImage}

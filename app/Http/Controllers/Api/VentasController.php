@@ -592,4 +592,14 @@ class VentasController extends Controller
 
         return response()->json(['data' => $locals]);
     }
+
+    public function getReturns(Request $request, Venta $venta)
+    {
+        $returns = \App\Models\Devolucion::where('venta_id', $venta->id)
+            ->with(['producto', 'estanteria.bodega'])
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return response()->json(['data' => $returns]);
+    }
 }
