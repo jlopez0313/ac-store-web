@@ -115,9 +115,9 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas, onSuccess }: a
 		>
 			<form onSubmit={submit} className="flex flex-col h-[80vh]">
 				<div className="p-4 sm:p-6 flex-1 overflow-y-auto space-y-4">
-					<div className="flex flex-col sm:grid sm:grid-cols-[120px_1fr] gap-4 sm:gap-6 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+					<div className="flex flex-col sm:grid sm:grid-cols-[120px_1fr] gap-4 sm:gap-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-4">
 						<div
-							className="flex h-[120px] w-[120px] mx-auto sm:mx-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white shrink-0"
+							className="flex h-[120px] w-[120px] mx-auto sm:mx-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 shrink-0"
 							onClick={() => caja?.referencia_foto && openViewer(caja.referencia_foto)}
 						>
 							{caja?.referencia_foto ? (
@@ -128,16 +128,16 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas, onSuccess }: a
 						</div>
 						<div className="space-y-2">
 							<div className="flex items-center justify-between">
-								<span className="text-sm font-semibold text-slate-700">{caja.referencia_descripcion}</span>
+								<span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{caja.referencia_descripcion}</span>
 								<Badge variant="outline" className="font-mono">
 									SKU: {caja.referencia_codigo}
 								</Badge>
 							</div>
-							<div className="bg-white p-4 rounded-lg border border-slate-100">
+							<div className="bg-white dark:bg-slate-950 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
 								<div className="mb-4 flex items-center justify-between">
 									<div>
 										<p className="text-[10px] uppercase font-medium text-slate-400">Saldo en caja</p>
-										<p className={`text-xl font-bold ${caja.cantidad - sizedTotal < 0 ? 'text-red-600' : 'text-slate-900'}`}>
+										<p className={`text-xl font-bold ${caja.cantidad - sizedTotal < 0 ? 'text-red-600' : 'text-slate-900 dark:text-slate-100'}`}>
 											{caja.cantidad - sizedTotal} pares
 										</p>
 									</div>
@@ -175,15 +175,15 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas, onSuccess }: a
 						Ingresa la cantidad por talla y selecciona el estante donde guardarás el stock físico.
 					</p>
 
-					<div className="border rounded-lg overflow-hidden flex flex-col max-w-md mx-auto w-full">
-						<div className="bg-slate-100 px-4 py-2 text-xs font-bold text-slate-600 border-b grid grid-cols-[1fr_80px] gap-4">
+					<div className="border dark:border-slate-800 rounded-lg overflow-hidden flex flex-col max-w-md mx-auto w-full">
+						<div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 border-b dark:border-slate-700 grid grid-cols-[1fr_80px] gap-4">
 							<span>Talla</span>
 							<span className="text-right">Cantidad</span>
 						</div>
-						<div className="divide-y max-h-[300px] overflow-y-auto">
+						<div className="divide-y dark:divide-slate-800 max-h-[300px] overflow-y-auto">
 							{sizedRows.map((row, i) => (
-								<div key={row.size} className="px-4 py-2 grid grid-cols-[1fr_80px] gap-4 items-center hover:bg-slate-50 transition-colors">
-									<span className="font-mono font-bold text-slate-700">{row.size}</span>
+								<div key={row.size} className="px-4 py-2 grid grid-cols-[1fr_80px] gap-4 items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+									<span className="font-mono font-bold text-slate-700 dark:text-slate-200">{row.size}</span>
 									<InputField
 										name={`qty_${i}`}
 										title=""
@@ -200,10 +200,10 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas, onSuccess }: a
 					</div>
 				</div>
 
-				<div className="p-4 bg-slate-50 border-t flex items-center justify-between">
+				<div className="p-4 bg-slate-50 dark:bg-slate-900 border-t dark:border-slate-800 flex items-center justify-between">
 					<div>
 						<p className="text-[10px] uppercase font-bold text-slate-400">Total a tallar</p>
-						<p className={`text-lg font-bold ${sizedTotal > caja.cantidad ? 'text-red-600' : 'text-slate-900'}`}>
+						<p className={`text-lg font-bold ${sizedTotal > caja.cantidad ? 'text-red-600' : 'text-slate-900 dark:text-slate-100'}`}>
 							{sizedTotal} / {caja.cantidad} pares
 						</p>
 					</div>

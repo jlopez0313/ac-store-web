@@ -14,9 +14,10 @@ interface DetailModalProps {
     onClose: () => void;
     referencia: any;
     onAdjust?: (shelf: any, details: any[]) => void;
+    bodegas?: any[];
 }
 
-export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, referencia, onAdjust }) => {
+export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, referencia, onAdjust, bodegas = [] }) => {
     const { auth } = usePage().props as any;
     const canAdjust = ['superadmin', 'admin'].includes(auth.user.role);
     const isLocal = auth.user.role === 'local';
@@ -194,7 +195,9 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                             acc[key].push(item);
                                             return acc;
                                         }, {})
-                                    ).map(([bodega, bodegaItems]: [string, any[]]) => {
+                                    ).filter(([_, items]: [any, any[]]) => {
+                                        return items.reduce((sum, i) => sum + Number(i.stock), 0) > 0;
+                                    }).map(([bodega, bodegaItems]: [string, any[]]) => {
                                         const isOpen = !!openBodegas[bodega]; // Default collapsed
                                         return (
                                             <div key={bodega} className="bg-background border-border overflow-hidden rounded-2xl border shadow-sm">
@@ -293,6 +296,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                     onSuccess={fetchDetails}
                     referencia={referencia}
                     estanteria={selectedShelf}
+                    bodegas={bodegas}
                     items={details.filter((d) => d.estanteria_id === selectedShelf.id)}
                 />
             )}

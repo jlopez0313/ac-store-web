@@ -20,9 +20,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Inventario', href: route('inventario.index') },
 ];
 
-export default function Index({ filters: initialFilters }: any) {
+export default function Index({ filters: initialFilters, bodegas }: any) {
 	const { auth } = usePage().props as any;
-	const canAdjust = ['superadmin', 'admin'].includes(auth.user.role);
+	const canAdjust = ['superadmin', 'admin', 'bodega'].includes(auth.user.role);
 
 	const [items, setItems] = useState<any[]>([]);
 	const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
@@ -97,6 +97,7 @@ export default function Index({ filters: initialFilters }: any) {
 				setSelectedShelf({
 					id: item.estanteria_id,
 					nombre: item.estanteria_nombre,
+					bodega_id: item.bodega_id,
 					bodega_nombre: item.bodega_nombre,
 				});
 				setAdjustmentOpen(true);
@@ -259,6 +260,7 @@ export default function Index({ filters: initialFilters }: any) {
 				isOpen={isDetailModalOpen}
 				onClose={() => setIsDetailModalOpen(false)}
 				referencia={selectedReferencia}
+				bodegas={bodegas}
 				onAdjust={(shelf: any, details: any[]) => {
 					setSelectedShelf(shelf);
 					setDistributionDetails(details);
@@ -280,13 +282,21 @@ export default function Index({ filters: initialFilters }: any) {
 						Este producto se encuentra en múltiples ubicaciones. Seleccione una para ajustar:
 					</p>
 					<div className="grid gap-2">
-						{[...new Map(distributionDetails.map(item => [item.estanteria_id, item])).values()].map((shelf: any) => (
+						{[...new Map(distributionDetails.map(item => [item.estanteria_id, item])).values()]
+							.filter(shelf => {
+								const total = distributionDetails
+									.filter(d => d.estanteria_id === shelf.estanteria_id)
+									.reduce((sum, d) => sum + Number(d.stock), 0);
+								return total > 0;
+							})
+							.map((shelf: any) => (
 							<button
 								key={shelf.estanteria_id}
 								onClick={() => {
 									setSelectedShelf({
 										id: shelf.estanteria_id,
 										nombre: shelf.estanteria_nombre,
+										bodega_id: shelf.bodega_id,
 										bodega_nombre: shelf.bodega_nombre
 									});
 									setShelfSelectorOpen(false);
@@ -320,7 +330,8 @@ export default function Index({ filters: initialFilters }: any) {
 					}}
 					referencia={selectedReferencia}
 					estanteria={selectedShelf}
-					items={distributionDetails.filter(d => d.estanteria_id === selectedShelf.id)}
+					bodegas={bodegas}
+					items={distributionDetails.filter(d => d.estanteria_id == selectedShelf.id)}
 				/>
 			)}
 

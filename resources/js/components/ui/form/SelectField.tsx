@@ -78,9 +78,9 @@ export const SelectField = ({
             }
             return [];
         } else {
-            return dataList.find((item) => item.value == value) ?? null;
+            return dataList.find((item) => String(item.value) === String(value)) ?? null;
         }
-    }, [dataList, value]);
+    }, [dataList, value, multiple]);
 
     useEffect(() => {
         const onMapList = () => {
