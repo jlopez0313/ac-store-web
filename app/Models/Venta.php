@@ -49,6 +49,11 @@ class Venta extends Model
         return $this->hasMany(VentaDetalle::class, 'venta_id');
     }
 
+    public function devoluciones()
+    {
+        return $this->hasMany(VentaDetalle::class, 'venta_id')->onlyTrashed();
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'creado_por');

@@ -63,6 +63,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
         setViewerImage(null);
     }, [selectedFactura?.id]);
 
+
     const fetchData = useCallback(
         async (newParams = {}) => {
             setLoading(true);

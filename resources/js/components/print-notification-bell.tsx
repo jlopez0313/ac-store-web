@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { getPrintRequestsRef, onValue, removePrintRequest, type PrintRequest } from '@/lib/firebase';
 import { showAlert } from '@/plugins/sweetalert';
+import { buildCambioPageHtml } from '@/utils/printCambio';
 import { buildReceiptPageHtml, printReceipts } from '@/utils/printReceipt';
 import { buildReturnPageHtml } from '@/utils/printReturn';
-import { buildCambioPageHtml } from '@/utils/printCambio';
-import { buildStickerPageHtml } from '@/utils/printStickers';
 import { printSoporteVenta } from '@/utils/printSoporteVenta';
+import { buildStickerPageHtml } from '@/utils/printStickers';
 import { connectQZ, disconnectQZ, printWithQZ } from '@/utils/qz-service';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -77,10 +77,10 @@ export function PrintNotificationBell({ cuentaId }: Props) {
     // Connect to QZ tray on mount if impresion_principal is active
     useEffect(() => {
         if (auth.user.impresion_principal) {
-            connectQZ().catch(() => {});
+            connectQZ().catch(() => { });
         }
         return () => {
-            disconnectQZ().catch(() => {});
+            disconnectQZ().catch(() => { });
         };
     }, [auth.user.impresion_principal]);
 
