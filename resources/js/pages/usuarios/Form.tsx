@@ -25,6 +25,7 @@ type ThisForm = {
     precio_suscripcion: string;
     fecha_vencimiento: string;
     maneja_vendedores: boolean;
+    limite_sesiones: string;
 };
 
 export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore, onGetItem, onReload, default_user_price }: any) => {
@@ -46,6 +47,7 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
         precio_suscripcion: '',
         fecha_vencimiento: '',
         maneja_vendedores: false,
+        limite_sesiones: '2',
     });
 
     const [countries, setCountries] = useState<any[]>([]);
@@ -157,6 +159,7 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
                     precio_suscripcion: item.precio_suscripcion?.toString() || '',
                     fecha_vencimiento: item.fecha_vencimiento || '',
                     maneja_vendedores: !!item.maneja_vendedores,
+                    limite_sesiones: item.limite_sesiones?.toString() || '2',
                 });
             }
         };
@@ -301,6 +304,16 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
                             value={data.fecha_vencimiento}
                             onChange={(value) => setData('fecha_vencimiento', value as any)}
                             error={(errors as any).fecha_vencimiento}
+                        />
+
+                        <InputField
+                            name="limite_sesiones"
+                            title="Límite de Sesiones Simultáneas"
+                            type="number"
+                            value={data.limite_sesiones}
+                            onChange={(value) => setData('limite_sesiones', value as any)}
+                            error={(errors as any).limite_sesiones}
+                            placeholder="Ej. 2"
                         />
 
                         <SwitchField

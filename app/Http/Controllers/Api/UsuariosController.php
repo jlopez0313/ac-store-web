@@ -63,6 +63,7 @@ class UsuariosController extends Controller
             'precio_suscripcion' => 'nullable|numeric',
             'fecha_vencimiento' => 'nullable|date',
             'maneja_vendedores' => 'nullable|boolean',
+            'limite_sesiones' => 'nullable|integer|min:1',
         ]);
 
         $user = User::create([
@@ -78,6 +79,7 @@ class UsuariosController extends Controller
             'ciudad_id' => $request->ciudad_id ?? null,
             'fecha_vencimiento' => $validated['fecha_vencimiento'] ?? null,
             'maneja_vendedores' => $validated['maneja_vendedores'] ?? false,
+            'limite_sesiones' => $validated['limite_sesiones'] ?? 2,
             'email_verified_at' => now(),
         ]);
 
@@ -121,6 +123,7 @@ class UsuariosController extends Controller
             'precio_suscripcion' => 'nullable|numeric',
             'fecha_vencimiento' => 'nullable|date',
             'maneja_vendedores' => 'nullable|boolean',
+            'limite_sesiones' => 'nullable|integer|min:1',
         ]);
 
         $usuario->update([
@@ -135,6 +138,7 @@ class UsuariosController extends Controller
             'ciudad_id' => $request->ciudad_id ?? null,
             'fecha_vencimiento' => $validated['fecha_vencimiento'] ?? null,
             'maneja_vendedores' => $validated['maneja_vendedores'] ?? false,
+            'limite_sesiones' => $validated['limite_sesiones'] ?? $usuario->limite_sesiones,
         ]);
 
         if (!empty($validated['password'])) {

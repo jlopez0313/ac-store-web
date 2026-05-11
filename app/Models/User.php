@@ -33,6 +33,7 @@ class User extends Authenticatable
         'precio_suscripcion',
         'fecha_vencimiento',
         'maneja_vendedores',
+        'limite_sesiones',
     ];
 
     /**

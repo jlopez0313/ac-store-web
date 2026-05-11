@@ -46,6 +46,7 @@ class UserResource extends JsonResource
             ],
             'precio_suscripcion' => $this->precio_suscripcion,
             'maneja_vendedores' => (bool) $this->maneja_vendedores,
+            'limite_sesiones' => $this->limite_sesiones,
             'fecha_vencimiento'  => $this->fecha_vencimiento?->toDateString(),
             'bodegas'    => $this->whenLoaded('bodegas', function () {
                 return $this->bodegas->map(function ($bodega) {
