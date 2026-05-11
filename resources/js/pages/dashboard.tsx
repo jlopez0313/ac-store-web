@@ -2,7 +2,7 @@ import { GROUP_META, NAV_ITEMS } from '@/components/app-sidebar';
 import { PageHeader } from '@/components/page-header';
 import AppLayout from '@/layouts/app-layout';
 import { type Auth, type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
 	{
@@ -48,20 +48,44 @@ export default function Dashboard({ auth }: { auth: Auth }) {
 								</div>
 								
 								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6 justify-center">
-									{items.map(item => (
-										<Link
-											key={item.url}
-											href={item.url}
-											className="group flex flex-col items-center gap-4 rounded-2xl border bg-card p-6 text-center hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1.5"
-										>
-											<div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${meta.bg} shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-110`}>
-												<item.icon className={`h-7 w-7 ${meta.color}`} />
-											</div>
-											<span className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-tight">
-												{item.title}
-											</span>
-										</Link>
-									))}
+									{items.map(item => {
+										const isPost = item.method === 'post';
+										const itemProps = {
+											key: item.url,
+											className: "group flex flex-col items-center gap-4 rounded-2xl border bg-card p-6 text-center hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1.5 w-full"
+										};
+
+										const content = (
+											<>
+												<div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${meta.bg} shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-110`}>
+													<item.icon className={`h-7 w-7 ${meta.color}`} />
+												</div>
+												<span className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-tight">
+													{item.title}
+												</span>
+											</>
+										);
+
+										if (isPost) {
+											return (
+												<button
+													{...itemProps}
+													onClick={() => router.post(item.url)}
+												>
+													{content}
+												</button>
+											);
+										}
+
+										return (
+											<Link
+												{...itemProps}
+												href={item.url}
+											>
+												{content}
+											</Link>
+										);
+									})}
 								</div>
 							</section>
 						);
