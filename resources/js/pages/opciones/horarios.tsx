@@ -51,6 +51,10 @@ export default function OpcionesHorarios({ horarios_ventas, bloquear_festivos, c
         cuenta_id: cuenta_id,
     });
 
+    useEffect(() => {
+        setData('cuenta_id', cuenta_id);
+    }, [cuenta_id]);
+
     const updateRange = (day: string, rangeIndex: number, pos: 0 | 1, value: string) => {
         const updated = { ...data.horarios_ventas };
         updated[day] = [...(updated[day] || [])];
@@ -72,6 +76,7 @@ export default function OpcionesHorarios({ horarios_ventas, bloquear_festivos, c
     };
 
     const handleCuentaChange = (value: string) => {
+        setData('cuenta_id', parseInt(value));
         router.get('/opciones/horarios', { cuenta_id: value }, { preserveState: false });
     };
 
@@ -86,17 +91,20 @@ export default function OpcionesHorarios({ horarios_ventas, bloquear_festivos, c
 
             <div className="px-4 py-6">
                 <div className="mx-auto max-w-2xl space-y-6">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-6">
                         <HeadingSmall
                             title="Horarios de ventas"
                             description="Configura los horarios permitidos para que los usuarios locales puedan agregar referencias a facturas."
                         />
 
                         {isSuperadmin && cuentas.length > 0 && (
-                            <div className="w-56">
+                            <div className="bg-muted/30 border-border rounded-xl border p-4">
+                                <Label className="mb-2 block text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    Cuenta a configurar
+                                </Label>
                                 <Select value={cuenta_id?.toString() ?? ''} onValueChange={handleCuentaChange}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccionar cuenta" />
+                                    <SelectTrigger className="w-full sm:w-[300px]">
+                                        <SelectValue placeholder="Selecciona una cuenta para ver sus horarios" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {cuentas.map((c) => (
@@ -172,7 +180,7 @@ export default function OpcionesHorarios({ horarios_ventas, bloquear_festivos, c
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <Button type="submit" disabled={processing}>
+                            <Button type="submit" disabled={processing || (isSuperadmin && !data.cuenta_id)}>
                                 Guardar cambios
                             </Button>
 
