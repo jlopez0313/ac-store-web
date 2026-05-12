@@ -390,14 +390,14 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                                 items: detalles,
                                             };
                                             if (auth.user.impresion_principal && auth.user.nombre_impresora) {
-                                                const html = printCuadre(cuadreData, true) as string;
+                                                const html = printCuadre({ ...cuadreData, diasCambio: freshFactura.cuenta?.dias_cambio }, true) as string;
                                                 await printWithQZ(auth.user.nombre_impresora, html);
                                             } else {
-                                                printCuadre(cuadreData);
+                                                printCuadre({ ...cuadreData, diasCambio: freshFactura.cuenta?.dias_cambio });
                                             }
                                             return;
                                         }
-
+ 
                                         if (type === 'factura') {
                                             const { printSoporteVenta } = await import('@/utils/printSoporteVenta');
                                             const soporteData = {
@@ -407,10 +407,10 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                                 items: detalles,
                                             };
                                             if (auth.user.impresion_principal && auth.user.nombre_impresora) {
-                                                const html = printSoporteVenta(soporteData, true) as string;
+                                                const html = printSoporteVenta({ ...soporteData, diasCambio: freshFactura.cuenta?.dias_cambio }, true) as string;
                                                 await printWithQZ(auth.user.nombre_impresora, html);
                                             } else {
-                                                printSoporteVenta(soporteData);
+                                                printSoporteVenta({ ...soporteData, diasCambio: freshFactura.cuenta?.dias_cambio });
                                             }
                                             return;
                                         }

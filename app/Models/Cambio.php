@@ -60,7 +60,7 @@ class Cambio extends Model
         return $this->belongsTo(Referencia::class, 'nuevo_producto_id');
     }
 
-    public function inventarioNuevo()
+    public function nuevoInventario()
     {
         return $this->belongsTo(Inventario::class, 'nuevo_inventario_id');
     }

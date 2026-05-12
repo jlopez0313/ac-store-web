@@ -19,7 +19,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Cambios', href: route('cambios.index') },
 ];
 
-export default function Index({ filters: initialFilters, cuentas, locals }: any) {
+export default function Index({ filters: initialFilters, cuentas, locals, current_cuenta }: any) {
     const { isSuperAdmin } = useAuth();
     const { auth } = usePage().props as any;
 
@@ -195,6 +195,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
             <Modal show={show} onClose={() => setShow(false)} closeable={true} title="Registrar Nuevo Cambio" maxWidth="4xl">
                 <Form
                     cuentas={cuentas}
+                    current_cuenta={current_cuenta}
                     locals={locals}
                     processing={loading}
                     onClose={() => setShow(false)}

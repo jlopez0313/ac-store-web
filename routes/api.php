@@ -146,6 +146,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('cambios', [App\Http\Controllers\Api\CambiosController::class, 'index'])->name('api.cambios.index');
         Route::get('cambios/invoices', [App\Http\Controllers\CambiosController::class, 'getClosedInvoices'])->name('api.cambios.invoices');
         Route::get('cambios/invoice-details', [App\Http\Controllers\CambiosController::class, 'getInvoiceDetails'])->name('api.cambios.invoice_details');
+        Route::get('cambios/search-sold-items', [App\Http\Controllers\CambiosController::class, 'searchSoldItems'])->name('api.cambios.search_sold_items');
         Route::post('cambios', [App\Http\Controllers\CambiosController::class, 'store'])->name('api.cambios.store');
         Route::get('devoluciones', [App\Http\Controllers\Api\DevolucionesController::class, 'index'])->name('api.devoluciones.index');
 

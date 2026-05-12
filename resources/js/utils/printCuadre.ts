@@ -14,6 +14,7 @@ interface CuadreData {
     vendedor: string;
     items: CuadreItem[];
     footer?: string;
+    diasCambio?: number;
 }
 
 export function printCuadre(data: CuadreData, returnHtml = false): string | void {
@@ -124,7 +125,7 @@ export function printCuadre(data: CuadreData, returnHtml = false): string | void
             <tr><td class="label">PARES</td><td class="value">${totalPares}</td></tr>
         </table>
 
-        <div class="disclaimer">Conserve el Sticker o Factura para realizar cambios o garant&iacute;as (15) d&iacute;as.</div>
+        <div class="disclaimer">Conserve el Sticker o Factura para realizar cambios o garant&iacute;as (${data.diasCambio ?? 15}) d&iacute;as.</div>
         ${footer ? `<div class="footer-text">${footer}</div>` : ''}
     </div>
 </body>

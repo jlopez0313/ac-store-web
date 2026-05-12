@@ -44,6 +44,7 @@ class CuentasController extends Controller
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
+            'dias_cambio' => 'nullable|integer|min:1',
             'estado' => 'required|boolean',
             'precio_suscripcion' => 'nullable|numeric',
             'fecha_vencimiento' => 'nullable|date',
@@ -63,6 +64,7 @@ class CuentasController extends Controller
     {
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
+            'dias_cambio' => 'nullable|integer|min:1',
             'estado' => 'required|boolean',
             'precio_suscripcion' => 'nullable|numeric',
             'fecha_vencimiento' => 'nullable|date',

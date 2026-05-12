@@ -14,6 +14,7 @@ class Cuenta extends Model
 
     protected $fillable = [
         'nombre',
+        'dias_cambio',
         'estado',
         'precio_suscripcion',
         'fecha_vencimiento',

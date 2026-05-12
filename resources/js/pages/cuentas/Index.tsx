@@ -91,6 +91,12 @@ export default function Index({ filters: initialFilters, estados, default_accoun
 			sortField: 'precio_suscripcion',
 		},
 		{
+			name: 'Días Cambios',
+			selector: (row: any) => `${row.dias_cambio ?? 15} días`,
+			sortable: true,
+			sortField: 'dias_cambio',
+		},
+		{
 			name: 'Fecha de Vencimiento',
 			selector: (row: any) => row.fecha_vencimiento,
 			sortable: true,

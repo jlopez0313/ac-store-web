@@ -64,29 +64,41 @@ class MuestrasController extends Controller
     public function getStock(Request $request)
     {
         $request->validate([
-            'referencia_id' => 'required|exists:referencias,id',
+            'referencia_id' => 'required',
+            'local_id' => 'nullable',
         ]);
 
+        $localId = $request->local_id;
+        
         $stock = Inventario::where('referencia_id', $request->referencia_id)
             ->with(['referencia', 'estanteria.bodega'])
             ->get()
             ->filter(function ($item) {
-                $hasSubdiv = !empty($item->subdivision_stock) && collect($item->subdivision_stock)->sum() > 0;
-                $hasLocation = $item->estanteria && $item->estanteria->bodega;
-                return ($item->stock > 0 || $hasSubdiv) && $hasLocation;
+                return $item->stock > 0 || (!empty($item->subdivision_stock) && collect($item->subdivision_stock)->sum() > 0);
             })
             ->values()
-            ->map(function ($item) {
+            ->map(function ($item) use ($localId) {
+                $descuento = 0;
+                if ($localId && $item->estanteria && $item->estanteria->bodega) {
+                    $acceso = \App\Models\BodegaAcceso::where('user_id', $localId)
+                        ->where('bodega_id', $item->estanteria->bodega->id)
+                        ->first();
+                    $descuento = $acceso ? ($acceso->descuento ?? 0) : 0;
+                }
+
+                $precioBase = (float) ($item->precio_venta ?? 0);
+                $precioFinal = $descuento > 0 ? $precioBase * (1 - ($descuento / 100)) : $precioBase;
+
                 return [
                     'id' => $item->id,
-                    'bodega_id' => $item->estanteria->bodega->id,
-                    'bodega_nombre' => $item->estanteria->bodega->nombre,
-                    'estanteria_nombre' => $item->estanteria->nombre,
+                    'bodega_id' => $item->estanteria ? $item->estanteria->bodega_id : null,
+                    'bodega_nombre' => ($item->estanteria && $item->estanteria->bodega) ? $item->estanteria->bodega->nombre : 'N/A',
                     'talla' => $item->talla,
                     'stock' => $item->stock,
-                    'precio_venta' => $item->precio_venta,
-                    'subdivision_stock' => $item->subdivision_stock,
-                    'referencia_foto' => $item->referencia->foto,
+                    'precio_base' => $precioBase,
+                    'descuento' => $descuento,
+                    'precio_venta' => $precioFinal,
+                    'referencia_foto' => $item->referencia->foto ? asset('storage/' . ltrim(str_replace('storage/', '', ltrim($item->referencia->foto, '/')), '/')) : null,
                 ];
             });
 

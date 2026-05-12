@@ -19,6 +19,7 @@ class CambiosController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $user->load('cuenta');
         $isSuper = $user->role === 'superadmin';
 
         $query = Cambio::with(['local', 'venta', 'detalleOriginal.producto', 'productoNuevo', 'cuenta', 'creator'])
@@ -37,17 +38,94 @@ class CambiosController extends Controller
         return Inertia::render('cambios/Index', [
             'lista' => CambioResource::collection($query->paginate($request->input('per_page', 25))->appends($request->all())),
             'filters' => $request->all(),
-            'cuentas' => $isSuper ? Cuenta::all(['id', 'nombre']) : [],
+            'cuentas' => $isSuper ? Cuenta::all(['id', 'nombre', 'dias_cambio']) : [],
+            'current_cuenta' => $user->cuenta ? ['id' => $user->cuenta->id, 'dias_cambio' => $user->cuenta->dias_cambio] : null,
             'locals' => $locals,
         ]);
+    }
+
+    public function searchSoldItems(Request $request)
+    {
+        $request->validate([
+            'referencia' => 'required|string',
+            'local_id' => 'nullable',
+            'cuenta_id' => 'nullable|exists:cuentas,id',
+        ]);
+
+        $user = auth()->user();
+        $cuentaId = $user->role === 'superadmin' ? $request->cuenta_id : $user->cuenta_id;
+
+        // If superadmin and no account provided, try to find it from local_id
+        if (!$cuentaId && $request->filled('local_id') && $request->local_id !== 'ALL') {
+            $local = User::find($request->local_id);
+            $cuentaId = $local?->cuenta_id;
+        }
+
+        if (!$cuentaId) {
+            return response()->json(['error' => 'Debe seleccionar una cuenta o un local específico.'], 422);
+        }
+
+        $cuenta = Cuenta::find($cuentaId);
+        $diasCambio = $cuenta ? $cuenta->dias_cambio : 15;
+
+        $query = VentaDetalle::where('venta_detalles.estado', 'vendido')
+            ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
+            ->where('ventas.estado', 'cerrada')
+            ->where('ventas.cuenta_id', $cuentaId)
+            ->where('ventas.fecha', '>=', now()->subDays($diasCambio)->format('Y-m-d'));
+        
+        if ($request->filled('local_id') && $request->local_id !== 'ALL') {
+            $query->where('ventas.user_id', $request->local_id);
+        }
+
+        $query->whereHas('producto', function ($q) use ($request) {
+                $q->where('codigo', 'like', "%{$request->referencia}%");
+            })
+            ->with(['producto.marca', 'venta.local'])
+            ->orderBy('ventas.numero', 'desc')
+            ->select('venta_detalles.*');
+
+        $items = $query->get()->map(function ($det) {
+            $fechaVenta = \Carbon\Carbon::parse($det->venta->fecha);
+            return [
+                'id' => $det->id,
+                'venta_id' => $det->venta_id,
+                'venta_numero' => $det->venta->numero ?? $det->venta_id,
+                'fecha' => $fechaVenta->format('d/m/Y'),
+                'dias' => $fechaVenta->diffInDays(now()),
+                'talla' => $det->talla,
+                'cantidad' => $det->cantidad,
+                'precio' => $det->precio_unitario,
+                'precio_sugerido' => $det->inventario->precio_venta ?? 0,
+                'descuento' => \App\Models\BodegaAcceso::where('user_id', $det->venta->user_id)
+                    ->where('bodega_id', $det->bodega_id)
+                    ->first()?->descuento ?? 0,
+                'producto_id' => $det->producto_id,
+                'cliente' => $det->venta->cliente_nombre ?? 'N/A',
+                'local' => $det->venta->local->name ?? 'N/A',
+                'producto' => [
+                    'codigo' => $det->producto->codigo,
+                    'descripcion' => $det->producto->descripcion,
+                    'marca' => $det->producto->marca->nombre ?? 'N/A',
+                    'foto' => $det->producto->foto ? asset('storage/' . ltrim(str_replace('storage/', '', ltrim($det->producto->foto, '/')), '/')) : null,
+                ]
+            ];
+        });
+
+        return response()->json(['data' => $items]);
     }
 
     public function getClosedInvoices(Request $request)
     {
         $request->validate(['local_id' => 'required|exists:users,id']);
 
+        $local = User::findOrFail($request->local_id);
+        $cuenta = $local->cuenta ?? Cuenta::find($request->cuenta_id);
+        $diasCambio = $cuenta ? $cuenta->dias_cambio : 15;
+
         $query = Venta::where('user_id', $request->local_id)
-            ->where('estado', 'cerrada');
+            ->where('estado', 'cerrada')
+            ->where('fecha', '>=', now()->subDays($diasCambio)->format('Y-m-d'));
 
         if ($request->filled('cuenta_id')) {
             $query->where('cuenta_id', $request->cuenta_id);

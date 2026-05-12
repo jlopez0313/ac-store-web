@@ -17,6 +17,7 @@ class CuentasResource extends JsonResource
         return [
             'id'         => $this->id,
             'nombre'     => $this->nombre,
+            'dias_cambio' => $this->dias_cambio ?? 15,
             'estado'     => $this->estado,
             'precio_suscripcion' => $this->precio_suscripcion,
             'fecha_vencimiento'  => $this->fecha_vencimiento?->toDateString(),

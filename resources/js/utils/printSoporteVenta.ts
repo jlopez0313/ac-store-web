@@ -15,6 +15,7 @@ interface SoporteData {
     vendedor: string;
     items: SoporteItem[];
     footer?: string;
+    diasCambio?: number;
 }
 
 export function printSoporteVenta(data: SoporteData, returnHtml = false): string | void {
@@ -121,7 +122,7 @@ export function printSoporteVenta(data: SoporteData, returnHtml = false): string
 
         <div class="disclaimer">
             GRACIAS POR SU COMPRA<br>
-            Conserve este soporte para cambios o garant&iacute;as (15) d&iacute;as.
+            Conserve este soporte para cambios o garant&iacute;as (${data.diasCambio ?? 15}) d&iacute;as.
         </div>
         ${footer ? `<div class="footer-text">${footer}</div>` : ''}
     </div>

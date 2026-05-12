@@ -7,6 +7,7 @@ import { FormEventHandler, useEffect } from 'react';
 
 type ThisForm = {
 	nombre: string;
+	dias_cambio: string;
 	estado: string;
 	precio_suscripcion: string;
 	fecha_vencimiento: string;
@@ -15,6 +16,7 @@ type ThisForm = {
 export const Form = ({ id, estados, setIsOpen, processing, onStore, onGetItem, onReload, default_account_price }: any) => {
 	const { data, setData, errors, reset } = useForm<ThisForm>({
 		nombre: '',
+		dias_cambio: '15',
 		estado: '1',
 		precio_suscripcion: '',
 		fecha_vencimiento: '',
@@ -51,6 +53,7 @@ export const Form = ({ id, estados, setIsOpen, processing, onStore, onGetItem, o
 			if (item) {
 				setData({
 					nombre: item.nombre,
+					dias_cambio: item.dias_cambio?.toString() || '15',
 					estado: item.estado ? '1' : '0',
 					precio_suscripcion: item.precio_suscripcion?.toString() || '',
 					fecha_vencimiento: item.fecha_vencimiento || '',
@@ -85,6 +88,18 @@ export const Form = ({ id, estados, setIsOpen, processing, onStore, onGetItem, o
 								lista={estados}
 								item={{ idx: 'id', value: 'name' }}
 								error={errors.estado}
+							/>
+						</div>
+
+						<div>
+							<InputField
+								name="dias_cambio"
+								title="Días para cambios"
+								type="number"
+								required
+								value={data.dias_cambio}
+								onChange={(value) => setData('dias_cambio', value as any)}
+								error={(errors as any).dias_cambio}
 							/>
 						</div>
 

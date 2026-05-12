@@ -38,7 +38,11 @@ class VentaResource extends JsonResource
             'observaciones' => $this->observaciones,
             'observaciones_local' => $this->observaciones_local,
             'cuenta_id' => $this->cuenta_id,
-            'cuenta' => $this->cuenta->nombre ?? 'N/A',
+            'cuenta' => [
+                'id' => $this->cuenta_id,
+                'nombre' => $this->cuenta->nombre ?? 'N/A',
+                'dias_cambio' => $this->cuenta->dias_cambio ?? 15,
+            ],
             'vendedor' => $this->vendedor ? $this->vendedor->nombre : ($this->creator ? $this->creator->name : ($this->local->name ?? 'N/A')),
             'detalles' => $this->detalles ? $this->detalles->map(function ($d) {
                 return [
