@@ -7,7 +7,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { DollarSign, Eye, Search as SearchIcon } from 'lucide-react';
+import { DollarSign, Eye, Package, Search as SearchIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 // Sub-components
@@ -23,7 +23,7 @@ export default function Index({ filters: initialFilters }: any) {
     const isSuper = auth.user.role === 'superadmin';
 
     const [data, setData] = useState<any[]>([]);
-    const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25, gran_total: 0 });
+    const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25, gran_total: 0, gran_total_items: 0 });
     const [loading, setLoading] = useState(true);
 
     const [filters, setFilters] = useState({
@@ -40,18 +40,17 @@ export default function Index({ filters: initialFilters }: any) {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchData = useCallback(
-        async (newParams = {}) => {
+        async () => {
             setLoading(true);
-            const params = { ...filters, ...newParams };
             try {
-                const response = await axios.get(route('api.facturas.index'), { params });
+                const response = await axios.get(route('api.facturas.index'), { params: filters });
                 const items = response.data.data;
                 setData(items);
                 setMeta(response.data.meta);
 
                 // Auto-open modal if search matches a single record and we haven't opened it yet
-                if (params.search && items.length > 0) {
-                    const found = items.find((f: any) => f.id == params.search || f.numero == params.search);
+                if (filters.search && items.length > 0) {
+                    const found = items.find((f: any) => f.id == filters.search || f.numero == filters.search);
                     if (found && !isModalOpen) {
                         setSelectedFactura(found);
                         setIsModalOpen(true);
@@ -68,13 +67,12 @@ export default function Index({ filters: initialFilters }: any) {
 
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page, filters.tab, filters.sort_field, filters.sort_order]);
+    }, [filters.page, filters.per_page, filters.tab, filters.sort_field, filters.sort_order, filters.search]);
 
     const handleViewInvoice = (id: number) => {
         setIsModalOpen(false);
         setSearchValue(id.toString());
         setFilters((prev) => ({ ...prev, search: id.toString(), page: 1 }));
-        fetchData({ search: id.toString(), page: 1 });
     };
 
     const tabs = [
@@ -88,7 +86,6 @@ export default function Index({ filters: initialFilters }: any) {
     const handleSearch = (tab?: string) => {
         const newTab = tab || filters.tab;
         setFilters((prev) => ({ ...prev, search: searchValue, tab: newTab, page: 1 }));
-        fetchData({ search: searchValue, tab: tab || filters.tab, page: 1 });
     };
 
     const columns = [
@@ -123,16 +120,32 @@ export default function Index({ filters: initialFilters }: any) {
             selector: (row: any) => row.vendedor || '-',
             sortable: true,
             sortField: 'usuario_id',
+            minWidth: '150px',
         },
         {
             name: 'Local',
             selector: (row: any) => row.local?.name || 'N/A',
             sortable: true,
             sortField: 'comercio_id',
+            minWidth: '200px',
         },
         {
             name: 'Bodega',
             selector: (row: any) => row.bodega?.nombre || 'N/A',
+        },
+        {
+            name: 'Items',
+            selector: (row: any) => row.items_count || 0,
+            sortable: true,
+            sortField: 'total_cantidad',
+            width: '100px',
+            center: true,
+            cell: (row: any) => (
+                <div className="flex items-center gap-2">
+                    <Package className="h-3 w-3 text-slate-400" />
+                    <span className="font-semibold">{row.items_count || 0}</span>
+                </div>
+            )
         },
         {
             name: 'Saldo',
@@ -185,17 +198,33 @@ export default function Index({ filters: initialFilters }: any) {
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                     <PageHeader title="Gestión de Facturas" description="Historial de facturas de venta." />
 
-                    <div className="flex items-center gap-5 self-end rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-md transition-all hover:shadow-lg md:self-start dark:border-slate-700 dark:bg-slate-900">
-                        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-indigo-900">
-                            <DollarSign className="h-4 w-4" />
+                    <div className="flex flex-wrap items-center gap-4 self-end md:self-start">
+                        <div className="flex items-center gap-5 rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-md transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-indigo-900">
+                                <DollarSign className="h-4 w-4" />
+                            </div>
+                            <div>
+                                <p className="mb-1.5 text-[10px] leading-none font-medium text-slate-400 uppercase dark:text-slate-500">
+                                    Total Acumulado
+                                </p>
+                                <p className="text-xl leading-none font-bold tracking-tighter text-slate-900 dark:text-white">
+                                    ${Number(meta.gran_total || 0).toLocaleString()}
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="mb-1.5 text-[10px] leading-none font-medium text-slate-400 uppercase dark:text-slate-500">
-                                Total Acumulado
-                            </p>
-                            <p className="text-xl leading-none font-bold tracking-tighter text-slate-900 dark:text-white">
-                                ${Number(meta.gran_total || 0).toLocaleString()}
-                            </p>
+
+                        <div className="flex items-center gap-5 rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-md transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-100 dark:shadow-emerald-900">
+                                <Package className="h-4 w-4" />
+                            </div>
+                            <div>
+                                <p className="mb-1.5 text-[10px] leading-none font-medium text-slate-400 uppercase dark:text-slate-500">
+                                    Total de Items
+                                </p>
+                                <p className="text-xl leading-none font-bold tracking-tighter text-slate-900 dark:text-white">
+                                    {Number(meta.gran_total_items || 0).toLocaleString()}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

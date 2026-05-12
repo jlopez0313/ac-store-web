@@ -20,7 +20,7 @@ class FacturasController extends Controller
         $sortField = $request->input('sort_field', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
-        $query = Venta::with(['local', 'creator', 'detalles.bodega', 'detalles.cambio', 'cuenta']);
+        $query = Venta::with(['local', 'cuenta', 'creator', 'vendedor']);
 
         if ($user->hasRole('local')) {
             $query->where('user_id', $user->id);
@@ -50,12 +50,35 @@ class FacturasController extends Controller
             });
         }
 
-        $granTotal = $query->sum('total');
-        $paginated = $query->orderBy($sortField, $sortOrder)->paginate($request->input('per_page', 25));
+        $granTotal = (float) $query->sum('total');
+        $granTotalItems = (int) \App\Models\VentaDetalle::whereIn('venta_id', (clone $query)->select('id'))->sum('cantidad');
+        
+        $paginated = $query->withSum('detalles as total_items', 'cantidad')
+            ->orderBy($sortField, $sortOrder)
+            ->paginate($request->input('per_page', 25));
 
-        return VentaResource::collection($paginated)->additional([
+        return response()->json([
+            'data' => $paginated->getCollection()->map(fn($v) => [
+                'id' => $v->id,
+                'numero' => $v->numero,
+                'fecha' => $v->fecha ? $v->fecha->format('Y-m-d') : null,
+                'created_at' => $v->created_at->toISOString(),
+                'estado' => $v->estado,
+                'total' => (float) $v->total,
+                'items_count' => (int) ($v->total_items ?? 0),
+                'local' => [
+                    'id' => $v->local->id ?? null,
+                    'name' => $v->local->name ?? 'N/A',
+                ],
+                'cuenta' => $v->cuenta->nombre ?? 'N/A',
+                'vendedor' => $v->vendedor ? $v->vendedor->nombre : ($v->creator ? $v->creator->name : ($v->local->name ?? 'N/A')),
+            ]),
             'meta' => [
-                'gran_total' => $granTotal
+                'current_page' => $paginated->currentPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+                'gran_total' => $granTotal,
+                'gran_total_items' => $granTotalItems,
             ]
         ]);
     }

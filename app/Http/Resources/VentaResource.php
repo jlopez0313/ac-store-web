@@ -32,6 +32,7 @@ class VentaResource extends JsonResource
             'fecha' => $this->fecha ? $this->fecha->format('Y-m-d') : null,
             'created_at' => $this->created_at->toISOString(),
             'estado' => $this->estado,
+            'items_count' => (int) ($this->total_items ?? $this->detalles->sum('cantidad')),
             'total' => $this->total,
             'subtotal' => $this->subtotal,
             'observaciones' => $this->observaciones,
