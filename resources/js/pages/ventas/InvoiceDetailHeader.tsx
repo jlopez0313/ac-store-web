@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -118,12 +119,12 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                             </Badge>
                             <Badge
                                 variant="outline"
-                                className={`px-3 py-1 text-xs ${factura.estado === 'cerrada'
-                                    ? 'border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'
-                                    : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                    }`}
+                                className={cn(
+                                    'px-3 py-1 text-xs capitalize',
+                                    factura.estado === 'cerrada' ? 'badge-closed' : 'badge-open'
+                                )}
                             >
-                                {factura.estado === 'cerrada' ? 'Cerrada' : 'Abierta'}
+                                {factura.estado}
                             </Badge>
                         </div>
                         <div className="text-xs font-medium text-slate-400 uppercase dark:text-slate-500">

@@ -55,9 +55,21 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
         [filters],
     );
 
+    const [searchQuery, setSearchQuery] = useState(filters.search);
+
+    // Debounced automatic search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                handleSearch(searchQuery);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page, filters.sort_field, filters.sort_order]);
+    }, [filters.page, filters.per_page, filters.sort_field, filters.sort_order, filters.search]);
 
     const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(
         null, // We handle data locally
@@ -66,7 +78,6 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
 
     const handleSearch = (search: string) => {
         setFilters((prev) => ({ ...prev, search, page: 1 }));
-        fetchData({ search, page: 1 });
     };
 
     const columns = [
@@ -224,20 +235,11 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
                                 id="search-input"
                                 placeholder="Buscar por nombre, usuario, email..."
                                 className="pl-9"
-                                defaultValue={filters.search}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
                             />
                         </div>
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                handleSearch(val);
-                            }}
-                        >
-                            <SearchIcon className="h-4 w-4 mr-2" />
-                            Buscar
-                        </Button>
                     </div>
                     <Button onClick={() => onToggleModal(true)}>
                         <Plus className="mr-2 h-5 w-5" />

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,7 +15,7 @@ return new class extends Migration
                 $table->id();
                 $table->foreignId('user_id')->comment('El local receptor')->constrained('users')->onDelete('cascade');
                 $table->foreignId('cuenta_id')->constrained('cuentas')->onDelete('cascade');
-                $table->date('fecha');
+                $table->timestamp('fecha');
                 $table->enum('estado', ['abierta', 'cerrada'])->default('abierta');
                 $table->text('observaciones')->nullable();
                 $table->decimal('subtotal', 15, 2)->default(0);

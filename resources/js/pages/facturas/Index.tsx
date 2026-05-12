@@ -3,11 +3,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { DollarSign, Eye, Package, Search as SearchIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { DollarSign, Eye, Package, Search as SearchIcon, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 // Sub-components
@@ -28,6 +30,8 @@ export default function Index({ filters: initialFilters }: any) {
 
     const [filters, setFilters] = useState({
         search: initialFilters?.search || '',
+        desde: initialFilters?.desde || '',
+        hasta: initialFilters?.hasta || '',
         per_page: initialFilters?.per_page || 25,
         page: initialFilters?.page || 1,
         tab: initialFilters?.tab || 'todas',
@@ -65,9 +69,19 @@ export default function Index({ filters: initialFilters }: any) {
         [filters, isModalOpen],
     );
 
+    // Debounced automatic search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchValue !== filters.search) {
+                handleSearch();
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchValue]);
+
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page, filters.tab, filters.sort_field, filters.sort_order, filters.search]);
+    }, [filters.page, filters.per_page, filters.tab, filters.sort_field, filters.sort_order, filters.search, filters.desde, filters.hasta]);
 
     const handleViewInvoice = (id: number) => {
         setIsModalOpen(false);
@@ -88,6 +102,20 @@ export default function Index({ filters: initialFilters }: any) {
         setFilters((prev) => ({ ...prev, search: searchValue, tab: newTab, page: 1 }));
     };
 
+    const handleClear = () => {
+        setSearchValue('');
+        setFilters({
+            search: '',
+            desde: '',
+            hasta: '',
+            per_page: 25,
+            page: 1,
+            tab: 'todas',
+            sort_field: 'id',
+            sort_order: 'desc',
+        });
+    };
+
     const columns = [
         {
             name: 'ID',
@@ -102,6 +130,11 @@ export default function Index({ filters: initialFilters }: any) {
             sortable: true,
             sortField: 'numero',
             width: '100px',
+            cell: (row: any) => (
+                <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                    {row.numero || '-'}
+                </span>
+            ),
         },
         ...(isSuper ? [{
             name: 'Cuenta',
@@ -152,16 +185,26 @@ export default function Index({ filters: initialFilters }: any) {
             selector: (row: any) => row.total || 0,
             sortable: true,
             sortField: 'total',
-            cell: (row: any) => `$${Number(row.total || 0).toLocaleString()}`,
+            cell: (row: any) => (
+                <span className="font-bold text-slate-900 dark:text-white">
+                    ${Number(row.total || 0).toLocaleString()}
+                </span>
+            ),
         },
         {
             name: 'Días',
-            selector: (row: any) => {
-                const start = new Date(row.created_at);
-                const end = new Date();
-                const diffTime = Math.abs(end.getTime() - start.getTime());
-                return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            },
+            selector: (row: any) => row.diferencia_dias || 0,
+            sortable: true,
+            width: '80px',
+            center: true,
+            cell: (row: any) => {
+                const dias = row.diferencia_dias || 0;
+                return (
+                    <span className={`font-medium ${dias > 15 ? 'text-red-500' : 'text-slate-500'}`}>
+                        {dias}
+                    </span>
+                );
+            }
         },
         {
             name: 'Estado',
@@ -169,7 +212,13 @@ export default function Index({ filters: initialFilters }: any) {
             sortable: true,
             sortField: 'estado',
             cell: (row: any) => (
-                <Badge variant={row.estado === 'cerrada' ? 'default' : 'outline'} className="capitalize">
+                <Badge
+                    variant="outline"
+                    className={cn(
+                        'capitalize',
+                        row.estado === 'cerrada' ? 'badge-closed' : 'badge-open'
+                    )}
+                >
                     {row.estado}
                 </Badge>
             ),
@@ -229,32 +278,56 @@ export default function Index({ filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
-                    <div className="flex max-w-md flex-1 items-center gap-2">
-                        <div className="relative flex-1">
-                            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                            <Input
-                                id="search-input"
-                                placeholder="Buscar por ID, vendedor, local..."
-                                className="pl-9"
-                                value={searchValue}
-                                onChange={(e) => setSearchValue(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                            />
+                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-end">
+                    <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:items-end">
+                        <div className="flex max-w-md flex-1 items-center gap-2">
+                            <div className="relative flex-1">
+                                <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                <Input
+                                    id="search-input"
+                                    placeholder="Buscar por ID, vendedor, local..."
+                                    className="pl-9"
+                                    value={searchValue}
+                                    onChange={(e) => setSearchValue(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                />
+                            </div>
                         </div>
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                handleSearch();
-                            }}
-                        >
-                            <SearchIcon className="h-4 w-4 mr-2" />
-                            Buscar
-                        </Button>
+
+                        <div className="flex items-center gap-3">
+                            <div className="flex flex-col gap-1.5">
+                                <Label htmlFor="desde" className="text-[10px] font-bold uppercase text-slate-400">Desde</Label>
+                                <Input
+                                    id="desde"
+                                    type="date"
+                                    className="h-9 w-36"
+                                    value={filters.desde}
+                                    onChange={(e) => setFilters(prev => ({ ...prev, desde: e.target.value, page: 1 }))}
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                                <Label htmlFor="hasta" className="text-[10px] font-bold uppercase text-slate-400">Hasta</Label>
+                                <Input
+                                    id="hasta"
+                                    type="date"
+                                    className="h-9 w-36"
+                                    value={filters.hasta}
+                                    onChange={(e) => setFilters(prev => ({ ...prev, hasta: e.target.value, page: 1 }))}
+                                />
+                            </div>
+                            <Button
+                                variant="outline"
+                                onClick={handleClear}
+                                size="icon"
+                                className="mt-auto h-9 w-9 text-slate-400 transition-all hover:border-red-100 hover:bg-red-50 hover:text-red-600"
+                                title="Limpiar filtros"
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 border rounded-lg">
+                    <div className="flex flex-wrap items-center gap-3 border rounded-lg h-fit">
                         <div className="flex rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
                             {tabs.map((tab) => (
                                 <button

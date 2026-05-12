@@ -226,6 +226,11 @@ class VentasController extends Controller
         }
 
         $muestras = $muestrasQuery->get()->map(function ($m) {
+            $etiquetas = $m->etiquetas ?: [];
+            if ($m->variante && !in_array($m->variante, $etiquetas)) {
+                $etiquetas[] = $m->variante;
+            }
+
             return [
                 'id' => $m->inventario_id,
                 'muestra_id' => $m->id,
@@ -234,11 +239,12 @@ class VentasController extends Controller
                 'bodega_nombre' => "En Local: " . ($m->local->name ?? 'N/A'),
                 'estanteria_id' => null,
                 'estanteria_nombre' => 'Muestra Física',
-                'talla' => $m->variante,
+                'talla' => $m->inventario->talla ?? $m->variante,
+                'talla_muestra' => $m->variante, // Keep the original side info
                 'stock' => 1,
                 'precio_venta' => $m->inventario->precio_venta ?? 0,
                 'is_muestra' => true,
-                'etiquetas' => $m->etiquetas
+                'etiquetas' => $etiquetas
             ];
         });
 

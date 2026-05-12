@@ -50,6 +50,14 @@ class FacturasController extends Controller
             });
         }
 
+        // Apply date filters
+        if ($request->filled('desde')) {
+            $query->whereDate('fecha', '>=', $request->desde);
+        }
+        if ($request->filled('hasta')) {
+            $query->whereDate('fecha', '<=', $request->hasta);
+        }
+
         $granTotal = (float) $query->sum('total');
         $granTotalItems = (int) \App\Models\VentaDetalle::whereIn('venta_id', (clone $query)->select('id'))->sum('cantidad');
         
@@ -62,6 +70,7 @@ class FacturasController extends Controller
                 'id' => $v->id,
                 'numero' => $v->numero,
                 'fecha' => $v->fecha ? $v->fecha->format('Y-m-d') : null,
+                'diferencia_dias' => $v->fecha ? (int) $v->fecha->diffInDays(now()) : 0,
                 'created_at' => $v->created_at->toISOString(),
                 'estado' => $v->estado,
                 'total' => (float) $v->total,

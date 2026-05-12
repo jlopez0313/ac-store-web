@@ -58,19 +58,29 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 			setMeta(response.data.meta);
 		} catch (error) {
 			console.error('Error fetching inventory:', error);
-			showAlert('error', 'No se pudieron cargar los datos del inventario.');
 		} finally {
 			setLoading(false);
 		}
 	}, [filters]);
 
+	const [searchQuery, setSearchQuery] = useState(filters.search);
+
+	// Debounced automatic search
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (searchQuery !== filters.search) {
+				handleSearch();
+			}
+		}, 500);
+		return () => clearTimeout(timer);
+	}, [searchQuery]);
+
 	useEffect(() => {
 		fetchData();
-	}, [filters.page, filters.per_page, filters.sort_field, filters.sort_order]);
+	}, [filters.page, filters.per_page, filters.sort_field, filters.sort_order, filters.search]);
 
-	const handleSearch = (search: string) => {
-		setFilters(prev => ({ ...prev, search, page: 1 }));
-		fetchData({ search, page: 1 });
+	const handleSearch = () => {
+		setFilters(prev => ({ ...prev, search: searchQuery, page: 1 }));
 	};
 
 	const handleAdjustFromIndex = async (referencia: any) => {
@@ -241,20 +251,11 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 								id="search-input"
 								placeholder="Buscar por código, descripción, marca..."
 								className="pl-9"
-								defaultValue={filters.search}
-								onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
 							/>
 						</div>
-						<Button
-							variant="secondary"
-							onClick={() => {
-								const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-								handleSearch(val);
-							}}
-						>
-							<Search className="h-4 w-4 mr-2" />
-							Buscar
-						</Button>
 					</div>
 					<div className="flex items-center gap-2">
 						<Badge variant="secondary" className="px-3 py-1 text-xs">
@@ -309,6 +310,10 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 					setDistributionDetails(details);
 					setIsDetailModalOpen(false);
 					setAdjustmentOpen(true);
+				}}
+				onPrint={(shelf: any) => {
+					setSelectedShelf(shelf);
+					setIsStickersModalOpen(true);
 				}}
 			/>
 

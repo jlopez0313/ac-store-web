@@ -56,18 +56,29 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
         [filters, selectedCuenta],
     );
 
+    const [searchQuery, setSearchQuery] = useState(filters.search);
+
+    // Debounced automatic search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                handleSearch();
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page, filters.sort_field, filters.sort_order, selectedCuenta]);
+    }, [filters.page, filters.per_page, filters.sort_field, filters.sort_order, filters.search, selectedCuenta]);
 
     const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(
         null, // We handle data locally
         (params: any) => ({ url: route('api.referencias.destroy', { referencia: params.id }) }),
     );
 
-    const handleSearch = (search: string) => {
-        setFilters((prev) => ({ ...prev, search, page: 1 }));
-        fetchData({ search, page: 1 });
+    const handleSearch = () => {
+        setFilters((prev) => ({ ...prev, search: searchQuery, page: 1 }));
     };
 
     const columns = [
@@ -158,20 +169,11 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
                                     id="search-input"
                                     placeholder="Buscar por código, descripción, marca..."
                                     className="pl-9"
-                                    defaultValue={filters.search}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                 />
                             </div>
-                            <Button
-                                variant="secondary"
-                                onClick={() => {
-                                    const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                    handleSearch(val);
-                                }}
-                            >
-                                <SearchIcon className="h-4 w-4 mr-2" />
-                                Buscar
-                            </Button>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { cn } from '@/lib/utils';
 import { FileText, Search } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface InvoiceListProps {
     invoices: any[];
@@ -21,7 +22,22 @@ interface InvoiceListProps {
     isAdmin: boolean;
 }
 
-export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, selectedFactura, onSelectInvoice, filters, onSearch, onFilterChange, cuentas, dynamicLocales, isSuperAdmin, isAdmin }) => {
+export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, selectedFactura, onSelectInvoice, filters, onSearch, onFilterChange, loading, cuentas, dynamicLocales, isSuperAdmin, isAdmin }) => {
+    const [searchQuery, setSearchQuery] = useState(filters.search);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                onSearch(searchQuery);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        setSearchQuery(filters.search);
+    }, [filters.search]);
+
     return (
         <Card className="flex h-[calc(100vh-10rem)] flex-col overflow-hidden border-slate-200 shadow-sm lg:col-span-1 dark:border-slate-700">
             <CardHeader className="px-4 pt-4 pb-2">
@@ -68,26 +84,22 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, selectedFact
                             <input
                                 id="search-invoice"
                                 type="text"
-                                defaultValue={filters.search}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Buscar factura #"
                                 className="w-full rounded-lg border border-slate-200 py-2 pr-3 pl-9 text-sm transition-all focus:border-transparent focus:ring-2 focus:ring-slate-900 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-slate-500"
                                 onKeyDown={(e) => {
-                                    if (e.key === 'Enter') onSearch(e.currentTarget.value);
+                                    if (e.key === 'Enter') onSearch(searchQuery);
                                 }}
                             />
                         </div>
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const val = (document.getElementById('search-invoice') as HTMLInputElement)?.value;
-                                onSearch(val);
-                            }}
-                        >
-                            <Search className="h-4 w-4" />
-                        </Button>
                     </div>
 
-                    {invoices.length === 0 && <div className="py-6 text-center text-sm text-slate-500 italic">No hay facturas registradas.</div>}
+                    {loading ? (
+                        <div className="py-6 text-center text-sm text-slate-500 italic">Cargando facturas...</div>
+                    ) : (
+                        invoices.length === 0 && <div className="py-6 text-center text-sm text-slate-500 italic">No hay facturas registradas.</div>
+                    )}
 
                     {invoices.map((factura: any) => {
                         const isSelected = selectedFactura?.id === factura.id;

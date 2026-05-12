@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { ArrowLeftRight, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import { TransferModal } from './TransferModal';
 
@@ -23,11 +23,22 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [viewerImage, setViewerImage] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
+
+    // Debounced automatic search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                handleSearch(searchQuery);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     const handleSearch = (search?: string, page?: number, perPage?: number) => {
         router.visit(
             route('traslados.index', {
-                search: search !== undefined ? search : filters.search,
+                search: search !== undefined ? search : searchQuery,
                 page: page ?? 1,
                 per_page: perPage ?? filters.per_page ?? 25,
             }),
@@ -128,20 +139,11 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
                                 id="search-input"
                                 placeholder="Buscar por código..."
                                 className="pl-9"
-                                defaultValue={filters.search}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
                             />
                         </div>
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                handleSearch(val);
-                            }}
-                        >
-                            <Search className="h-4 w-4 mr-2" />
-                            Buscar
-                        </Button>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button onClick={() => setIsModalOpen(true)}>

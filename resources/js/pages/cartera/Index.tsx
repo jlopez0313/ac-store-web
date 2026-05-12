@@ -49,13 +49,24 @@ export default function Index({ filters: initialFilters }: any) {
         [filters],
     );
 
+    const [searchQuery, setSearchQuery] = useState(filters.search);
+
+    // Debounced automatic search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                handleSearch(searchQuery);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page, filters.tab]);
+    }, [filters.page, filters.per_page, filters.tab, filters.search]);
 
     const handleSearch = (search: string) => {
         setFilters((prev) => ({ ...prev, search, page: 1 }));
-        fetchData({ search, page: 1 });
     };
 
     const columns = [
@@ -113,20 +124,11 @@ export default function Index({ filters: initialFilters }: any) {
                                 id="search-input"
                                 placeholder="Buscar por cliente o identificación..."
                                 className="pl-9"
-                                defaultValue={filters.search}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
                             />
                         </div>
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                handleSearch(val);
-                            }}
-                        >
-                            <SearchIcon className="h-4 w-4 mr-2" />
-                            Buscar
-                        </Button>
                     </div>
 
                     <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">

@@ -52,9 +52,21 @@ export default function Index({ locals, filters: initialFilters }: any) {
         [filters],
     );
 
+    const [searchQuery, setSearchQuery] = useState(filters.search);
+
+    // Debounced automatic search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                handleSearch(searchQuery);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page, filters.local_id, filters.from, filters.to]);
+    }, [filters.page, filters.per_page, filters.local_id, filters.from, filters.to, filters.search]);
 
     const handleFilterChange = (key: string, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));
@@ -62,7 +74,6 @@ export default function Index({ locals, filters: initialFilters }: any) {
 
     const handleSearch = (search: string) => {
         setFilters((prev) => ({ ...prev, search, page: 1 }));
-        fetchData({ search, page: 1 });
     };
 
     const clearFilters = () => {
@@ -208,20 +219,11 @@ export default function Index({ locals, filters: initialFilters }: any) {
                                     id="search-input"
                                     placeholder="Buscar por código, observación..."
                                     className="pl-9"
-                                    defaultValue={filters.search}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
                                 />
                             </div>
-                            <Button
-                                variant="secondary"
-                                onClick={() => {
-                                    const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                    handleSearch(val);
-                                }}
-                            >
-                                <SearchIcon className="h-4 w-4 mr-2" />
-                                Buscar
-                            </Button>
                         </div>
 
                         <div className="min-w-[200px]">

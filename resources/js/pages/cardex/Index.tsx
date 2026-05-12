@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
@@ -49,13 +50,24 @@ export default function Index({ filters: initialFilters }: any) {
         [filters],
     );
 
+    const [searchQuery, setSearchQuery] = useState(filters.search);
+
+    // Debounced automatic search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                handleSearch(searchQuery);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page, filters.tab]);
+    }, [filters.page, filters.per_page, filters.tab, filters.search]);
 
     const handleSearch = (search: string) => {
         setFilters((prev) => ({ ...prev, search, page: 1 }));
-        fetchData({ search, page: 1 });
     };
 
     const handleTabChange = (tab: string) => {
@@ -67,51 +79,61 @@ export default function Index({ filters: initialFilters }: any) {
     const columns = [
         {
             name: 'Referencia',
-            cell: (row: any) => <span className="rounded border-2 px-1 text-xs font-bold">{row.referencia}</span>,
+            cell: (row: any) => <span className="font-bold text-slate-900 dark:text-white">{row.referencia}</span>,
             sortable: true,
             sortField: 'codigo',
+            width: '140px',
         },
         {
             name: 'Descripción',
-            cell: (row: any) => <span className="line-clamp-2 font-medium text-slate-700 uppercase">{row.descripcion}</span>,
-            grow: 1.5,
+            cell: (row: any) => <span className="line-clamp-2 text-xs text-slate-500 uppercase">{row.descripcion}</span>,
         },
         {
             name: 'Entradas',
-            cell: (row: any) => <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{row.entradas.toLocaleString()}</span>,
+            cell: (row: any) => <span className="text-sm font-semibold">{row.entradas.toLocaleString()}</span>,
+            width: '120px',
         },
         {
             name: 'Ventas',
-            cell: (row: any) => <span className="text-xs font-bold text-slate-400">{row.ventas.toLocaleString()}</span>,
+            cell: (row: any) => <span className="text-sm font-semibold text-slate-400">{row.ventas.toLocaleString()}</span>,
+            width: '120px',
         },
         {
             name: 'Bodega',
             cell: (row: any) => (
                 <Badge
-                    className={`flex w-14 justify-center px-2 text-xs font-bold tracking-tighter ${row.bodega > 0 ? 'bg-indigo-600 text-white' : 'border-red-200 bg-red-50 text-red-500 dark:border-red-800 dark:bg-red-950 dark:text-red-400'}`}
-                    variant={row.bodega > 0 ? 'default' : 'outline'}
+                    variant="outline"
+                    className={cn(
+                        'w-16 justify-center font-bold',
+                        row.bodega > 0 ? 'badge-open' : 'badge-closed text-red-500 border-red-200'
+                    )}
                 >
                     {row.bodega.toLocaleString()}
                 </Badge>
             ),
+            width: '110px',
         },
         {
             name: 'Días',
             cell: (row: any) => (
-                <div
-                    className={`flex items-center justify-center rounded border-2 p-1 text-[10px] font-bold ${row.dias > 30 ? 'border-red-200 bg-red-50 text-red-600 dark:border-red-800 dark:bg-red-950 dark:text-red-400' : 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'}`}
-                >
-                    {row.dias}
-                </div>
+                <span className={cn(
+                    'text-xs font-bold',
+                    row.dias > 30 ? 'text-red-500' : 'text-slate-500'
+                )}>
+                    {row.dias}d
+                </span>
             ),
+            width: '80px',
         },
         {
-            name: 'Precio de Costo',
-            cell: (row: any) => <span className="text-[11px] font-medium text-slate-400">${row.p_costo.toLocaleString()}</span>,
+            name: 'P. Costo',
+            cell: (row: any) => <span className="text-xs text-slate-400">${row.p_costo.toLocaleString()}</span>,
+            width: '120px',
         },
         {
-            name: 'Precio de Venta',
-            cell: (row: any) => <span className="text-xs font-bold text-slate-900 dark:text-slate-100">${row.p_venta.toLocaleString()}</span>,
+            name: 'P. Venta',
+            cell: (row: any) => <span className="text-sm font-bold text-indigo-600">${row.p_venta.toLocaleString()}</span>,
+            width: '120px',
         },
     ];
 
@@ -127,9 +149,9 @@ export default function Index({ filters: initialFilters }: any) {
                     />
 
                     <div className="flex flex-wrap items-center gap-4">
-                        <StatCard label="Total Entradas" value={meta.stats.total_entradas} icon={TrendingUp} color="indigo" />
-                        <StatCard label="Total Ventas" value={meta.stats.total_ventas} icon={ArrowUpRight} color="amber" />
-                        <StatCard label="Total Bodega" value={meta.stats.total_bodega} icon={Box} color="emerald" />
+                        <StatCard label="Total Entradas" value={meta.stats.total_entradas} icon={TrendingUp} />
+                        <StatCard label="Total Ventas" value={meta.stats.total_ventas} icon={ArrowUpRight} />
+                        <StatCard label="Total Bodega" value={meta.stats.total_bodega} icon={Box} />
                     </div>
                 </div>
 
@@ -141,20 +163,11 @@ export default function Index({ filters: initialFilters }: any) {
                                 id="search-input"
                                 placeholder="Buscar por código, descripción..."
                                 className="pl-9"
-                                defaultValue={filters.search}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
                             />
                         </div>
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                handleSearch(val);
-                            }}
-                        >
-                            <SearchIcon className="h-4 w-4 mr-2" />
-                            Buscar
-                        </Button>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
@@ -182,7 +195,7 @@ export default function Index({ filters: initialFilters }: any) {
                         paginationServer={true}
                         fetchPage={(page) => setFilters((prev) => ({ ...prev, page }))}
                         setPageSize={(size) => setFilters((prev) => ({ ...prev, per_page: size, page: 1 }))}
-                        onSort={() => {}}
+                        onSort={() => { }}
                     />
                 </div>
             </div>
@@ -190,21 +203,15 @@ export default function Index({ filters: initialFilters }: any) {
     );
 }
 
-function StatCard({ label, value, icon: Icon, color }: any) {
-    const colors: any = {
-        indigo: 'bg-indigo-600 text-indigo-100 shadow-indigo-100',
-        amber: 'bg-amber-500 text-amber-100 shadow-amber-100',
-        emerald: 'bg-emerald-500 text-emerald-100 shadow-emerald-100',
-    };
-
+function StatCard({ label, value, icon: Icon }: any) {
     return (
-        <div className="flex min-w-44 items-center gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-xs transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
-            <div className={`flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-lg ${colors[color].split(' ')[0]}`}>
+        <div className="flex min-w-44 items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                 <Icon className="h-5 w-5" />
             </div>
             <div>
-                <p className="mb-1.5 text-[9px] leading-none font-bold tracking-widest text-slate-400 uppercase dark:text-slate-500">{label}</p>
-                <p className="text-lg leading-none font-bold tracking-tighter text-slate-900 dark:text-white">{value.toLocaleString()}</p>
+                <p className="mb-1 text-[10px] font-bold tracking-wider text-slate-400 uppercase">{label}</p>
+                <p className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{value.toLocaleString()}</p>
             </div>
         </div>
     );

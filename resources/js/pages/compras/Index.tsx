@@ -58,13 +58,24 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
         [filters],
     );
 
+    const [searchQuery, setSearchQuery] = useState(filters.search);
+
+    // Debounced automatic search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                handleSearch(searchQuery);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page]);
+    }, [filters.page, filters.per_page, filters.search]);
 
     const handleSearch = (search: string) => {
         setFilters((prev) => ({ ...prev, search, page: 1 }));
-        fetchData({ search, page: 1 });
     };
 
     const openAdd = (ref: any) => {
@@ -134,22 +145,13 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                                     <input
                                         id="search-input"
                                         type="text"
-                                        defaultValue={filters.search}
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
                                         placeholder="Buscar factura, proveedor..."
                                         className="w-full rounded-lg border border-slate-200 py-2 pr-3 pl-9 text-sm transition-all focus:border-transparent focus:ring-2 focus:ring-slate-900 focus:outline-none"
-                                        onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
                                     />
                                 </div>
-                                <Button
-                                    variant="secondary"
-                                    loading={loading}
-                                    onClick={() => {
-                                        const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                        handleSearch(val);
-                                    }}
-                                >
-                                    <Search className="h-4 w-4" />
-                                </Button>
                             </div>
                             <div className="flex-1 space-y-1 overflow-y-auto pr-1">
                                 {loading && facturas.length === 0 ? (

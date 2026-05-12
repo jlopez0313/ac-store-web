@@ -102,12 +102,12 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
         setViewerImage(null);
     }, []);
 
-    // Debounced search
+    // Debounced automatic search
     useEffect(() => {
         if (mode === 'search' && isOpen && !referencia) {
             const timeout = setTimeout(() => {
                 searchRefs(1);
-            }, 300);
+            }, 500);
             return () => clearTimeout(timeout);
         }
     }, [searchTerm, selectedBodegaId, selectedTalla, mode, isOpen]);
@@ -150,8 +150,10 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 
     const permittedBodegaIds = useMemo(() => {
         if (!factura || !bodega_accesos) return new Set<number>();
+        const isAdmin = ['superadmin', 'admin', 'bodega'].includes(auth.user.role);
+        if (isAdmin) return new Set(bodegas.map((b: any) => b.id));
         return new Set(bodega_accesos?.filter((a: any) => a.user_id === factura.local?.id && a.can_view).map((a: any) => a.bodega_id));
-    }, [bodega_accesos, factura]);
+    }, [bodega_accesos, factura, auth.user.role, bodegas]);
 
     const fetchStock = async (ref: any) => {
         setLoadingStock(true);
@@ -243,9 +245,16 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 
             if (!permittedBodegaIds.has(s.bodega_id)) return;
 
-            const access = bodega_accesos?.find((a: any) => factura && a.bodega_id === s.bodega_id && a.user_id === factura.local?.id);
+            const isAdmin = ['superadmin', 'admin', 'bodega'].includes(auth.user.role);
+            let access = bodega_accesos?.find((a: any) => factura && a.bodega_id === s.bodega_id && a.user_id === factura.local?.id);
 
-            if (!access) return;
+            if (!access) {
+                if (isAdmin) {
+                    access = { can_order: true, descuento: 0 };
+                } else {
+                    return;
+                }
+            }
 
             if (!groups[s.bodega_id]) {
                 groups[s.bodega_id] = {
@@ -337,7 +346,18 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
-                        submit();
+                        if (mode === 'search') {
+                            searchRefs(1);
+                        }
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            if (mode === 'search') {
+                                searchRefs(1);
+                            }
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
                     }}
                     className="bg-background flex h-[80dvh] max-h-[700px] flex-col overflow-hidden"
                 >

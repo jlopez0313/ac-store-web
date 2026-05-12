@@ -39,8 +39,11 @@ export default function VideosIndex() {
     });
 
     useEffect(() => {
-        fetchVideos();
-    }, []);
+        const timer = setTimeout(() => {
+            fetchVideos(search);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [search]);
 
     const fetchVideos = async (query = '') => {
         try {
@@ -53,10 +56,6 @@ export default function VideosIndex() {
         }
     };
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        fetchVideos(search);
-    };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -138,7 +137,7 @@ export default function VideosIndex() {
                         <p className="text-muted-foreground">Tutoriales y guías para el uso de la plataforma.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <form onSubmit={handleSearch} className="relative w-full max-w-sm">
+                        <div className="relative w-full max-w-sm">
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
                                 type="search"
@@ -147,7 +146,7 @@ export default function VideosIndex() {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
-                        </form>
+                        </div>
                         {isSuper && (
                             <Button onClick={() => { resetForm(); setIsCreateModalOpen(true); }}>
                                 <Plus className="mr-2 h-4 w-4" /> Nuevo Video

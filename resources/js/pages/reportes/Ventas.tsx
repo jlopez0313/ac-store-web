@@ -11,7 +11,8 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { BarChart3, Calendar, Eye, Hash, ImageIcon, MapPin, Package, RefreshCw, Search, ShoppingCart, X } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { cn } from '@/lib/utils';
+import { useCallback, useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Panel principal', href: route('dashboard') },
@@ -26,8 +27,8 @@ export default function Ventas({ cuentas, locales }: any) {
     const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
     const [filters, setFilters] = useState({
-        desde: firstDay,
-        hasta: today,
+        desde: '',
+        hasta: '',
         local_id: '',
         cuenta_id: 'all',
     });
@@ -36,7 +37,6 @@ export default function Ventas({ cuentas, locales }: any) {
     const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25, total_facturas: 0, total_ventas: 0, total_productos: 0 });
     const [viewerImage, setViewerImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [searched, setSearched] = useState(false);
 
     // Invoice details modal
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -57,7 +57,6 @@ export default function Ventas({ cuentas, locales }: any) {
             });
             setData(response.data.data);
             setMeta(response.data.meta);
-            setSearched(true);
         } catch (e) {
             console.error(e);
         } finally {
@@ -65,13 +64,12 @@ export default function Ventas({ cuentas, locales }: any) {
         }
     }, [filters]);
 
-    const handleSearch = () => fetchData({ page: 1 });
+    useEffect(() => {
+        fetchData();
+    }, [filters.desde, filters.hasta, filters.local_id, filters.cuenta_id]);
 
     const handleClear = () => {
-        setFilters({ desde: firstDay, hasta: today, local_id: '', cuenta_id: 'all' });
-        setData([]);
-        setMeta({ total: 0, current_page: 1, per_page: 25, total_facturas: 0, total_ventas: 0, total_productos: 0 });
-        setSearched(false);
+        setFilters({ desde: '', hasta: '', local_id: '', cuenta_id: 'all' });
     };
 
     const handleViewDetails = async (invoice: any) => {
@@ -277,127 +275,116 @@ export default function Ventas({ cuentas, locales }: any) {
 
                 {/* Filters */}
                 <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                    <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-12">
-                        {isSuper && (
-                            <div className="lg:col-span-2">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
+                        <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-end">
+                            {isSuper && (
+                                <div className="flex-1 min-w-[180px]">
+                                    <SelectField
+                                        name="cuenta_id"
+                                        title="Cuenta"
+                                        value={filters.cuenta_id}
+                                        onChange={(val) => setFilters(p => ({ ...p, cuenta_id: val as string }))}
+                                        lista={[{ id: 'all', nombre: 'Todas las cuentas' }, ...cuentas]}
+                                        item={{ idx: 'id', value: 'nombre' }}
+                                        error={undefined}
+                                    />
+                                </div>
+                            )}
+
+                            <div className="flex-1 min-w-[180px]">
                                 <SelectField
-                                    name="cuenta_id"
-                                    title="Cuenta"
-                                    value={filters.cuenta_id}
-                                    onChange={(val) => setFilters(p => ({ ...p, cuenta_id: val as string }))}
-                                    lista={[{ id: 'all', nombre: 'Todas las cuentas' }, ...cuentas]}
-                                    item={{ idx: 'id', value: 'nombre' }}
+                                    name="local_id"
+                                    title="Local"
+                                    value={filters.local_id}
+                                    onChange={(val) => setFilters(p => ({ ...p, local_id: val as string }))}
+                                    lista={[{ id: '', name: 'Todos los locales' }, ...locales]}
+                                    item={{ idx: 'id', value: 'name' }}
                                     error={undefined}
                                 />
                             </div>
-                        )}
-
-                        <div className="lg:col-span-2">
-                            <SelectField
-                                name="local_id"
-                                title="Local"
-                                value={filters.local_id}
-                                onChange={(val) => setFilters(p => ({ ...p, local_id: val as string }))}
-                                lista={[{ id: '', name: 'Todos los locales' }, ...locales]}
-                                item={{ idx: 'id', value: 'name' }}
-                                error={undefined}
-                            />
                         </div>
 
-                        <div className="space-y-2 lg:col-span-2">
-                            <Label htmlFor="desde">Desde</Label>
-                            <Input
-                                id="desde"
-                                type="date"
-                                value={filters.desde}
-                                onChange={(e) => setFilters(p => ({ ...p, desde: e.target.value }))}
-                                className="h-10 bg-white dark:bg-slate-800"
-                            />
-                        </div>
+                        <div className="flex flex-wrap items-end gap-4">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="desde" className="text-[11px] font-bold uppercase text-slate-400">Desde</Label>
+                                <Input
+                                    id="desde"
+                                    type="date"
+                                    value={filters.desde}
+                                    onChange={(e) => setFilters(p => ({ ...p, desde: e.target.value }))}
+                                    className="h-10 w-40 bg-white dark:bg-slate-800"
+                                />
+                            </div>
 
-                        <div className="space-y-2 lg:col-span-2">
-                            <Label htmlFor="hasta">Hasta</Label>
-                            <Input
-                                id="hasta"
-                                type="date"
-                                value={filters.hasta}
-                                onChange={(e) => setFilters(p => ({ ...p, hasta: e.target.value }))}
-                                className="h-10 bg-white dark:bg-slate-800"
-                            />
-                        </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="hasta" className="text-[11px] font-bold uppercase text-slate-400">Hasta</Label>
+                                <Input
+                                    id="hasta"
+                                    type="date"
+                                    value={filters.hasta}
+                                    onChange={(e) => setFilters(p => ({ ...p, hasta: e.target.value }))}
+                                    className="h-10 w-40 bg-white dark:bg-slate-800"
+                                />
+                            </div>
 
-                        <div className="flex gap-2 lg:col-span-2">
-                            <Button onClick={handleSearch} disabled={loading} className="h-10 flex-1">
-                                <Search className="mr-2 h-4 w-4" />
-                                {loading ? 'Cargando...' : 'Generar'}
-                            </Button>
-                            <Button variant="outline" onClick={handleClear} size="icon" className="h-10 w-10 shrink-0" title="Limpiar">
-                                <X className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                <Button variant="outline" onClick={handleClear} size="icon" className="h-10 w-10 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-all" title="Limpiar filtros">
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* KPI Cards */}
-                {searched && (
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg">
-                                <ShoppingCart className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-medium uppercase text-slate-400">Facturas</p>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{Number(meta.total_facturas || 0).toLocaleString()}</p>
-                            </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg">
+                            <ShoppingCart className="h-5 w-5" />
                         </div>
-
-                        <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg">
-                                <Package className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-medium uppercase text-slate-400">Productos Vendidos</p>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{Number(meta.total_productos).toLocaleString()}</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg">
-                                <BarChart3 className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-medium uppercase text-slate-400">Total Vendido</p>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">${Number(meta.total_ventas).toLocaleString()}</p>
-                            </div>
+                        <div>
+                            <p className="text-[10px] font-medium uppercase text-slate-400">Facturas</p>
+                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{Number(meta.total_facturas || 0).toLocaleString()}</p>
                         </div>
                     </div>
-                )}
+
+                    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg">
+                            <Package className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-medium uppercase text-slate-400">Productos Vendidos</p>
+                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{Number(meta.total_productos).toLocaleString()}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg">
+                            <BarChart3 className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-medium uppercase text-slate-400">Total Vendido</p>
+                            <p className="text-2xl font-bold text-slate-900 dark:text-white">${Number(meta.total_ventas).toLocaleString()}</p>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Table */}
-                {searched && (
-                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
-                        <DataGrid
-                            data={data}
-                            columns={columns}
-                            total={meta.total}
-                            processing={loading}
-                            serverSide={true}
-                            paginationServer={true}
-                            currentPage={meta.current_page}
-                            paginationPerPage={meta.per_page}
-                            fetchPage={(page) => fetchData({ page })}
-                            setPageSize={(per_page) => fetchData({ per_page, page: 1 })}
-                            onSort={() => { }}
-                        />
-                    </div>
-                )}
-
-                {!searched && (
-                    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center dark:border-slate-700 dark:bg-slate-800/50">
-                        <BarChart3 className="mx-auto mb-3 h-10 w-10 text-slate-300" />
-                        <p className="text-sm text-slate-400">Selecciona los filtros y presiona <strong>Generar</strong> para ver el reporte.</p>
-                    </div>
-                )}
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                    <DataGrid
+                        data={data}
+                        columns={columns}
+                        total={meta.total}
+                        processing={loading}
+                        serverSide={true}
+                        paginationServer={true}
+                        currentPage={meta.current_page}
+                        paginationPerPage={meta.per_page}
+                        fetchPage={(page) => fetchData({ page })}
+                        setPageSize={(per_page) => fetchData({ per_page, page: 1 })}
+                        onSort={() => { }}
+                    />
+                </div>
             </div>
 
             <Modal

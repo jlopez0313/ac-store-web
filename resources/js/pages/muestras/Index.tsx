@@ -51,13 +51,24 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
         [filters],
     );
 
+    const [searchQuery, setSearchQuery] = useState(filters.search);
+
+    // Debounced automatic search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                handleSearch(searchQuery);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page]);
+    }, [filters.page, filters.per_page, filters.search]);
 
     const handleSearch = (search: string) => {
         setFilters((prev) => ({ ...prev, search, page: 1 }));
-        fetchData({ search, page: 1 });
     };
 
     const handleDelete = async (id: number) => {
@@ -107,7 +118,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
         },
         {
             name: 'Talla',
-            selector: (row: any) => row.variante,
+            selector: (row: any) => row.talla,
             width: '80px',
         },
         {
@@ -209,20 +220,11 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                                 id="search-input"
                                 placeholder="Buscar por referencia..."
                                 className="pl-9"
-                                defaultValue={filters.search}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
                             />
                         </div>
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                handleSearch(val);
-                            }}
-                        >
-                            <SearchIcon className="h-4 w-4 mr-2" />
-                            Buscar
-                        </Button>
                     </div>
 
                     <Button

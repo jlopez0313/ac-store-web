@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import { DataGrid } from '@/components/ui/DataTable';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Modal } from '@/components/ui/Modal';
@@ -173,74 +174,43 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 				closeable={true}
 			>
 				<div className="bg-background">
-					<div className="p-6 space-y-4">
-						{/* Premium Header Decoration */}
-						<div className="relative">
-							<div className="absolute inset-0 bg-primary/5 blur-3xl -z-10 rounded-full" />
-
-							<div className="bg-background border border-border rounded-2xl p-6 shadow-sm">
-								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-									<div className="flex items-center gap-4">
-										<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
-											<User className="h-5 w-5" />
-										</div>
-										<div className="flex flex-col">
-											<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Vendedor</span>
-											<span className="text-sm font-bold text-foreground">{factura.vendedor || 'Superadmin'}</span>
-										</div>
+					<div className="p-6 space-y-6">
+						{/* Clean Header Summary */}
+						<div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
+							<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+								<div className="space-y-1">
+									<span className="text-[10px] font-bold text-slate-400 uppercase">Vendedor</span>
+									<p className="text-sm font-semibold">{factura.vendedor || 'Superadmin'}</p>
+								</div>
+								<div className="space-y-1">
+									<span className="text-[10px] font-bold text-slate-400 uppercase">Local Destino</span>
+									<p className="text-sm font-semibold">{factura.local?.name || 'N/A'}</p>
+								</div>
+								<div className="space-y-1">
+									<span className="text-[10px] font-bold text-slate-400 uppercase">Bodega</span>
+									<p className="text-sm font-semibold">{factura.bodega?.nombre || 'N/A'}</p>
+								</div>
+								<div className="space-y-1">
+									<span className="text-[10px] font-bold text-slate-400 uppercase">Emisión</span>
+									<p className="text-sm font-semibold">{new Date(factura.created_at).toLocaleDateString()}</p>
+								</div>
+								<div className="space-y-1">
+									<span className="text-[10px] font-bold text-slate-400 uppercase">Estado</span>
+									<div className="pt-0.5">
+										<Badge
+											variant="outline"
+											className={cn(
+												'capitalize text-[11px] px-2 py-0',
+												factura.estado === 'cerrada' ? 'badge-closed' : 'badge-open'
+											)}
+										>
+											{factura.estado}
+										</Badge>
 									</div>
-
-									<div className="flex items-center gap-4">
-										<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
-											<MapPin className="h-5 w-5" />
-										</div>
-										<div className="flex flex-col">
-											<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Local Destino</span>
-											<span className="text-sm font-bold text-foreground">{factura.local?.name || 'N/A'}</span>
-										</div>
-									</div>
-
-									<div className="flex items-center gap-4">
-										<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
-											<Calendar className="h-5 w-5" />
-										</div>
-										<div className="flex flex-col">
-											<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Emisión</span>
-											<span className="text-sm font-bold text-foreground">{new Date(factura.created_at).toLocaleDateString()}</span>
-										</div>
-									</div>
-
-									<div className="flex items-center gap-4">
-										<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
-											<Tag className="h-5 w-5" />
-										</div>
-										<div className="flex flex-col">
-											<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Estado</span>
-											<Badge variant={factura.estado === 'cerrada' ? 'default' : 'outline'} className="capitalize mt-0.5 w-fit">
-												{factura.estado}
-											</Badge>
-										</div>
-									</div>
-
-									<div className="flex items-center gap-4">
-										<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
-											<House className="h-5 w-5" />
-										</div>
-										<div className="flex flex-col">
-											<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Bodega</span>
-											<span className="text-sm font-bold text-foreground">{factura.bodega?.nombre || 'N/A'}</span>
-										</div>
-									</div>
-
-									<div className="flex items-center gap-4">
-										<div className="h-10 w-10 flex items-center justify-center bg-muted rounded-xl text-muted-foreground">
-											<Clock className="h-5 w-5" />
-										</div>
-										<div className="flex flex-col">
-											<span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest leading-none mb-1">Antigüedad</span>
-											<span className="text-sm font-bold text-foreground">{days} días</span>
-										</div>
-									</div>
+								</div>
+								<div className="space-y-1">
+									<span className="text-[10px] font-bold text-slate-400 uppercase">Antigüedad</span>
+									<p className="text-sm font-semibold">{days} días</p>
 								</div>
 							</div>
 						</div>
