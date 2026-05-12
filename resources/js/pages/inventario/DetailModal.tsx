@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ViewerModal } from '@/components/ui/ViewerModal';
+import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Edit, Info, Package, Printer, Tag, Warehouse } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
 import { AdjustmentModal } from './AdjustmentModal';
 
@@ -113,6 +113,13 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
         return acc;
     }, {});
 
+    const totalMuestras = details.reduce((acc: any, item: any) => {
+        if (item.subdivision_stock) {
+            return acc + Object.values(item.subdivision_stock).reduce((sum: number, qty: any) => sum + Number(qty), 0);
+        }
+        return acc;
+    }, 0);
+
     return (
         <>
             <Modal show={isOpen} onClose={handleModalClose} title={`Detalle de Inventario: ${referencia.codigo}`} maxWidth="5xl" closeable={true}>
@@ -164,13 +171,21 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                     <div className="bg-background text-muted-foreground border-border/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
                                         <Info className="h-5 w-5" />
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground mb-1 text-[10px] leading-none font-medium uppercase">Stock Total</span>
-                                        <span
-                                            className={`text-sm font-medium ${Number(referencia.total_stock) <= 0 ? 'text-red-500' : 'text-foreground'}`}
-                                        >
-                                            {referencia.total_stock} unidades
-                                        </span>
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex flex-col">
+                                            <span className="text-muted-foreground mb-0.5 text-[9px] font-bold uppercase tracking-wider">Venta Disponible</span>
+                                            <span className={`text-sm font-bold ${Number(referencia.total_stock) - totalMuestras <= 0 ? 'text-red-500' : 'text-foreground'}`}>
+                                                {Number(referencia.total_stock) - totalMuestras} uds
+                                            </span>
+                                        </div>
+                                        {totalMuestras > 0 && (
+                                            <div className="flex flex-col border-l border-border pl-6">
+                                                <span className="text-amber-600 mb-0.5 text-[9px] font-bold uppercase tracking-wider">Muestras</span>
+                                                <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 text-[11px] py-0 h-5 px-2 font-bold w-fit">
+                                                    {totalMuestras} unidades
+                                                </Badge>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -231,6 +246,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                                                 <TableHead className="text-foreground h-10 font-bold">Estantería</TableHead>
                                                                 <TableHead className="text-foreground h-10 text-center font-bold">Talla</TableHead>
                                                                 <TableHead className="text-foreground h-10 text-center font-bold">Stock</TableHead>
+                                                                <TableHead className="text-foreground h-10 text-center font-bold">Muestras</TableHead>
                                                                 {!isLocal && <TableHead className="text-foreground h-10 text-right font-bold">Costo</TableHead>}
                                                                 <TableHead className="text-foreground h-10 text-right font-bold">Venta</TableHead>
                                                                 {canAdjust && <TableHead className="text-foreground h-10 pr-6 text-right font-bold">Acciones</TableHead>}
@@ -252,6 +268,22 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                                                             {item.stock}
                                                                         </span>
                                                                     </TableCell>
+                                                                    <TableCell className="text-center">
+                                                                        {item.subdivision_stock && Object.entries(item.subdivision_stock).some(([_, qty]) => Number(qty) > 0) ? (
+                                                                            <div className="flex flex-wrap justify-center gap-2">
+                                                                                {Object.entries(item.subdivision_stock)
+                                                                                    .filter(([_, qty]) => Number(qty) > 0)
+                                                                                    .map(([side, qty]) => (
+                                                                                        <Badge key={side} variant="secondary" className="bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border border-amber-200/50 px-2 py-0.5 text-[10px] font-bold whitespace-nowrap">
+                                                                                            {side}: {qty}
+                                                                                        </Badge>
+                                                                                    ))
+                                                                                }
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className="text-muted-foreground/50 text-[10px] uppercase font-bold tracking-tight">Venta</span>
+                                                                        )}
+                                                                    </TableCell>
                                                                     {!isLocal && (
                                                                         <TableCell className="text-muted-foreground text-right text-xs font-medium">
                                                                             ${Number(item.precio_compra).toLocaleString()}
@@ -260,7 +292,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                                                     <TableCell className="text-foreground text-right text-xs font-medium">
                                                                         ${Number(item.precio_ajustado).toLocaleString()}
                                                                     </TableCell>
-                                                                     {canAdjust && (
+                                                                    {canAdjust && (
                                                                         <TableCell className="pr-6 text-right">
                                                                             <div className="flex items-center justify-end gap-1">
                                                                                 <Button

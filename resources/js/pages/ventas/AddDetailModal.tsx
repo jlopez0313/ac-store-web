@@ -348,6 +348,8 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                         e.preventDefault();
                         if (mode === 'search') {
                             searchRefs(1);
+                        } else {
+                            submit();
                         }
                     }}
                     onKeyDown={(e) => {

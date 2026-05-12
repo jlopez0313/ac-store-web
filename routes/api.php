@@ -80,6 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // SUPERADMIN & ADMIN ONLY
     // -------------------------------------------------------------------------
     Route::middleware(['role:superadmin|admin'])->group(function () {
+        Route::get('cuentas/list', [ApiCuentasController::class, 'getList'])->name('api.cuentas.list');
         Route::apiResource('cuentas', ApiCuentasController::class)->names('api.cuentas');
         Route::get('usuarios/{usuario}/accesos', [ApiUsuariosController::class, 'getAccesos'])->name('api.usuarios.accesos');
         Route::post('usuarios/{usuario}/register-payment', [ApiUsuariosController::class, 'registerPayment'])->name('api.usuarios.register_payment');

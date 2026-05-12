@@ -11,6 +11,14 @@ import { ArrowLeft, Check, Search as SearchIcon, ShieldCheck, X } from 'lucide-r
 import { useState, useCallback, useEffect } from 'react';
 import { AccesoModal } from './AccesoModal';
 import axios from 'axios';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Filter } from 'lucide-react';
 
 export default function Accesos({ usuario }: any) {
     const { isSuperAdmin } = useAuth();
@@ -28,7 +36,10 @@ export default function Accesos({ usuario }: any) {
         search: '',
         per_page: 25,
         page: 1,
+        cuenta_id: '',
     });
+
+    const [cuentas, setCuentas] = useState<any[]>([]);
     
     const [selectedBodega, setSelectedBodega] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,8 +61,14 @@ export default function Accesos({ usuario }: any) {
     }, [usuario.id, filters]);
 
     useEffect(() => {
+        if (isSuperAdmin) {
+            axios.get(route('api.cuentas.list')).then(res => setCuentas(res.data));
+        }
+    }, [isSuperAdmin]);
+
+    useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page]);
+    }, [filters.page, filters.per_page, filters.cuenta_id]);
 
     const handleSearch = (search: string) => {
         setFilters(prev => ({ ...prev, search, page: 1 }));
@@ -67,9 +84,14 @@ export default function Accesos({ usuario }: any) {
         {
             name: 'Bodega',
             cell: (row: any) => (
-                <div className="flex flex-col py-2">
-                    <span className="font-bold text-foreground">{row.nombre}</span>
-                    <span className="text-xs text-muted-foreground italic">{row.direccion || 'Sin dirección'}</span>
+                <div className="flex flex-col py-1">
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold text-foreground">{row.nombre}</span>
+                        <Badge variant="outline" className="text-[10px] font-normal py-0 px-1.5 h-4 bg-slate-50">
+                            {row.cuenta_nombre}
+                        </Badge>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground italic">{row.direccion || 'Sin dirección'}</span>
                 </div>
             ),
             sortable: true,
@@ -142,27 +164,51 @@ export default function Accesos({ usuario }: any) {
                 </div>
 
                 <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
-                    <div className="flex flex-1 max-w-sm gap-2">
-                        <div className="relative flex-1">
-                            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                            <Input
-                                id="search-input"
-                                placeholder="Buscar bodega por nombre..."
-                                className="pl-9"
-                                defaultValue={filters.search}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
-                            />
+                    <div className="flex flex-1 flex-wrap items-center gap-4">
+                        <div className="flex w-full max-w-sm gap-2">
+                            <div className="relative flex-1">
+                                <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                <Input
+                                    id="search-input"
+                                    placeholder="Buscar bodega por nombre..."
+                                    className="pl-9"
+                                    defaultValue={filters.search}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.currentTarget.value)}
+                                />
+                            </div>
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
+                                    handleSearch(val);
+                                }}
+                            >
+                                <SearchIcon className="h-4 w-4 mr-2" />
+                                Buscar
+                            </Button>
                         </div>
-                        <Button
-                            variant="secondary"
-                            onClick={() => {
-                                const val = (document.getElementById('search-input') as HTMLInputElement)?.value;
-                                handleSearch(val);
-                            }}
-                        >
-                            <SearchIcon className="h-4 w-4 mr-2" />
-                            Buscar
-                        </Button>
+
+                        {isSuperAdmin && (
+                            <div className="flex items-center gap-2">
+                                <Filter className="h-4 w-4 text-muted-foreground" />
+                                <Select
+                                    value={filters.cuenta_id}
+                                    onValueChange={(val) => setFilters(prev => ({ ...prev, cuenta_id: val, page: 1 }))}
+                                >
+                                    <SelectTrigger className="w-[200px]">
+                                        <SelectValue placeholder="Todas las cuentas" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todas las cuentas</SelectItem>
+                                        {cuentas.map((c) => (
+                                            <SelectItem key={c.id} value={c.id.toString()}>
+                                                {c.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
                     </div>
                 </div>
 

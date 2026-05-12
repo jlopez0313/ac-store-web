@@ -104,11 +104,15 @@ class UsuariosController extends Controller
 
         $user->syncRoles($validated['role']);
 
-        // Set subscription price if not manually provided
-        if (empty($validated['precio_suscripcion'])) {
-            $user->update(['precio_suscripcion' => $user->calculateSubscriptionPrice()]);
-        } else {
-            $user->update(['precio_suscripcion' => $validated['precio_suscripcion']]);
+        // Set subscription price and sync with AccountAcceso
+        $price = $validated['precio_suscripcion'] ?? $user->calculateSubscriptionPrice();
+        $user->update(['precio_suscripcion' => $price]);
+        
+        if ($user->cuenta_id) {
+            \App\Models\AccountAcceso::updateOrCreate(
+                ['user_id' => $user->id, 'cuenta_id' => $user->cuenta_id],
+                ['custom_price' => $validated['precio_suscripcion'] ?? null]
+            );
         }
 
         return new UserResource($user->fresh());
@@ -166,11 +170,17 @@ class UsuariosController extends Controller
 
         $usuario->syncRoles($validated['role']);
 
-        // Update subscription price if not manually provided in the request
-        if (!isset($request->precio_suscripcion)) {
-            $usuario->update(['precio_suscripcion' => $usuario->calculateSubscriptionPrice()]);
-        } else {
+        // Update subscription price and sync with AccountAcceso
+        if (isset($request->precio_suscripcion)) {
+            if ($usuario->cuenta_id) {
+                \App\Models\AccountAcceso::updateOrCreate(
+                    ['user_id' => $usuario->id, 'cuenta_id' => $usuario->cuenta_id],
+                    ['custom_price' => $validated['precio_suscripcion']]
+                );
+            }
             $usuario->update(['precio_suscripcion' => $validated['precio_suscripcion']]);
+        } else {
+            $usuario->update(['precio_suscripcion' => $usuario->calculateSubscriptionPrice()]);
         }
 
         return new UserResource($usuario->fresh());
@@ -189,9 +199,16 @@ class UsuariosController extends Controller
     {
         $user = auth()->user();
 
-        // Security Check: Only superadmin or admin of the same account
-        if (!$user->hasRole('superadmin') && ($user->cuenta_id !== $usuario->cuenta_id || $user->role !== 'admin')) {
-            abort(403, 'No tienes permiso para gestionar los accesos de este usuario.');
+        // Security Check: Only superadmin or admin of the same account (or independent users if same account)
+        if (!$user->hasRole('superadmin')) {
+            if ($user->role === 'admin') {
+                // Admin can manage users of their account OR independent users (local)
+                if ($usuario->cuenta_id !== null && $usuario->cuenta_id !== $user->cuenta_id) {
+                    abort(403, 'No tienes permiso para gestionar los accesos de este usuario.');
+                }
+            } else {
+                abort(403, 'No tienes permiso para gestionar los accesos.');
+            }
         }
 
         // Must be a local user
@@ -199,8 +216,19 @@ class UsuariosController extends Controller
             abort(404, 'El usuario no tiene el rol local.');
         }
 
-        // Get bodegas of the user's account
-        $query = \App\Models\Bodega::where('cuenta_id', $usuario->cuenta_id)->orderBy('nombre');
+        // Get bodegas to show: 
+        // - If Superadmin: All bodegas
+        // - If Admin: Only their account's bodegas
+        $query = \App\Models\Bodega::with('cuenta')->orderBy('nombre');
+
+        if (!$user->hasRole('superadmin')) {
+            $query->where('cuenta_id', $user->cuenta_id);
+        } else {
+            // Superadmin can filter by account
+            if ($request->filled('cuenta_id') && $request->cuenta_id !== 'all') {
+                $query->where('cuenta_id', $request->cuenta_id);
+            }
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -225,6 +253,7 @@ class UsuariosController extends Controller
             return [
                 'id' => $bodega->id,
                 'nombre' => $bodega->nombre,
+                'cuenta_nombre' => $bodega->cuenta?->nombre ?? 'N/A',
                 'direccion' => $bodega->direccion,
                 'can_view' => $acceso ? (bool) $acceso->can_view : false,
                 'can_order' => $acceso ? (bool) $acceso->can_order : false,

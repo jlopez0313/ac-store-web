@@ -86,14 +86,10 @@ class BodegaAccesoController extends Controller
             ]
         );
 
-        // Update user subscription price if they are 'local'
+        // Update user subscription price and account access tracking
         $targetUser = User::find($user_id);
         if ($targetUser && $targetUser->hasRole('local')) {
-            // we calculate the expected price based on current accesses
-            $newPrice = $targetUser->calculateSubscriptionPrice();
-            // We update it. (Note: this might overwrite manual changes, but usually 
-            // the user wants the price to be linked to the accesses they just changed)
-            $targetUser->update(['precio_suscripcion' => $newPrice]);
+            $targetUser->syncAccountAccesos();
         }
 
         return back()->with('success', 'Permisos actualizados correctamente.');

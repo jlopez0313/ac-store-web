@@ -79,4 +79,17 @@ class CuentasController extends Controller
 
         return response()->json(['message' => 'Cuenta eliminada correctamente']);
     }
+
+    public function getList()
+    {
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403);
+        }
+
+        return response()->json(
+            Cuenta::where('estado', true)
+                ->orderBy('nombre')
+                ->get(['id', 'nombre as name'])
+        );
+    }
 }

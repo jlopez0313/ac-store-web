@@ -33,6 +33,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
     private array $mapProveedores = [];
     private array $mapBodegas = [];
     private array $mapEstanterias = [];
+    private array $mapTiposUbicaciones = []; // Id_Ubicacion (viejo) → Tipo
     private array $mapReferencias = [];
     private array $mapCompras = [];
     private array $mapVentas = [];
@@ -450,15 +451,14 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
             if (!$this->dryRun) {
                 // Búsqueda siempre dentro de la cuenta actual
+                // Independent users can exist globally or without account
+                // Strict lookup: only reuse if BOTH name and document match (for independent users)
                 $existing = DB::table('users')
-                    ->where('cuenta_id', $this->cuentaId)
-                    ->where(function ($q) use ($nit, $nombreNorm) {
-                        if ($nit && $nit !== 'acstore123') {
-                            $q->where('documento', $nit);
-                        } else {
-                            $q->where('name', $nombreNorm);
-                        }
+                    ->where(function ($q) {
+                        $q->whereNull('cuenta_id')->orWhere('cuenta_id', $this->cuentaId);
                     })
+                    ->where('name', $nombreNorm)
+                    ->where('documento', $documentoFinal)
                     ->first();
 
                 if ($existing) {
@@ -474,7 +474,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 $documentoFinal = (strlen($nit) >= 6) ? $nit : 'acstore123';
 
                 $userId = DB::table('users')->insertGetId([
-                    'cuenta_id' => $this->cuentaId,
+                    'cuenta_id' => null, // Independent local user
                     'name' => $nombreNorm,
                     'username' => $usernameUnico,
                     'documento' => $documentoFinal,
@@ -544,21 +544,18 @@ class ImportarSistemaViejoJob implements ShouldQueue
             $documento = (strlen($nit) >= 6) ? $nit : 'acstore123';
 
             if (!$this->dryRun) {
-                // 1. Asegurar Usuario Local
+                // 1. Asegurar Usuario Local (puede ser independiente) - Búsqueda estricta
                 $user = DB::table('users')
-                    ->where('cuenta_id', $this->cuentaId)
-                    ->where(function ($q) use ($documento, $nombreNorm) {
-                        if ($documento !== 'acstore123') {
-                            $q->where('documento', $documento);
-                        } else {
-                            $q->where('name', $nombreNorm);
-                        }
+                    ->where(function ($q) {
+                        $q->whereNull('cuenta_id')->orWhere('cuenta_id', $this->cuentaId);
                     })
+                    ->where('name', $nombreNorm)
+                    ->where('documento', $documento)
                     ->first();
 
                 if (!$user) {
                     $userId = DB::table('users')->insertGetId([
-                        'cuenta_id' => $this->cuentaId,
+                        'cuenta_id' => null, // Independent
                         'name' => $nombreNorm,
                         'username' => $username,
                         'documento' => $documento,
@@ -690,11 +687,12 @@ class ImportarSistemaViejoJob implements ShouldQueue
             if ($i === 0) {
                 continue;
             }
-            [$idViejo, $nombre, , $activo] = array_pad($row->toArray(), 4, null);
+            [$idViejo, $nombre, $tipo, $activo] = array_pad($row->toArray(), 4, null);
             if (!$idViejo || !$nombre || (int) $idViejo === 0) {
                 continue;
             }
             $nombre = strtoupper(trim($nombre));
+            $this->mapTiposUbicaciones[(string) $idViejo] = (int) $tipo;
 
             if (!$this->dryRun) {
                 $existing = DB::table('bodegas')
@@ -1172,6 +1170,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
     private function importarEstanteriasInventario(): void
     {
         $this->ensureMaps();
+        $this->buildMapLocalesFromSheet();
         $csvPath = $this->ensureCsvInventario();
         if (!$csvPath) {
             $this->log('  ERROR: No se pudo encontrar o generar el CSV.');
@@ -1187,6 +1186,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
         $actualizados = 0;
         $omitidos = 0;
         $noEncontrados = 0;
+        $muestrasCount = 0;
 
         // Caché de estanterías para evitar miles de consultas
         // bodega_id -> [nombre -> id]
@@ -1272,7 +1272,20 @@ class ImportarSistemaViejoJob implements ShouldQueue
             }
             $referenciaId = $this->mapReferencias[$refCode];
 
-            // 5. Actualizar Inventario (Fusión si ya existe en destino)
+            // 5. Interceptar Tipo 3 (Muestras)
+            $tipoUbicacion = $this->mapTiposUbicaciones[$bodegaIdViejo] ?? 0;
+            $tipoIdCsv = (int) ($row[18] ?? 0);
+            $tipoNombreCsv = trim(strtoupper((string) ($row[27] ?? '')));
+
+            if ($tipoIdCsv === 3 || $tipoNombreCsv === 'MUESTRAS' || $tipoUbicacion === 3) {
+                $this->log("    🚩 Redirigiendo a muestras: Ref {$refCode}, Talla {$talla}, Ubicación {$bodegaIdViejo} (Tipo CSV: {$tipoNombreCsv}/{$tipoIdCsv})");
+                $this->registrarMuestraDesdeInventario($referenciaId, $talla, $bodegaId, $estanteriaId, $bodegaIdViejo);
+                $actualizados++;
+                $muestrasCount++;
+                continue; // Saltar movimiento normal de estantería
+            }
+
+            // 6. Actualizar Inventario (Fusión si ya existe en destino)
             if (!$this->dryRun) {
                 // Obtener todos los registros que vamos a mover (pueden ser varios si el filtro fue por bodega)
                 $oldRecords = DB::table('inventarios')
@@ -1324,7 +1337,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
         }
 
         fclose($handle);
-        $this->log("  Finalizado: {$actualizados} actualizados, {$noEncontrados} no encontrados en inventario, {$omitidos} omitidos (ya vendidos o sin mapeo).");
+        $this->log("  Finalizado: {$actualizados} procesados ({$muestrasCount} como muestras), {$noEncontrados} no encontrados, {$omitidos} omitidos.");
     }
 
     private function detectDelimiter($handle): string
@@ -1747,25 +1760,23 @@ class ImportarSistemaViejoJob implements ShouldQueue
     // ─────────────────────────────────────────────────────
     private function buildMapLocalesFromSheet(): void
     {
-        $rows = $this->loadSheet('LOCALES');
-        if ($rows->isEmpty()) {
-            $this->log('  Hoja LOCALES no encontrada — usando mapeo existente');
+        // Si el mapa ya viene cargado, no hacer nada
+        if (!empty($this->mapLocales)) {
             return;
         }
 
-        // Si el mapa ya viene cargado desde importarUsersLocales, solo completar
-        // los que falten consultando la DB
-        if (empty($this->mapLocales)) {
-            $dbUsers = DB::table('users')
-                ->where('cuenta_id', $this->cuentaId)
-                ->select('id', 'name')
-                ->get();
+        $dbUsers = DB::table('users')
+            ->where('cuenta_id', $this->cuentaId)
+            ->select('id', 'name')
+            ->get();
 
-            $usersByName = [];
-            foreach ($dbUsers as $u) {
-                $usersByName[strtoupper(trim($u->name))] = $u->id;
-            }
+        $usersByName = [];
+        foreach ($dbUsers as $u) {
+            $usersByName[strtoupper(trim($u->name))] = $u->id;
+        }
 
+        $rows = $this->loadSheet('LOCALES');
+        if (!$rows->isEmpty()) {
             foreach ($rows as $i => $row) {
                 if ($i === 0) {
                     continue;
@@ -1779,8 +1790,21 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 if ($userId) {
                     $this->mapLocales[(int) $idUbicacion] = $userId;
                 } else {
-                    $this->log("  WARN: local '{$nombreNorm}' (id={$idUbicacion}) sin usuario → userPorDefecto");
                     $this->mapLocales[(int) $idUbicacion] = $this->userPorDefecto;
+                }
+            }
+        } else {
+            // Si no hay hoja LOCALES, intentar usar los nombres de las bodegas
+            // que cargamos desde el JSON en ensureMaps -> cargarMapaBodegas
+            foreach ($this->mapBodegas as $idViejo => $bodegaId) {
+                // Buscamos el nombre original de la bodega en mapTiposUbicaciones si lo tenemos
+                // Pero mapBodegas ya implica que existe.
+                $nombre = DB::table('bodegas')->where('id', $bodegaId)->value('nombre');
+                if ($nombre) {
+                    $userId = $usersByName[strtoupper(trim($nombre))] ?? null;
+                    if ($userId) {
+                        $this->mapLocales[(int) $idViejo] = $userId;
+                    }
                 }
             }
         }
@@ -1910,7 +1934,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
             mkdir($dir, 0755, true);
         }
 
-        // Reconstruir mapa idViejo→nombre desde la hoja UBICACION_CALZADO
+        // Reconstruir mapa idViejo→[nombre, tipo] desde la hoja UBICACION_CALZADO
         $mapa = [];
         $rows = $this->loadSheet('UBICACION_CALZADO');
         foreach ($rows as $i => $row) {
@@ -1920,15 +1944,19 @@ class ImportarSistemaViejoJob implements ShouldQueue
             $rowArr = $row->toArray();
             $idViejo = $rowArr[0] ?? null;
             $nombre = strtoupper(trim($rowArr[1] ?? ''));
+            $tipo = (int) ($rowArr[2] ?? 0);
             if ($idViejo && $nombre) {
-                $mapa[(string) $idViejo] = $nombre;
+                $mapa[(string) $idViejo] = [
+                    'nombre' => $nombre,
+                    'tipo' => $tipo
+                ];
             }
         }
 
         if (!empty($mapa)) {
             $file = "{$dir}/cuenta_{$this->cuentaId}_bodegas.json";
             file_put_contents($file, json_encode($mapa, JSON_UNESCAPED_UNICODE));
-            $this->log('  Mapa de bodegas guardado (' . count($mapa) . ' entradas)');
+            $this->log('  Mapa de bodegas y tipos guardado (' . count($mapa) . ' entradas)');
         }
     }
 
@@ -1958,11 +1986,15 @@ class ImportarSistemaViejoJob implements ShouldQueue
             ->pluck('id', 'bodega_id')
             ->toArray();
 
-        foreach ($mapa as $idViejo => $nombre) {
+        foreach ($mapa as $idViejo => $data) {
+            $nombre = is_array($data) ? $data['nombre'] : $data;
+            $tipo = is_array($data) ? ($data['tipo'] ?? 0) : 0;
+
             $bodegaId = $bodegaMap[$nombre] ?? null;
             if ($bodegaId && isset($estMap[$bodegaId])) {
                 $this->mapEstanterias[(string) $idViejo] = $estMap[$bodegaId];
                 $this->mapBodegas[(string) $idViejo] = $bodegaId;
+                $this->mapTiposUbicaciones[(string) $idViejo] = (int) $tipo;
             }
         }
 
@@ -2056,5 +2088,96 @@ class ImportarSistemaViejoJob implements ShouldQueue
         }
 
         return $username;
+    }
+
+    /**
+     * Registra una muestra desde el flujo de actualización de inventario (Tipo 3).
+     */
+    private function registrarMuestraDesdeInventario(int $referenciaId, string $talla, int $bodegaId, int $estanteriaId, string $bodegaIdViejo): void
+    {
+        if ($this->dryRun) {
+            return;
+        }
+
+        // 1. Asegurar registro en inventario en la ubicación de la muestra
+        // Buscamos si ya está en la estantería destino
+        $inv = DB::table('inventarios')
+            ->where('cuenta_id', $this->cuentaId)
+            ->where('referencia_id', $referenciaId)
+            ->where('talla', $talla)
+            ->where('estanteria_id', $estanteriaId)
+            ->first();
+
+        $subStock = json_encode(['Derecho' => 1, 'Izquierdo' => 0]);
+
+        if (!$inv) {
+            // Intentar mover de otra estantería (cualquiera de esta cuenta que tenga stock)
+            $old = DB::table('inventarios')
+                ->where('cuenta_id', $this->cuentaId)
+                ->where('referencia_id', $referenciaId)
+                ->where('talla', $talla)
+                ->where('stock', '>', 0)
+                ->first();
+
+            if ($old) {
+                // Movemos el registro a la estantería de muestra y ponemos subdivision
+                DB::table('inventarios')
+                    ->where('id', $old->id)
+                    ->update([
+                        'estanteria_id' => $estanteriaId,
+                        'subdivision_stock' => $subStock,
+                        'updated_at' => now(),
+                    ]);
+                $invId = $old->id;
+            } else {
+                // Si no hay nada, creamos uno con stock 1 (asumimos que si está en el excel, existe)
+                $invId = DB::table('inventarios')->insertGetId([
+                    'cuenta_id' => $this->cuentaId,
+                    'referencia_id' => $referenciaId,
+                    'talla' => $talla,
+                    'estanteria_id' => $estanteriaId,
+                    'stock' => 1,
+                    'subdivision_stock' => $subStock,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        } else {
+            $invId = $inv->id;
+            // Asegurar que tenga la subdivisión marcada
+            DB::table('inventarios')->where('id', $invId)->update([
+                'subdivision_stock' => $subStock,
+                'updated_at' => now()
+            ]);
+        }
+
+        // 2. Registrar en Muestras
+        $localUserId = $this->mapLocales[(int) $bodegaIdViejo] ?? $this->userPorDefecto;
+
+        // Verificar si ya existe esta muestra para este local/referencia/variante
+        $exists = DB::table('muestras')
+            ->where('cuenta_id', $this->cuentaId)
+            ->where('local_id', $localUserId)
+            ->where('referencia_id', $referenciaId)
+            ->where('inventario_id', $invId)
+            ->exists();
+
+        if (!$exists) {
+            DB::table('muestras')->insert([
+                'local_id' => $localUserId,
+                'referencia_id' => $referenciaId,
+                'inventario_id' => $invId,
+                'cuenta_id' => $this->cuentaId,
+                'variante' => 'Derecho',
+                'etiquetas' => json_encode(['Derecho']),
+                'estado' => 'activo',
+                'impreso' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $this->log("      ✅ Muestra registrada para local_id {$localUserId}");
+        } else {
+            $this->log("      ℹ️ Muestra ya existía para local_id {$localUserId}");
+        }
     }
 }
