@@ -87,7 +87,7 @@ export function printSoporteVenta(data: SoporteData, returnHtml = false): string
         .grand td { font-size: 16px; border-top: 2px solid #000; padding-top: 4px; }
         
         .disclaimer { margin-top: 10px; text-align: center; font-size: 12px; font-weight: bold; line-height: 1.4; border: 1px solid #000; padding: 4px; }
-        .footer-text { margin-top: 6px; text-align: center; font-size: 12px; font-weight: bold; }
+        .footer-text { margin-top: 6px; text-align: center; font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body onload="window.print()">
