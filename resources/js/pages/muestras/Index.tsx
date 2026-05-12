@@ -65,7 +65,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
 
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page, filters.search]);
+    }, [filters.page, filters.per_page, filters.search, filters.sort_field, filters.sort_order]);
 
     const handleSearch = (search: string) => {
         setFilters((prev) => ({ ...prev, search, page: 1 }));
@@ -94,17 +94,20 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
             name: 'ID',
             selector: (row: any) => row.id,
             sortable: true,
+            sortField: 'id',
             width: '80px',
         },
         {
             name: 'Fecha',
             selector: (row: any) => row.fecha,
             sortable: true,
+            sortField: 'fecha',
         },
         {
             name: 'Local',
             selector: (row: any) => row.local?.name,
             sortable: true,
+            sortField: 'local_id',
         },
         {
             name: 'Referencia',
@@ -130,6 +133,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                 </div>
             ),
             sortable: true,
+            sortField: 'bodega_original',
         },
         {
             name: 'Etiquetas',
@@ -164,6 +168,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                 </Badge>
             ),
             sortable: true,
+            sortField: 'estado',
             width: '100px',
         },
         ...(isSuperAdmin

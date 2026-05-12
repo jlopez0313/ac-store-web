@@ -32,12 +32,12 @@ export function printSoporteVenta(data: SoporteData, returnHtml = false): string
         .map(
             (d) => `
             <tr>
-                <td colspan="3" style="font-size:12px;padding:3px 0 0;font-weight:bold;word-break:break-word;">${d.producto.descripcion}</td>
+                <td colspan="3" style="font-size:14px;padding:3px 0 0;font-weight:bold;word-break:break-word;">${d.producto.descripcion}</td>
             </tr>
             <tr>
-                <td style="padding:0 0-4px;font-size:11px;">${d.producto.codigo}</td>
-                <td style="text-align:center;font-size:11px;">${d.talla}</td>
-                <td style="text-align:right;font-size:11px;">${fmt(d.precio_unitario)}</td>
+                <td style="padding:0 0 2px;font-size:13px;">${d.producto.codigo}</td>
+                <td style="text-align:center;font-size:13px;">${d.talla}</td>
+                <td style="text-align:right;font-size:13px;">${fmt(d.precio_unitario)}</td>
             </tr>`,
         )
         .join('');
@@ -52,7 +52,7 @@ export function printSoporteVenta(data: SoporteData, returnHtml = false): string
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Courier New', monospace;
-            font-size: 11px;
+            font-size: 12px;
             width: 100%;
             color: #000;
         }
@@ -81,13 +81,13 @@ export function printSoporteVenta(data: SoporteData, returnHtml = false): string
         .items-table th:nth-child(2) { text-align: center; }
         .items-table th:nth-child(3) { text-align: right; }
         
-        .totals-table td { font-size: 11px; font-weight: bold; padding: 1px 0; }
+        .totals-table td { font-size: 13px; font-weight: bold; padding: 2px 0; }
         .totals-table .label { width: 55%; }
         .totals-table .value { width: 45%; text-align: right; }
-        .grand td { font-size: 14px; border-top: 2px solid #000; padding-top: 4px; }
+        .grand td { font-size: 16px; border-top: 2px solid #000; padding-top: 4px; }
         
-        .disclaimer { margin-top: 10px; text-align: center; font-size: 11px; font-weight: bold; line-height: 1.4; border: 1px solid #000; padding: 4px; }
-        .footer-text { margin-top: 6px; text-align: center; font-size: 11px; font-weight: bold; }
+        .disclaimer { margin-top: 10px; text-align: center; font-size: 12px; font-weight: bold; line-height: 1.4; border: 1px solid #000; padding: 4px; }
+        .footer-text { margin-top: 6px; text-align: center; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body onload="window.print()">

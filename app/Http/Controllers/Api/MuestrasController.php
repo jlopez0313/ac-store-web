@@ -42,6 +42,7 @@ class MuestrasController extends Controller
             });
         }
 
+        $query->orderBy($sortField, $sortOrder);
         $paginated = $query->paginate($request->input('per_page', 25));
 
         return MuestraResource::collection($paginated);
