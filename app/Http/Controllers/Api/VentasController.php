@@ -497,9 +497,7 @@ class VentasController extends Controller
             return response()->json(['error' => 'No tiene permisos para cerrar facturas.'], 403);
         }
 
-        if ($venta->detalles()->count() === 0) {
-            return response()->json(['error' => 'No se puede cerrar una factura sin productos.'], 422);
-        }
+        // Allow closing empty invoices as per user request
 
         $venta->update(['estado' => 'cerrada']);
         return response()->json(['message' => 'Factura cerrada correctamente.', 'data' => $venta]);
