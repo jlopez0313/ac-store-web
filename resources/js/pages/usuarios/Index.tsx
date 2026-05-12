@@ -119,6 +119,17 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
             sortField: 'cuenta_id',
         },
         {
+            name: 'Accesos',
+            cell: (row: any) => (
+                <Badge variant="outline" className="font-bold border-indigo-200 bg-indigo-50 text-indigo-700">
+                    {row.accesos_count || 0} Bodegas
+                </Badge>
+            ),
+            sortable: true,
+            sortField: 'accesos_count',
+            width: '120px',
+        },
+        {
             name: 'Ciudad',
             selector: (row: any) => (row.ciudad?.name ? `${row.ciudad.name} (${row.ciudad.state?.country?.name || ''})` : 'N/A'),
         },

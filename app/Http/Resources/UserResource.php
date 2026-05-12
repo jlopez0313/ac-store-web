@@ -44,6 +44,7 @@ class UserResource extends JsonResource
                 'id'     => $this->cuenta?->id,
                 'nombre' => $this->cuenta?->nombre,
             ],
+            'accesos_count' => $this->bodegaAccesos()->count(),
             'precio_suscripcion' => $this->precio_suscripcion,
             'maneja_vendedores' => (bool) $this->maneja_vendedores,
             'limite_sesiones' => $this->limite_sesiones,

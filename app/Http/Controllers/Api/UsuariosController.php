@@ -22,7 +22,11 @@ class UsuariosController extends Controller
         $sortField = $request->input('sort_field', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
-        $query = User::with(['roles', 'cuenta', 'ciudad.state.country']);
+        $query = User::with(['roles', 'cuenta', 'ciudad.state.country'])->withCount('bodegaAccesos');
+        
+        if ($sortField === 'accesos_count') {
+            $sortField = 'bodega_accesos_count';
+        }
 
         if (!$isSuper) {
             $query->where('cuenta_id', $user->cuenta_id);
