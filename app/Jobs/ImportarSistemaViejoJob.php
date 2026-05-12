@@ -1179,10 +1179,10 @@ class ImportarSistemaViejoJob implements ShouldQueue
         }
 
         $this->log('  Iniciando actualización masiva de estanterías desde CSV...');
-        
+
         $handle = fopen($csvPath, 'r');
         $delimiter = $this->detectDelimiter($handle);
-        
+
         $rowCount = 0;
         $actualizados = 0;
         $omitidos = 0;
@@ -1201,11 +1201,11 @@ class ImportarSistemaViejoJob implements ShouldQueue
 
             // Indices según el usuario:
             // Referencia: 2, Talla: 5, Bodega (Id_Ubicacion): 7, Hora_Venta: 16, Estante: 21
-            $refCode = trim((string)($row[2] ?? ''));
-            $talla = strtoupper(trim((string)($row[5] ?? '')));
-            $bodegaIdViejo = trim((string)($row[7] ?? ''));
-            $horaVenta = trim((string)($row[16] ?? ''));
-            $estanteNombre = trim((string)($row[21] ?? ''));
+            $refCode = trim((string) ($row[2] ?? ''));
+            $talla = strtoupper(trim((string) ($row[5] ?? '')));
+            $bodegaIdViejo = trim((string) ($row[7] ?? ''));
+            $horaVenta = trim((string) ($row[16] ?? ''));
+            $estanteNombre = trim((string) ($row[21] ?? ''));
 
             // 1. Solo procesar si NO se ha vendido (Hora_Venta vacío)
             if ($horaVenta !== '') {
@@ -1262,7 +1262,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
                     ->where('cuenta_id', $this->cuentaId)
                     ->where('codigo', $refCode)
                     ->first();
-                
+
                 if ($ref) {
                     $this->mapReferencias[$refCode] = $ref->id;
                 } else {
@@ -1279,7 +1279,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
                     ->where('cuenta_id', $this->cuentaId)
                     ->where('referencia_id', $referenciaId)
                     ->where('talla', $talla)
-                    ->whereIn('estanteria_id', function($q) use ($bodegaId) {
+                    ->whereIn('estanteria_id', function ($q) use ($bodegaId) {
                         $q->select('id')->from('estanterias')->where('bodega_id', $bodegaId);
                     })
                     ->where('estanteria_id', '!=', $estanteriaId) // No mover si ya está en el destino
@@ -1535,7 +1535,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
                     'numero' => $idViejo,
                     'cuenta_id' => $this->cuentaId,
                     'user_id' => $localUserId,
-                    'fecha' => $fechaVenta ? date('Y-m-d', strtotime($fechaVenta)) : now()->toDateString(),
+                    'fecha' => $fechaVenta ? date('Y-m-d 05:00:00', strtotime($fechaVenta)) : now()->setTime(5, 0)->toDateTimeString(),
                     'estado' => $estado,
                     'observaciones' => $obs,
                     'subtotal' => 0,

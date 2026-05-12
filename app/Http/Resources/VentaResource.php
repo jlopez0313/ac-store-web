@@ -29,7 +29,7 @@ class VentaResource extends JsonResource
                 'id' => $bodega->id,
                 'nombre' => $bodega->nombre,
             ] : null,
-            'fecha' => $this->fecha ? $this->fecha->format('Y-m-d') : null,
+            'fecha' => $this->fecha,
             'created_at' => $this->created_at->toISOString(),
             'estado' => $this->estado,
             'items_count' => (int) ($this->total_items ?? $this->detalles->sum('cantidad')),
@@ -71,8 +71,8 @@ class VentaResource extends JsonResource
                         'usuario' => $d->cambio->creator->name ?? 'Sistema',
                         'nueva_venta_id' => $d->cambio->nueva_venta_id,
                     ] : (\App\Models\Cambio::where('nueva_venta_id', $this->id)
-                        ->where('nuevo_inventario_id', $d->inventario_id)
-                        ->first() ? [
+                            ->where('nuevo_inventario_id', $d->inventario_id)
+                            ->first() ? [
                             'es_nuevo' => true,
                             'observacion' => \App\Models\Cambio::where('nueva_venta_id', $this->id)
                                 ->where('nuevo_inventario_id', $d->inventario_id)
@@ -83,13 +83,13 @@ class VentaResource extends JsonResource
                         ] : null),
                 ];
             }) : [],
-            'has_devoluciones' => \App\Models\Devolucion::where('venta_id', $this->id)->exists() || 
-                                 \App\Models\VentaDetalle::where('venta_id', $this->id)->onlyTrashed()->exists(),
+            'has_devoluciones' => \App\Models\Devolucion::where('venta_id', $this->id)->exists() ||
+                \App\Models\VentaDetalle::where('venta_id', $this->id)->onlyTrashed()->exists(),
             'devoluciones_detalle' => \App\Models\VentaDetalle::onlyTrashed()
                 ->where('venta_id', $this->id)
                 ->with(['producto', 'eliminador'])
                 ->get()
-                ->map(function($d) {
+                ->map(function ($d) {
                     return [
                         'id' => $d->id,
                         'producto' => $d->producto->codigo ?? 'N/A',

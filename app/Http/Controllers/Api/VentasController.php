@@ -84,24 +84,24 @@ class VentasController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('codigo', 'like', "%{$search}%")
-                  ->orWhere('descripcion', 'like', "%{$search}%")
-                  ->orWhereHas('marca', function ($mq) use ($search) {
-                      $mq->where('nombre', 'like', "%{$search}%");
-                  });
+                    ->orWhere('descripcion', 'like', "%{$search}%")
+                    ->orWhereHas('marca', function ($mq) use ($search) {
+                        $mq->where('nombre', 'like', "%{$search}%");
+                    });
             });
         }
 
         if ($request->filled('bodega_id')) {
             $query->whereHas('inventarios', function ($q) use ($request) {
                 $q->where('stock', '>', 0)
-                  ->whereHas('estanteria', function ($eq) use ($request) {
-                      $eq->where('bodega_id', $request->bodega_id);
-                  });
+                    ->whereHas('estanteria', function ($eq) use ($request) {
+                        $eq->where('bodega_id', $request->bodega_id);
+                    });
             });
         } else if ($request->filled('talla')) {
             $query->whereHas('inventarios', function ($q) use ($request) {
                 $q->where('talla', $request->talla)
-                  ->where('stock', '>', 0);
+                    ->where('stock', '>', 0);
             });
         }
 
@@ -268,12 +268,13 @@ class VentasController extends Controller
 
         DB::transaction(function () use ($userIds, $cuenta_id, $request) {
             foreach ($userIds as $userId) {
-                if ($userId === 'ALL') continue;
+                if ($userId === 'ALL')
+                    continue;
 
                 Venta::create([
                     'user_id' => $userId,
                     'cuenta_id' => $cuenta_id,
-                    'fecha' => now()->format('Y-m-d'),
+                    'fecha' => now(),
                     'estado' => 'abierta',
                     'observaciones' => $request->observaciones,
                 ]);
@@ -291,7 +292,7 @@ class VentasController extends Controller
         // Advanced restriction for Local role: Schedule + Holidays
         $service = new \App\Services\TimeRestrictionService();
         if (!$service->canUserOperate($user)) {
-            $msg = $service->isColombianHoliday(now()) 
+            $msg = $service->isColombianHoliday(now())
                 ? 'No se permiten adiciones los días festivos.'
                 : 'Operación fuera del horario permitido para su local.';
             return response()->json(['error' => $msg], 403);
@@ -311,7 +312,7 @@ class VentasController extends Controller
                         throw new \Exception("La muestra ya no está activa.");
                     }
                     $muestra->update(['estado' => 'vendido']);
-                    
+
                     $unitPrice = $item['precio_unitario'];
                     $venta->detalles()->create([
                         'inventario_id' => $muestra->inventario_id,
@@ -421,7 +422,8 @@ class VentasController extends Controller
 
             foreach ($request->ids as $id) {
                 $detalle = VentaDetalle::find($id);
-                if (!$detalle || $detalle->venta_id !== $venta->id) continue;
+                if (!$detalle || $detalle->venta_id !== $venta->id)
+                    continue;
                 $this->processDetailDeletion($venta, $detalle, $request->observacion);
             }
 
@@ -520,7 +522,7 @@ class VentasController extends Controller
                 /** @var VentaDetalle $detalle */
                 $base_price = $detalle->inventario->precio_venta ?? 0;
                 $new_precio_unitario = max(0, $base_price - $discount_value);
-                
+
                 $detalle->update([
                     'precio_unitario' => $new_precio_unitario,
                     'subtotal' => $new_precio_unitario * $detalle->cantidad,
@@ -564,7 +566,7 @@ class VentasController extends Controller
     public function getDetails(Request $request, Venta $venta)
     {
         $query = $venta->detalles()->with(['producto', 'estanteria.bodega', 'cambio.creator']);
-        
+
         $perPage = $request->input('per_page', 10);
         $paginated = $query->paginate($perPage);
 
