@@ -20,7 +20,7 @@ class FacturasController extends Controller
         $sortField = $request->input('sort_field', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
-        $query = Venta::with(['local', 'cuenta', 'creator', 'vendedor']);
+        $query = Venta::with(['local', 'cuenta', 'creator', 'vendedor', 'detalles:id,venta_id,bodega_id', 'detalles.bodega:id,nombre']);
 
         if ($user->hasRole('local')) {
             $query->where('user_id', $user->id);
@@ -69,6 +69,10 @@ class FacturasController extends Controller
                 'local' => [
                     'id' => $v->local->id ?? null,
                     'name' => $v->local->name ?? 'N/A',
+                ],
+                'bodega' => [
+                    'id' => $v->detalles->first()?->bodega->id ?? null,
+                    'nombre' => $v->detalles->first()?->bodega->nombre ?? 'N/A',
                 ],
                 'cuenta' => $v->cuenta->nombre ?? 'N/A',
                 'vendedor' => $v->vendedor ? $v->vendedor->nombre : ($v->creator ? $v->creator->name : ($v->local->name ?? 'N/A')),
