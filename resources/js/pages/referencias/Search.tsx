@@ -88,7 +88,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
     const columns = [
         {
             name: 'Foto',
-            width: '80px',
+            width: '85px',
             cell: (row: any) => (
                 <button
                     type="button"

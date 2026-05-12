@@ -169,7 +169,7 @@ export default function Ventas({ cuentas, locales }: any) {
     const detailColumns = [
         {
             name: 'Foto',
-            width: '80px',
+            width: '85px',
             cell: (row: any) => {
                 const fotoUrl = row.producto?.foto ? asset('storage/' + ltrim(row.producto.foto, '/')) : null;
                 return (

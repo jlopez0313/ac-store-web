@@ -86,7 +86,7 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
                     )}
                 </button>
             ),
-            width: '80px',
+            width: '85px',
         },
         {
             name: 'Código',

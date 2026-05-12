@@ -56,7 +56,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 	const columns = [
 		{
 			name: 'Foto',
-			width: '80px',
+			width: '85px',
 			cell: (row: any) => (
 				<button
 					type="button"

@@ -24,10 +24,6 @@ class UsuariosController extends Controller
 
         $query = User::with(['roles', 'cuenta', 'ciudad.state.country'])->withCount('bodegaAccesos');
         
-        if ($sortField === 'accesos_count') {
-            $sortField = 'bodega_accesos_count';
-        }
-
         if (!$isSuper) {
             $query->where('cuenta_id', $user->cuenta_id);
         }
@@ -41,8 +37,27 @@ class UsuariosController extends Controller
             });
         }
 
-        $paginated = $query->orderBy($sortField, $sortOrder)
-            ->paginate($request->input('per_page', 25));
+        // Handle sorting
+        if ($sortField === 'accesos_count') {
+            $query->orderBy('bodega_accesos_count', $sortOrder);
+        } elseif ($sortField === 'role') {
+            $query->select('users.*')
+                ->leftJoin('model_has_roles', function($join) {
+                    $join->on('users.id', '=', 'model_has_roles.model_id')
+                        ->where('model_has_roles.model_type', '=', User::class);
+                })
+                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->orderBy('roles.name', $sortOrder);
+        } elseif ($sortField === 'cuenta_id') {
+            $query->select('users.*')
+                ->leftJoin('cuentas', 'users.cuenta_id', '=', 'cuentas.id')
+                ->orderBy('cuentas.nombre', $sortOrder);
+        } else {
+            // Default sorting on users table
+            $query->orderBy("users.{$sortField}", $sortOrder);
+        }
+
+        $paginated = $query->paginate($request->input('per_page', 25));
 
         return UserResource::collection($paginated);
     }

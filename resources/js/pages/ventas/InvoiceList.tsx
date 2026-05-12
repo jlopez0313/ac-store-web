@@ -23,7 +23,7 @@ interface InvoiceListProps {
 
 export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, selectedFactura, onSelectInvoice, filters, onSearch, onFilterChange, cuentas, dynamicLocales, isSuperAdmin, isAdmin }) => {
     return (
-        <Card className="flex h-[calc(100vh-16rem)] flex-col overflow-hidden border-slate-200 shadow-sm lg:col-span-1 dark:border-slate-700">
+        <Card className="flex h-[calc(100vh-10rem)] flex-col overflow-hidden border-slate-200 shadow-sm lg:col-span-1 dark:border-slate-700">
             <CardHeader className="px-4 pt-4 pb-2">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-bold uppercase tracking-tighter text-slate-500">Listado de Facturas</CardTitle>

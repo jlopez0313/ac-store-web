@@ -25,11 +25,13 @@ export const customStyles = {
       letterSpacing: '0.05em',
       paddingLeft: '16px',
       paddingRight: '16px',
+      borderRightWidth: '1px',
+      borderRightColor: 'var(--border)',
     } as any
   },
   rows: {
     style: {
-      minHeight: '60px',
+      minHeight: '45px',
       backgroundColor: 'var(--card)',
       color: 'var(--card-foreground)',
       borderBottomStyle: 'solid' as any,
@@ -47,6 +49,8 @@ export const customStyles = {
       color: 'var(--card-foreground)',
       paddingLeft: '16px',
       paddingRight: '16px',
+      borderRightWidth: '1px',
+      borderRightColor: 'var(--border)',
     }
   },
   pagination: {

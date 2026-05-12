@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/Modal';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -444,25 +445,25 @@ export function ActivityModal({
                             </span>
                         </div>
                         <div className="max-h-[300px] overflow-y-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-white dark:bg-slate-950 text-slate-500 uppercase text-[10px] font-bold sticky top-0 z-10 border-b">
-                                    <tr>
-                                        <th className="px-4 py-2 w-12">Foto</th>
-                                        <th className="px-4 py-2">Referencia</th>
-                                        <th className="px-4 py-2">Precio Base</th>
+                            <Table>
+                                <TableHeader className="border-b">
+                                    <TableRow>
+                                        <TableHead className="w-[85px]">Foto</TableHead>
+                                        <TableHead>Referencia</TableHead>
+                                        <TableHead className="text-right">Precio Base</TableHead>
                                         {isLocal && (
                                             <>
-                                                <th className="px-4 py-2 w-32">% Incremento</th>
-                                                <th className="px-4 py-2 w-45">Precio Final</th>
+                                                <TableHead className="w-32 text-center">% Incremento</TableHead>
+                                                <TableHead className="w-40 text-right">Precio Final</TableHead>
                                             </>
                                         )}
-                                        <th className="px-4 py-2 w-10"></th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                        <TableHead className="w-10"></TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                     {selectedItems.map((item) => (
-                                        <tr key={item.id} className="bg-white dark:bg-slate-950 group">
-                                            <td className="px-4 py-2">
+                                        <TableRow key={item.id} className="bg-white dark:bg-slate-950 group">
+                                            <TableCell>
                                                 <div
                                                     onClick={() => item.foto && setViewerImage(item.foto)}
                                                     className={`h-10 w-10 rounded-md border overflow-hidden bg-slate-100 ${item.foto ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
@@ -473,12 +474,12 @@ export function ActivityModal({
                                                         <Megaphone className="h-4 w-4 m-auto mt-3 text-slate-300" />
                                                     )}
                                                 </div>
-                                            </td>
-                                            <td className="px-4 py-2">
+                                            </TableCell>
+                                            <TableCell>
                                                 <div className="font-bold text-slate-900 dark:text-slate-100">{item.codigo}</div>
                                                 <div className="text-[10px] text-slate-400 truncate max-w-[150px]">{item.name}</div>
-                                            </td>
-                                            <td className="px-4 py-2 text-right font-medium">
+                                            </TableCell>
+                                            <TableCell className="text-right font-medium">
                                                 <div className="flex flex-col items-end">
                                                     <span>${item.precio.toLocaleString()}</span>
                                                     {isLocal && item.descuento && item.descuento > 0 && (
@@ -487,10 +488,10 @@ export function ActivityModal({
                                                         </Badge>
                                                     )}
                                                 </div>
-                                            </td>
+                                            </TableCell>
                                             {isLocal && (
                                                 <>
-                                                    <td className="px-4 py-2">
+                                                    <TableCell>
                                                         <Input
                                                             type="number"
                                                             min="0"
@@ -498,8 +499,8 @@ export function ActivityModal({
                                                             onChange={(e) => handleUpdatePercentage(item.id, Number(e.target.value))}
                                                             className="h-8 text-center text-xs font-bold border-indigo-200 focus-visible:ring-indigo-500"
                                                         />
-                                                    </td>
-                                                    <td className="px-4 py-2 text-right">
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
                                                         <div className="relative">
                                                             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-bold text-indigo-400">$</span>
                                                             <Input
@@ -509,10 +510,10 @@ export function ActivityModal({
                                                                 className="h-8 pl-5 text-right text-xs font-bold border-indigo-200 text-indigo-600 focus-visible:ring-indigo-500"
                                                             />
                                                         </div>
-                                                    </td>
+                                                    </TableCell>
                                                 </>
                                             )}
-                                            <td className="px-4 py-2">
+                                            <TableCell>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleRemoveItem(item.id)}
@@ -520,11 +521,11 @@ export function ActivityModal({
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
-                                            </td>
-                                        </tr>
+                                            </TableCell>
+                                        </TableRow>
                                     ))}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
                     </div>
                 )}

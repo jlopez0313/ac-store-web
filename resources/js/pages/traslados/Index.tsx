@@ -38,7 +38,7 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
     const columns = [
         {
             name: 'Foto',
-            width: '70px',
+            width: '85px',
             cell: (row: any) => (
                 <div 
                     className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-slate-50 transition-transform hover:scale-110"

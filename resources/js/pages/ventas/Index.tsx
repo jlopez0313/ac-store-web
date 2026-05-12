@@ -495,7 +495,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                 />
                             </>
                         ) : (
-                            <Card className="flex h-[calc(100vh-22rem)] items-center justify-center rounded-3xl border-2 border-dashed border-slate-100 bg-slate-50/50 shadow-none dark:border-slate-700 dark:bg-slate-800/30">
+                            <Card className="flex h-[calc(100vh-10rem)] items-center justify-center rounded-3xl border-2 border-dashed border-slate-100 bg-slate-50/50 shadow-none dark:border-slate-700 dark:bg-slate-800/30">
                                 <div className="mx-auto max-w-sm space-y-4 text-center">
                                     <div className="mx-auto flex h-24 w-24 rotate-3 items-center justify-center rounded-3xl bg-white shadow-xl shadow-slate-200/50 dark:bg-slate-800 dark:shadow-black/30">
                                         <ShoppingCart className="h-10 w-10 text-slate-200 dark:text-slate-600" />

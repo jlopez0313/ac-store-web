@@ -73,9 +73,9 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
             </div>
 
             <Card className="flex min-w-0 flex-col overflow-hidden border-slate-200 shadow-sm dark:border-slate-700">
-                <CardContent className="custom-scrollbar max-h-[calc(100vh-25rem)] w-full max-w-full min-w-0 flex-1 overflow-x-auto overflow-y-auto p-0">
+                <CardContent className="custom-scrollbar max-h-[calc(100vh-18rem)] w-full max-w-full min-w-0 flex-1 overflow-x-auto overflow-y-auto p-0">
                     <Table>
-                        <TableHeader className="sticky top-0 z-10 bg-slate-50/50 backdrop-blur-sm dark:bg-slate-800/50">
+                        <TableHeader>
                             <TableRow>
                                 <TableHead className="w-12 px-4 py-3">
                                     {isAdmin && factura.estado === 'abierta' && (
@@ -85,7 +85,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                         />
                                     )}
                                 </TableHead>
-                            <TableHead className="w-16 font-bold text-slate-700 dark:text-slate-300">Foto</TableHead>
+                            <TableHead className="w-[85px] font-bold text-slate-700 dark:text-slate-300">Foto</TableHead>
                             <TableHead className="w-28 font-bold text-slate-700 dark:text-slate-300">Ref</TableHead>
                             <TableHead className="font-bold text-slate-700 dark:text-slate-300">Producto</TableHead>
                             <TableHead className="w-56 font-bold text-slate-700 dark:text-slate-300">Ubicación</TableHead>

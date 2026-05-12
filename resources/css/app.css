@@ -326,6 +326,27 @@
     [data-sidebar='content']::-webkit-scrollbar-thumb:hover {
         background: hsl(220 20% 60% / 0.4);
     }
+
+    table:not(.rdt_Table) {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    table:not(.rdt_Table) th,
+    table:not(.rdt_Table) td {
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        padding: 4px 16px;
+    }
+
+    table:not(.rdt_Table) th:last-child,
+    table:not(.rdt_Table) td:last-child {
+        border-right: none;
+    }
+
+    table:not(.rdt_Table) tr {
+        min-height: 45px;
+    }
 }
 
 @layer components {

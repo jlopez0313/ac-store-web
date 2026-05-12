@@ -117,7 +117,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 	const columns = [
 		{
 			name: 'Foto',
-			width: '80px',
+			width: '85px',
 			cell: (row: any) => (
 				<button
 					type="button"
@@ -333,32 +333,32 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 								return total > 0;
 							})
 							.map((shelf: any) => (
-							<button
-								key={shelf.estanteria_id}
-								onClick={() => {
-									setSelectedShelf({
-										id: shelf.estanteria_id,
-										nombre: shelf.estanteria_nombre,
-										bodega_id: shelf.bodega_id,
-										bodega_nombre: shelf.bodega_nombre
-									});
-									setShelfSelectorOpen(false);
-									setAdjustmentOpen(true);
-								}}
-								className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left group"
-							>
-								<div className="p-2 bg-muted rounded-lg group-hover:bg-background transition-colors">
-									<Warehouse className="h-5 w-5 text-muted-foreground" />
-								</div>
-								<div className="flex flex-col flex-1">
-									<span className="font-medium text-sm">{shelf.bodega_nombre}</span>
-									<span className="text-xs text-muted-foreground uppercase">{shelf.estanteria_nombre}</span>
-								</div>
-								<Badge variant="outline" className="bg-background">
-									{distributionDetails.filter(d => d.estanteria_id === shelf.estanteria_id).reduce((sum, d) => sum + Number(d.stock), 0)} uds
-								</Badge>
-							</button>
-						))}
+								<button
+									key={shelf.estanteria_id}
+									onClick={() => {
+										setSelectedShelf({
+											id: shelf.estanteria_id,
+											nombre: shelf.estanteria_nombre,
+											bodega_id: shelf.bodega_id,
+											bodega_nombre: shelf.bodega_nombre
+										});
+										setShelfSelectorOpen(false);
+										setAdjustmentOpen(true);
+									}}
+									className="flex items-center gap-4 p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors text-left group"
+								>
+									<div className="p-2 bg-muted rounded-lg group-hover:bg-background transition-colors">
+										<Warehouse className="h-5 w-5 text-muted-foreground" />
+									</div>
+									<div className="flex flex-col flex-1">
+										<span className="font-medium text-sm">{shelf.bodega_nombre}</span>
+										<span className="text-xs text-muted-foreground uppercase">{shelf.estanteria_nombre}</span>
+									</div>
+									<Badge variant="outline" className="bg-background">
+										{distributionDetails.filter(d => d.estanteria_id === shelf.estanteria_id).reduce((sum, d) => sum + Number(d.stock), 0)} uds
+									</Badge>
+								</button>
+							))}
 					</div>
 				</div>
 			</Modal>

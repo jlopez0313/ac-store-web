@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/Modal';
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import { Badge } from '@/components/ui/badge';
@@ -420,7 +421,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                     {/* Content Area */}
                     <div className="flex-1 overflow-y-auto" ref={scrollRef} onScroll={handleScroll}>
                         {mode === 'search' ? (
-                            <div className="divide-y divide-slate-100 p-2">
+                            <div className="divide-y divide-border">
                                 {displayResults.map((r: any) => (
                                     <div
                                         key={r.id}
@@ -428,7 +429,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                         tabIndex={0}
                                         onClick={() => handleSelectRef(r)}
                                         onKeyDown={(e) => e.key === 'Enter' && handleSelectRef(r)}
-                                        className="group flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-xl p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                                        className="group flex w-full min-w-0 cursor-pointer items-center justify-between gap-2 border-b border-border last:border-b-0 p-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
                                     >
                                         <div className="flex min-w-0 flex-1 items-center gap-3">
                                             <div
@@ -608,13 +609,13 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                             />
                         ) : (
                             <div className="flex justify-end">
-                                <button
-                                    type="button"
+                                <Button
+                                    variant="secondary"
                                     onClick={onClose}
-                                    className="text-muted-foreground bg-muted/50 hover:bg-muted rounded-xl px-6 py-2.5 text-sm font-bold transition-colors"
+                                    className="px-8"
                                 >
                                     Cerrar
-                                </button>
+                                </Button>
                             </div>
                         )}
                     </div>

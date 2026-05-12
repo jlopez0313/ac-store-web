@@ -58,7 +58,7 @@ export const DevolucionesFacturaModal: React.FC<Props> = ({ isOpen, onClose, fac
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="w-12">Foto</TableHead>
+                                        <TableHead className="w-[85px]">Foto</TableHead>
                                         <TableHead>Código</TableHead>
                                         <TableHead>Descripción</TableHead>
                                         <TableHead>Talla</TableHead>
