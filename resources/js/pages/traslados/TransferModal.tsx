@@ -285,7 +285,15 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                                     <div className="text-center text-[10px] text-slate-400">Sin foto</div>
                                 )}
                             </div>
-                            <div className="space-y-4">
+                            <div className="flex flex-col gap-3">
+                                <div>
+                                    <h4 className="text-sm font-black text-slate-900 dark:text-white">
+                                        {selectedRefData?.codigo}
+                                    </h4>
+                                    <p className="text-[11px] leading-tight text-slate-500 line-clamp-2">
+                                        {selectedRefData?.descripcion}
+                                    </p>
+                                </div>
                                 <SelectField
                                     name="originBodega"
                                     title="Bodega de Origen"
@@ -350,16 +358,19 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Vas a trasladar</p>
                                 <div className="flex items-center gap-2">
-                                    <Badge variant="secondary" className="font-mono">
+                                    <h4 className="text-xs font-black text-slate-900 dark:text-white">
+                                        {selectedRefData?.codigo}
+                                    </h4>
+                                    <Badge variant="secondary" className="text-[10px] font-mono">
                                         Talla {selectedOriginItem.talla}
                                     </Badge>
-                                    <span className="text-sm font-medium">
-                                        desde{' '}
-                                        <span className="font-bold">
-                                            {selectedOriginItem.bodega_nombre} ({selectedOriginItem.estanteria_nombre})
-                                        </span>
-                                    </span>
                                 </div>
+                                <span className="text-sm font-medium">
+                                    desde{' '}
+                                    <span className="font-bold">
+                                        {selectedOriginItem.bodega_nombre} ({selectedOriginItem.estanteria_nombre})
+                                    </span>
+                                </span>
                             </div>
                             <Button variant="ghost" size="sm" onClick={() => setStep(2)} className="text-xs" disabled={processing}>
                                 ← Cambiar origen
