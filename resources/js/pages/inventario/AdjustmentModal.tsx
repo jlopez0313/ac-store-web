@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { showAlert } from '@/plugins/sweetalert';
 import axios from 'axios';
-import { Save } from 'lucide-react';
+import { ViewerModal } from '@/components/ui/ViewerModal';
+import { Save, Image as ImageIcon } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface AdjustmentModalProps {
@@ -35,6 +36,7 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 		nueva_estanteria_id: '' as string | number,
 	});
 	const [loading, setLoading] = useState(false);
+	const [viewerImage, setViewerImage] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (isOpen && referencia) {
@@ -130,37 +132,54 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 	};
 
 	return (
-		<Modal show={isOpen} onClose={onClose} title="Ajustar Inventario" maxWidth="3xl" closeable={true}>
-			<form onSubmit={handleSubmit} className="space-y-6 p-6">
-				<div className="bg-muted/30 border-border space-y-3 rounded-xl border p-4">
-					<div className="flex items-center justify-between text-sm">
-						<span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">Producto</span>
-						<span className="font-semibold text-right">
-							{referencia.codigo} - {referencia.descripcion}
-						</span>
+		<>
+			<Modal show={isOpen} onClose={onClose} title="Ajustar Inventario" maxWidth="3xl" closeable={true}>
+				<form onSubmit={handleSubmit} className="space-y-6 p-6">
+					<div className="bg-muted/30 border-border space-y-3 rounded-xl border p-4">
+						<div className="flex gap-4 items-start">
+							<button
+								type="button"
+								onClick={() => referencia.foto && setViewerImage(referencia.foto)}
+								className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white transition-transform hover:scale-105 active:scale-95"
+							>
+								{referencia.foto ? (
+									<img src={referencia.foto} alt={referencia.codigo} className="h-full w-full object-cover" />
+								) : (
+									<ImageIcon className="h-8 w-8 text-slate-300" />
+								)}
+							</button>
+							<div className="flex-1 space-y-1">
+								<div className="flex items-center justify-between text-sm">
+									<span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">Producto</span>
+									<span className="font-semibold text-right">
+										{referencia.codigo}
+									</span>
+								</div>
+								<p className="text-sm font-medium">{referencia.descripcion}</p>
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 pt-2 border-t border-border/50">
+									<SelectField
+										name="nueva_bodega_id"
+										title="Bodega"
+										value={form.nueva_bodega_id}
+										lista={bodegas}
+										item={{ idx: 'id', value: 'nombre' }}
+										onChange={(val: any) => setForm({ ...form, nueva_bodega_id: val, nueva_estanteria_id: '' })}
+										error={undefined}
+									/>
+									<SelectField
+										name="nueva_estanteria_id"
+										title="Estantería"
+										value={form.nueva_estanteria_id}
+										lista={availableShelves}
+										item={{ idx: 'id', value: 'nombre' }}
+										onChange={(val: any) => setForm({ ...form, nueva_estanteria_id: val })}
+										disabled={!form.nueva_bodega_id}
+										error={undefined}
+									/>
+								</div>
+							</div>
+						</div>
 					</div>
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 pt-2 border-t border-border/50">
-						<SelectField
-							name="nueva_bodega_id"
-							title="Bodega"
-							value={form.nueva_bodega_id}
-							lista={bodegas}
-							item={{ idx: 'id', value: 'nombre' }}
-							onChange={(val: any) => setForm({ ...form, nueva_bodega_id: val, nueva_estanteria_id: '' })}
-							error={undefined}
-						/>
-						<SelectField
-							name="nueva_estanteria_id"
-							title="Estantería"
-							value={form.nueva_estanteria_id}
-							lista={availableShelves}
-							item={{ idx: 'id', value: 'nombre' }}
-							onChange={(val: any) => setForm({ ...form, nueva_estanteria_id: val })}
-							disabled={!form.nueva_bodega_id}
-							error={undefined}
-						/>
-					</div>
-				</div>
 
 				<div className="grid grid-cols-2 gap-4">
 					<div className="space-y-2">
@@ -168,7 +187,7 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 						<Input
 							id="precio_compra"
 							type="number"
-							value={form.precio_compra === 0 ? '' : form.precio_compra}
+							value={form.precio_compra}
 							onChange={(e) => setForm({ ...form, precio_compra: e.target.value === '' ? 0 : Number(e.target.value) })}
 							onWheel={(e) => e.currentTarget.blur()}
 							placeholder="0"
@@ -180,7 +199,7 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 						<Input
 							id="precio_venta"
 							type="number"
-							value={form.precio_venta === 0 ? '' : form.precio_venta}
+							value={form.precio_venta}
 							onChange={(e) => setForm({ ...form, precio_venta: e.target.value === '' ? 0 : Number(e.target.value) })}
 							onWheel={(e) => e.currentTarget.blur()}
 							placeholder="0"
@@ -242,5 +261,12 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 				</div>
 			</form>
 		</Modal>
+
+		<ViewerModal
+			show={!!viewerImage}
+			image={viewerImage}
+			onClose={() => setViewerImage(null)}
+		/>
+	</>
 	);
 };

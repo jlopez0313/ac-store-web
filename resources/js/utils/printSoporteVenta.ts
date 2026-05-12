@@ -31,12 +31,12 @@ export function printSoporteVenta(data: SoporteData, returnHtml = false): string
         .map(
             (d) => `
             <tr>
-                <td colspan="3" style="font-size:10px;padding:3px 0 0;font-weight:bold;word-break:break-word;">${d.producto.descripcion}</td>
+                <td colspan="3" style="font-size:12px;padding:3px 0 0;font-weight:bold;word-break:break-word;">${d.producto.descripcion}</td>
             </tr>
             <tr>
-                <td style="padding:0 0-4px;font-size:10px;">${d.producto.codigo}</td>
-                <td style="text-align:center;font-size:10px;">${d.talla}</td>
-                <td style="text-align:right;font-size:10px;">${fmt(d.precio_unitario)}</td>
+                <td style="padding:0 0-4px;font-size:11px;">${d.producto.codigo}</td>
+                <td style="text-align:center;font-size:11px;">${d.talla}</td>
+                <td style="text-align:right;font-size:11px;">${fmt(d.precio_unitario)}</td>
             </tr>`,
         )
         .join('');
@@ -59,7 +59,7 @@ export function printSoporteVenta(data: SoporteData, returnHtml = false): string
         .header-box { border: 2px solid #000; padding: 4px; margin-bottom: 6px; text-align: center; }
         h2 { font-size: 14px; text-align: center; font-weight: bold; }
         h3 { font-size: 12px; text-align: center; margin-bottom: 3px; }
-        .info { font-size: 10px; text-align: center; margin-bottom: 2px; }
+        .info { font-size: 11px; text-align: center; margin-bottom: 2px; }
         .divider { border-top: 1px dashed #000; margin: 5px 0; }
         table {
             width: 100%;
@@ -71,7 +71,7 @@ export function printSoporteVenta(data: SoporteData, returnHtml = false): string
         .field-table .value { width: 55%; text-align: right; }
         
         .items-table th {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: bold;
             border-bottom: 1px dashed #000;
             padding-bottom: 2px;
@@ -85,8 +85,8 @@ export function printSoporteVenta(data: SoporteData, returnHtml = false): string
         .totals-table .value { width: 45%; text-align: right; }
         .grand td { font-size: 14px; border-top: 2px solid #000; padding-top: 4px; }
         
-        .disclaimer { margin-top: 10px; text-align: center; font-size: 10px; font-weight: bold; line-height: 1.4; border: 1px solid #000; padding: 4px; }
-        .footer-text { margin-top: 6px; text-align: center; font-size: 10px; font-weight: bold; }
+        .disclaimer { margin-top: 10px; text-align: center; font-size: 11px; font-weight: bold; line-height: 1.4; border: 1px solid #000; padding: 4px; }
+        .footer-text { margin-top: 6px; text-align: center; font-size: 11px; font-weight: bold; }
     </style>
 </head>
 <body onload="window.print()">

@@ -80,7 +80,7 @@ export const Modal = ({
                         className={cn(
                             'relative z-50',
                             'mb-6 bg-background rounded-lg overflow-hidden shadow-xl transform transition-all w-full sm:mx-auto border border-border',
-                            'max-h-[90vh] overflow-y-auto',
+                            'max-h-[95vh] overflow-y-auto',
                             maxWidthClass,
                             className
                         )}

@@ -56,7 +56,7 @@ export const InputField = ({ name,
             <Input
                 {...props}
                 required={required}
-                placeholder={placeholder ?? title}
+                placeholder={placeholder ?? (type === 'number' ? '0' : title)}
                 id={name}
                 type={type}
                 name={name}
