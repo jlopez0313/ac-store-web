@@ -378,10 +378,8 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         // Re-fetch factura to get current impreso status
                                         let freshFactura = selectedFactura;
                                         try {
-                                            const res = await axios.get(route('api.ventas.index'), {
-                                                params: { search: selectedFactura.id, per_page: 1 },
-                                            });
-                                            const found = res.data.data?.find((f: any) => f.id === selectedFactura.id);
+                                            const res = await axios.get(route('api.ventas.show', { venta: selectedFactura.id }));
+                                            const found = res.data.data;
                                             if (found) {
                                                 freshFactura = found;
                                                 setSelectedFactura(found);
