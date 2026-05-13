@@ -10,8 +10,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { BarChart3, Calendar, Eye, Hash, ImageIcon, MapPin, Package, RefreshCw, Search, ShoppingCart, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { BarChart3, Calendar, Eye, ImageIcon, MapPin, Package, RefreshCw, ShoppingCart, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -274,7 +273,7 @@ export default function Ventas({ cuentas, locales }: any) {
                 />
 
                 {/* Filters */}
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
                         <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-end">
                             {isSuper && (
@@ -338,8 +337,8 @@ export default function Ventas({ cuentas, locales }: any) {
 
                 {/* KPI Cards */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg">
+                    <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-indigo-600 text-white shadow-lg">
                             <ShoppingCart className="h-5 w-5" />
                         </div>
                         <div>
@@ -348,8 +347,8 @@ export default function Ventas({ cuentas, locales }: any) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg">
+                    <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white shadow-lg">
                             <Package className="h-5 w-5" />
                         </div>
                         <div>
@@ -358,8 +357,8 @@ export default function Ventas({ cuentas, locales }: any) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-lg">
+                    <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-violet-600 text-white shadow-lg">
                             <BarChart3 className="h-5 w-5" />
                         </div>
                         <div>
@@ -370,7 +369,7 @@ export default function Ventas({ cuentas, locales }: any) {
                 </div>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={data}
                         columns={columns}
@@ -393,9 +392,9 @@ export default function Ventas({ cuentas, locales }: any) {
                 title={`Detalle de Factura: ${selectedInvoice?.factura_numero}`}
                 maxWidth="4xl"
             >
-                <div className="space-y-5 p-1">
+                <div className="space-y-5 p-6">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                        <div className="flex items-center gap-3 rounded-md border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400">
                                 <MapPin className="h-5 w-5" />
                             </div>
@@ -405,7 +404,7 @@ export default function Ventas({ cuentas, locales }: any) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                        <div className="flex items-center gap-3 rounded-md border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                                 <Calendar className="h-5 w-5" />
                             </div>
@@ -415,7 +414,7 @@ export default function Ventas({ cuentas, locales }: any) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                        <div className="flex items-center gap-3 rounded-md border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
                                 <Package className="h-5 w-5" />
                             </div>
@@ -425,7 +424,7 @@ export default function Ventas({ cuentas, locales }: any) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-emerald-50/30 p-3 dark:border-emerald-900/20 dark:bg-emerald-950/20">
+                        <div className="flex items-center gap-3 rounded-md border border-slate-100 bg-emerald-50/30 p-3 dark:border-emerald-900/20 dark:bg-emerald-950/20">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/50 dark:text-emerald-400">
                                 <ShoppingCart className="h-5 w-5" />
                             </div>
@@ -438,9 +437,9 @@ export default function Ventas({ cuentas, locales }: any) {
 
                     {selectedInvoice?.has_returns && (
                         <div className="flex justify-end">
-                            <Button 
-                                variant="outline" 
-                                size="sm" 
+                            <Button
+                                variant="outline"
+                                size="sm"
                                 className="h-9 gap-2 border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-orange-900/50 dark:bg-orange-950/20 dark:text-orange-400"
                                 onClick={() => handleViewReturns(selectedInvoice)}
                             >
@@ -450,7 +449,7 @@ export default function Ventas({ cuentas, locales }: any) {
                         </div>
                     )}
 
-                    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                    <div className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-xs dark:border-slate-700 dark:bg-slate-900">
                         <DataGrid
                             data={invoiceDetails}
                             columns={detailColumns}
@@ -476,9 +475,9 @@ export default function Ventas({ cuentas, locales }: any) {
                 title={`Devoluciones - Factura: ${selectedInvoice?.factura_numero}`}
                 maxWidth="2xl"
             >
-                <div className="space-y-4 p-1">
+                <div className="space-y-4 p-6">
                     {returnsData.length > 0 ? (
-                        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                        <div className="rounded-md border border-slate-200 bg-white overflow-hidden shadow-xs dark:border-slate-700 dark:bg-slate-900">
                             <DataGrid
                                 data={returnsData}
                                 columns={returnColumns}
@@ -490,7 +489,7 @@ export default function Ventas({ cuentas, locales }: any) {
                             />
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 dark:border-slate-800 dark:bg-slate-900/50">
+                        <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-slate-200 bg-slate-50 py-10 dark:border-slate-800 dark:bg-slate-900/50">
                             <RefreshCw className="mb-2 h-8 w-8 text-slate-300" />
                             <p className="text-sm text-slate-400 font-medium">Esta factura no tiene devoluciones registradas.</p>
                         </div>

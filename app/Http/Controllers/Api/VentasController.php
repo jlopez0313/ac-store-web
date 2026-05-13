@@ -39,6 +39,10 @@ class VentasController extends Controller
             $query->where('user_id', $request->local_id);
         }
 
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {

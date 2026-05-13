@@ -144,7 +144,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
 
                             <div className="grid w-full flex-1 grid-cols-1 gap-6 md:grid-cols-3">
                                 <div className="flex items-center gap-4">
-                                    <div className="bg-background text-muted-foreground border-border/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+                                    <div className="bg-background text-muted-foreground border-border/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border">
                                         <Package className="h-5 w-5" />
                                     </div>
                                     <div className="flex flex-col">
@@ -156,7 +156,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                 </div>
 
                                 <div className="flex items-center gap-4">
-                                    <div className="bg-background text-muted-foreground border-border/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+                                    <div className="bg-background text-muted-foreground border-border/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border">
                                         <Tag className="h-5 w-5" />
                                     </div>
                                     <div className="flex flex-col">
@@ -168,7 +168,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
                                 </div>
 
                                 <div className="flex items-center gap-4">
-                                    <div className="bg-background text-muted-foreground border-border/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border">
+                                    <div className="bg-background text-muted-foreground border-border/50 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border">
                                         <Info className="h-5 w-5" />
                                     </div>
                                     <div className="flex items-center gap-6">

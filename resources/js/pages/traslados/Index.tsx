@@ -2,12 +2,12 @@ import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { ArrowLeftRight, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ViewerModal } from '@/components/ui/ViewerModal';
 import { TransferModal } from './TransferModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -51,7 +51,7 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
             name: 'Foto',
             width: '85px',
             cell: (row: any) => (
-                <div 
+                <div
                     className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-slate-50 transition-transform hover:scale-110 dark:border-slate-700 dark:bg-slate-800"
                     onClick={() => setViewerImage(row.referencia_foto)}
                 >
@@ -131,7 +131,7 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
             <div className="p-4 space-y-6">
                 <PageHeader title="Historial de Traslados" description="Registro de movimientos de mercancía entre bodegas y estanterías." />
 
-                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
+                <div className="flex flex-col justify-between gap-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
                     <div className="flex flex-1 max-w-sm gap-2">
                         <div className="relative flex-1">
                             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -153,7 +153,7 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}
@@ -164,17 +164,17 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
                         paginationServer={true}
                         fetchPage={(page) => handleSearch(undefined, page)}
                         setPageSize={(size) => handleSearch(undefined, 1, size)}
-                        onSort={() => {}}
+                        onSort={() => { }}
                     />
                 </div>
             </div>
 
             <TransferModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} cuentas={cuentas} referenciasInit={referencias} />
-            
-            <ViewerModal 
-                show={!!viewerImage} 
-                image={viewerImage} 
-                onClose={() => setViewerImage(null)} 
+
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={() => setViewerImage(null)}
             />
         </AppLayout>
     );

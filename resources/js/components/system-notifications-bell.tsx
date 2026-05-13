@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Modal } from '@/components/ui/Modal';
 import axios from 'axios';
-import { Bell, Info, AlertTriangle, CheckCircle, XCircle, Trash2, MailOpen } from 'lucide-react';
-import { useEffect, useState, useCallback } from 'react';
+import { AlertTriangle, Bell, CheckCircle, Info, XCircle } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface Notification {
     id: number;
@@ -31,9 +31,26 @@ export function SystemNotificationsBell() {
 
     useEffect(() => {
         fetchNotifications();
-        // Poll for new notifications every minute
-        const interval = setInterval(fetchNotifications, 60000);
-        return () => clearInterval(interval);
+
+        // Listen to Firebase for notification pings
+        let unsubscribe: any = null;
+
+        const setupListener = async () => {
+            const { getNotificationsPingRef, onValue } = await import('@/lib/firebase');
+            const pingRef = getNotificationsPingRef();
+
+            unsubscribe = onValue(pingRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    fetchNotifications();
+                }
+            });
+        };
+
+        setupListener();
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
     }, [fetchNotifications]);
 
     const unreadCount = notifications.filter(n => !n.read_at).length;
@@ -78,11 +95,11 @@ export function SystemNotificationsBell() {
                         )}
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-80 p-0 overflow-hidden rounded-xl border-slate-200 shadow-xl dark:border-slate-800">
+                <DropdownMenuContent align="end" className="w-80 p-0 overflow-hidden rounded-md border-slate-200 shadow-xl dark:border-slate-800">
                     <div className="flex items-center justify-between border-b px-4 py-2 bg-slate-50/50 dark:bg-slate-900/50">
                         <span className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Notificaciones</span>
                         {unreadCount > 0 && (
-                            <button 
+                            <button
                                 onClick={handleMarkAllAsRead}
                                 className="text-[10px] text-indigo-600 hover:text-indigo-700 font-bold uppercase tracking-tight"
                             >

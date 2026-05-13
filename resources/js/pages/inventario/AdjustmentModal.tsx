@@ -5,10 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import { showAlert } from '@/plugins/sweetalert';
 import axios from 'axios';
-import { ViewerModal } from '@/components/ui/ViewerModal';
-import { Save, Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon, Save } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface AdjustmentModalProps {
@@ -135,7 +135,7 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 		<>
 			<Modal show={isOpen} onClose={onClose} title="Ajustar Inventario" maxWidth="3xl" closeable={true}>
 				<form onSubmit={handleSubmit} className="space-y-6 p-6">
-					<div className="bg-muted/30 border-border space-y-3 rounded-xl border p-4">
+					<div className="bg-muted/30 border-border space-y-3 rounded-md border p-4">
 						<div className="flex gap-4 items-start">
 							<button
 								type="button"
@@ -181,92 +181,92 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 						</div>
 					</div>
 
-				<div className="grid grid-cols-2 gap-4">
-					<div className="space-y-2">
-						<Label htmlFor="precio_compra">Precio de Compra</Label>
-						<Input
-							id="precio_compra"
-							type="number"
-							value={form.precio_compra}
-							onChange={(e) => setForm({ ...form, precio_compra: e.target.value === '' ? 0 : Number(e.target.value) })}
-							onWheel={(e) => e.currentTarget.blur()}
-							placeholder="0"
-							required
-						/>
+					<div className="grid grid-cols-2 gap-4">
+						<div className="space-y-2">
+							<Label htmlFor="precio_compra">Precio de Compra</Label>
+							<Input
+								id="precio_compra"
+								type="number"
+								value={form.precio_compra}
+								onChange={(e) => setForm({ ...form, precio_compra: e.target.value === '' ? 0 : Number(e.target.value) })}
+								onWheel={(e) => e.currentTarget.blur()}
+								placeholder="0"
+								required
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="precio_venta">Precio de Venta</Label>
+							<Input
+								id="precio_venta"
+								type="number"
+								value={form.precio_venta}
+								onChange={(e) => setForm({ ...form, precio_venta: e.target.value === '' ? 0 : Number(e.target.value) })}
+								onWheel={(e) => e.currentTarget.blur()}
+								placeholder="0"
+								required
+							/>
+						</div>
 					</div>
-					<div className="space-y-2">
-						<Label htmlFor="precio_venta">Precio de Venta</Label>
-						<Input
-							id="precio_venta"
-							type="number"
-							value={form.precio_venta}
-							onChange={(e) => setForm({ ...form, precio_venta: e.target.value === '' ? 0 : Number(e.target.value) })}
-							onWheel={(e) => e.currentTarget.blur()}
-							placeholder="0"
-							required
-						/>
-					</div>
-				</div>
 
-				<div className="border-border overflow-hidden rounded-xl border">
-					<Table>
-						<TableHeader className="bg-muted/50">
-							<TableRow>
-								<TableHead className="text-center">Talla</TableHead>
-								<TableHead className="text-center">Cantidad Actual</TableHead>
-								<TableHead className="w-40 text-center">Nueva Cantidad</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{form.detalles.map((det) => (
-								<TableRow key={det.talla}>
-									<TableCell className="text-center font-bold">{det.talla}</TableCell>
-									<TableCell className="text-center">{det.stock}</TableCell>
-									<TableCell>
-										<Input
-											type="number"
-											className="text-center"
-											value={det.stock}
-											onChange={(e) => handleStockChange(det.talla, e.target.value)}
-											onWheel={(e) => e.currentTarget.blur()}
-											min="0"
-											required
-										/>
-									</TableCell>
+					<div className="border-border overflow-hidden rounded-md border">
+						<Table>
+							<TableHeader className="bg-muted/50">
+								<TableRow>
+									<TableHead className="text-center">Talla</TableHead>
+									<TableHead className="text-center">Cantidad Actual</TableHead>
+									<TableHead className="w-40 text-center">Nueva Cantidad</TableHead>
 								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</div>
+							</TableHeader>
+							<TableBody>
+								{form.detalles.map((det) => (
+									<TableRow key={det.talla}>
+										<TableCell className="text-center font-bold">{det.talla}</TableCell>
+										<TableCell className="text-center">{det.stock}</TableCell>
+										<TableCell>
+											<Input
+												type="number"
+												className="text-center"
+												value={det.stock}
+												onChange={(e) => handleStockChange(det.talla, e.target.value)}
+												onWheel={(e) => e.currentTarget.blur()}
+												min="0"
+												required
+											/>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
 
-				<div className="space-y-2">
-					<Label htmlFor="observacion">Observación / Motivo del Ajuste</Label>
-					<Textarea
-						id="observacion"
-						placeholder="Escriba aquí el motivo del ajuste..."
-						value={form.observacion}
-						onChange={(e) => setForm({ ...form, observacion: e.target.value })}
-						required
-					/>
-				</div>
+					<div className="space-y-2">
+						<Label htmlFor="observacion">Observación / Motivo del Ajuste</Label>
+						<Textarea
+							id="observacion"
+							placeholder="Escriba aquí el motivo del ajuste..."
+							value={form.observacion}
+							onChange={(e) => setForm({ ...form, observacion: e.target.value })}
+							required
+						/>
+					</div>
 
-				<div className="flex justify-end gap-3 border-t pt-4">
-					<Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-						Cancelar
-					</Button>
-					<Button type="submit" loading={loading} className="gap-2">
-						<Save className="h-4 w-4" />
-						Guardar Ajuste
-					</Button>
-				</div>
-			</form>
-		</Modal>
+					<div className="flex justify-end gap-3 border-t pt-4">
+						<Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+							Cancelar
+						</Button>
+						<Button type="submit" loading={loading} className="gap-2">
+							<Save className="h-4 w-4" />
+							Guardar Ajuste
+						</Button>
+					</div>
+				</form>
+			</Modal>
 
-		<ViewerModal
-			show={!!viewerImage}
-			image={viewerImage}
-			onClose={() => setViewerImage(null)}
-		/>
-	</>
+			<ViewerModal
+				show={!!viewerImage}
+				image={viewerImage}
+				onClose={() => setViewerImage(null)}
+			/>
+		</>
 	);
 };

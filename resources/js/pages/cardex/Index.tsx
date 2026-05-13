@@ -1,6 +1,5 @@
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
@@ -155,7 +154,7 @@ export default function Index({ filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:items-center dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex flex-col justify-between gap-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm md:flex-row md:items-center dark:border-slate-700 dark:bg-slate-900">
                     <div className="max-w-md flex-1 flex gap-2">
                         <div className="relative flex-1">
                             <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -170,7 +169,7 @@ export default function Index({ filters: initialFilters }: any) {
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-1.5 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+                    <div className="flex flex-wrap gap-1.5 rounded-md bg-slate-100 p-1 dark:bg-slate-800">
                         {tabs.map((t) => (
                             <button
                                 key={t}
@@ -205,7 +204,7 @@ export default function Index({ filters: initialFilters }: any) {
 
 function StatCard({ label, value, icon: Icon }: any) {
     return (
-        <div className="flex min-w-44 items-center gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex min-w-44 items-center gap-4 rounded-md border border-slate-200 bg-white px-5 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                 <Icon className="h-5 w-5" />
             </div>

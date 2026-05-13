@@ -97,6 +97,11 @@ export default function NotificationsIndex() {
         setLoading(true);
         try {
             await axios.post('/api/notifications/broadcast', formData);
+
+            // Ping Firebase so all clients refresh their bell
+            const { pingNotifications } = await import('@/lib/firebase');
+            pingNotifications().catch(err => console.error('Error pinging Firebase:', err));
+
             showAlert('success', 'Anuncios enviados correctamente.');
             setFormData({
                 title: '',
@@ -177,7 +182,7 @@ export default function NotificationsIndex() {
                                         <SelectField
                                             name="type"
                                             lista={typeOptions}
-                                            item={{idx: 'value', value: 'label'}}
+                                            item={{ idx: 'value', value: 'label' }}
                                             value={formData.type}
                                             onChange={(val) => setFormData({ ...formData, type: val as string })}
                                         />
@@ -187,7 +192,7 @@ export default function NotificationsIndex() {
                                         <SelectField
                                             name="target_type"
                                             lista={targetOptions}
-                                            item={{idx: 'value', value: 'label'}}
+                                            item={{ idx: 'value', value: 'label' }}
                                             value={formData.target_type}
                                             onChange={(val) => setFormData({ ...formData, target_type: val as string, target_id: '' })}
                                         />
@@ -200,7 +205,7 @@ export default function NotificationsIndex() {
                                         <SelectField
                                             name="target_id"
                                             lista={cuentas}
-                                            item={{idx: 'value', value: 'label'}}
+                                            item={{ idx: 'value', value: 'label' }}
                                             value={formData.target_id}
                                             onChange={(val) => setFormData({ ...formData, target_id: val as string })}
                                             placeholder="Seleccione una cuenta..."
@@ -214,7 +219,7 @@ export default function NotificationsIndex() {
                                         <SelectField
                                             name="target_id"
                                             lista={usuarios}
-                                            item={{idx: 'value', value: 'label'}}
+                                            item={{ idx: 'value', value: 'label' }}
                                             value={formData.target_id}
                                             onChange={(val) => setFormData({ ...formData, target_id: val as string })}
                                             placeholder="Busque un usuario..."
@@ -237,7 +242,7 @@ export default function NotificationsIndex() {
                             <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-400">Vista Previa</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="border rounded-xl p-6 bg-white dark:bg-slate-950 shadow-lg border-slate-200 dark:border-slate-800 max-w-sm mx-auto">
+                            <div className="border rounded-md p-6 bg-white dark:bg-slate-950 shadow-lg border-slate-200 dark:border-slate-800 max-w-sm mx-auto">
                                 <div className="flex items-center gap-3 mb-4">
                                     {(() => {
                                         const selectedOption = typeOptions.find(o => o.value === formData.type);
@@ -369,7 +374,7 @@ export default function NotificationsIndex() {
                 maxWidth="2xl"
             >
                 <div className="p-6">
-                    <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800">
                         <h4 className="font-bold text-slate-900 dark:text-white mb-1">{selectedAnnouncement?.title}</h4>
                         <p className="text-xs text-slate-500">{selectedAnnouncement?.message}</p>
                     </div>

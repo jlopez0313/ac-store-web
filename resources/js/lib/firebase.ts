@@ -43,5 +43,16 @@ export function removePrintRequest(cuentaId: number, key: string) {
     return remove(itemRef);
 }
 
+export function getNotificationsPingRef(): DatabaseReference {
+    return ref(database, 'notifications_ping');
+}
+
+export function pingNotifications() {
+    const pingRef = getNotificationsPingRef();
+    return push(pingRef, {
+        timestamp: Date.now(),
+    });
+}
+
 export { onValue };
 

@@ -3,14 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/hooks/use-auth';
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
-import { ArrowLeft, Check, Search as SearchIcon, ShieldCheck, X } from 'lucide-react';
-import { useState, useCallback, useEffect } from 'react';
-import { AccesoModal } from './AccesoModal';
-import axios from 'axios';
 import {
     Select,
     SelectContent,
@@ -18,7 +10,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Filter } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
+import { Head, router } from '@inertiajs/react';
+import axios from 'axios';
+import { ArrowLeft, Check, Filter, Search as SearchIcon, ShieldCheck, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { AccesoModal } from './AccesoModal';
 
 export default function Accesos({ usuario }: any) {
     const { isSuperAdmin } = useAuth();
@@ -31,7 +30,7 @@ export default function Accesos({ usuario }: any) {
     const [items, setItems] = useState<any[]>([]);
     const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
     const [loading, setLoading] = useState(true);
-    
+
     const [filters, setFilters] = useState({
         search: '',
         per_page: 25,
@@ -40,7 +39,7 @@ export default function Accesos({ usuario }: any) {
     });
 
     const [cuentas, setCuentas] = useState<any[]>([]);
-    
+
     const [selectedBodega, setSelectedBodega] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -163,7 +162,7 @@ export default function Accesos({ usuario }: any) {
                     />
                 </div>
 
-                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
+                <div className="flex flex-col justify-between gap-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
                     <div className="flex flex-1 flex-wrap items-center gap-4">
                         <div className="flex w-full max-w-sm gap-2">
                             <div className="relative flex-1">
@@ -212,7 +211,7 @@ export default function Accesos({ usuario }: any) {
                     </div>
                 </div>
 
-                <div className="bg-background rounded-xl shadow-xs border border-border overflow-hidden">
+                <div className="bg-background rounded-md shadow-xs border border-border overflow-hidden">
                     <DataGrid
                         data={items}
                         columns={columns}

@@ -100,7 +100,7 @@ export const ManagementModal = ({ isOpen, onClose, bodega }: any) => {
         <Modal show={isOpen} closeable={true} onClose={onClose} title={`Estanterías: ${bodega.nombre}`} maxWidth="2xl">
             <div className="bg-background space-y-8 p-6">
                 {/* Form Section */}
-                <form onSubmit={handleSubmit} className="bg-muted/30 border-border space-y-4 rounded-xl border p-4">
+                <form onSubmit={handleSubmit} className="bg-muted/30 border-border space-y-4 rounded-md border p-4">
                     <h4 className="text-foreground flex items-center gap-2 text-sm font-bold">
                         {editingId ? <Edit className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                         {editingId ? 'Editar Estantería' : 'Nueva Estantería'}
@@ -158,7 +158,7 @@ export const ManagementModal = ({ isOpen, onClose, bodega }: any) => {
                     {loading ? (
                         <div className="text-muted-foreground animate-pulse py-12 text-center">Cargando estanterías...</div>
                     ) : shelves.length === 0 ? (
-                        <div className="text-muted-foreground bg-muted/30 border-border rounded-xl border border-dashed py-12 text-center">
+                        <div className="text-muted-foreground bg-muted/30 border-border rounded-md border border-dashed py-12 text-center">
                             No hay estanterías creadas en esta bodega.
                         </div>
                     ) : (
@@ -166,7 +166,7 @@ export const ManagementModal = ({ isOpen, onClose, bodega }: any) => {
                             {shelves.map((shelf) => (
                                 <div
                                     key={shelf.id}
-                                    className="bg-background border-border group flex items-center justify-between rounded-xl border p-4 transition-all hover:shadow-sm"
+                                    className="bg-background border-border group flex items-center justify-between rounded-md border p-4 transition-all hover:shadow-sm"
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="bg-muted text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground flex h-10 w-10 items-center justify-center rounded-lg transition-colors">

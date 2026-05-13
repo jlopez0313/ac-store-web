@@ -207,7 +207,7 @@ export const Form = ({ id, categorias, marcas, cuentas, onClose, processing, onS
                             <Label className="text-foreground mb-2 block text-sm font-medium">Foto del Producto (Opcional)</Label>
                             <div className="flex flex-col items-center gap-6 sm:flex-row">
                                 {/* Preview Circle */}
-                                <div className="bg-muted border-border group relative flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed">
+                                <div className="bg-muted border-border group relative flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-md border-2 border-dashed">
                                     {imagePreview ? (
                                         <>
                                             <img src={imagePreview} alt="Preview" className="h-full w-full object-cover" />

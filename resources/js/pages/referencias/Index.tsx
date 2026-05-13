@@ -4,6 +4,7 @@ import { DataGrid } from '@/components/ui/DataTable';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/Modal';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import { useAuth } from '@/hooks/use-auth';
 import { useCrudPage } from '@/hooks/useCrudPage';
 import AppLayout from '@/layouts/app-layout';
@@ -13,7 +14,6 @@ import axios from 'axios';
 import { Edit, Image as ImageIcon, Plus, Search as SearchIcon, Trash } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Form } from './Form';
-import { ViewerModal } from '@/components/ui/ViewerModal';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Panel principal', href: route('dashboard') },
@@ -118,13 +118,13 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
         },
         ...(isSuperAdmin
             ? [
-                  {
-                      name: 'Cuenta / Empresa',
-                      selector: (row: any) => row.cuenta?.nombre || 'N/A',
-                      sortable: true,
-                      sortField: 'cuenta_id',
-                  },
-              ]
+                {
+                    name: 'Cuenta / Empresa',
+                    selector: (row: any) => row.cuenta?.nombre || 'N/A',
+                    sortable: true,
+                    sortField: 'cuenta_id',
+                },
+            ]
             : []),
         {
             name: 'Descripción',
@@ -160,7 +160,7 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
 
             <div className="space-y-6 p-4">
                 <PageHeader title="Referencias (Productos)" description="Gestión del catálogo maestro de productos y variaciones." />
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                         <div className="flex flex-1 max-w-md gap-2">
                             <div className="relative flex-1">
@@ -210,7 +210,7 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}
@@ -254,10 +254,10 @@ export default function Index({ filters: initialFilters, cuentas, categorias, ma
                 />
             </Modal>
 
-            <ViewerModal 
-                show={!!viewerImage} 
-                image={viewerImage} 
-                onClose={() => setViewerImage(null)} 
+            <ViewerModal
+                show={!!viewerImage}
+                image={viewerImage}
+                onClose={() => setViewerImage(null)}
             />
         </AppLayout>
     );

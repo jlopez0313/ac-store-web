@@ -1,5 +1,4 @@
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { cn } from '@/lib/utils';
@@ -73,6 +72,20 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, selectedFact
                             placeholder="Todos los locales"
                         />
 
+                        <SelectField
+                            title="Estado"
+                            name="estado"
+                            item={{ idx: 'id', value: 'nombre' }}
+                            lista={[
+                                { id: 'abierta', nombre: 'Abierta' },
+                                { id: 'cerrada', nombre: 'Cerrada' },
+                            ]}
+                            value={filters.estado}
+                            onChange={(val) => onFilterChange({ estado: val })}
+                            error={undefined}
+                            placeholder="Filtrar por estado"
+                        />
+
                         <div className="h-px bg-slate-100 dark:bg-slate-800 my-2" />
                     </div>
                 )}
@@ -107,9 +120,9 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, selectedFact
                             <button
                                 key={factura.id}
                                 onClick={() => onSelectInvoice(factura)}
-                                className={`mb-1 w-full rounded-xl px-3 py-3 text-left transition-all ${isSelected
-                                        ? 'bg-primary text-primary-foreground scale-[1.02] shadow-lg shadow-slate-200 dark:shadow-black/30'
-                                        : 'text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
+                                className={`mb-1 w-full rounded-md px-3 py-3 text-left transition-all ${isSelected
+                                    ? 'bg-primary text-primary-foreground scale-[1.02] shadow-lg shadow-slate-200 dark:shadow-black/30'
+                                    : 'text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
                                     }`}
                             >
                                 <div className="pointer-events-none flex items-center justify-between">

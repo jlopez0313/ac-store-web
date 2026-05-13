@@ -10,7 +10,7 @@ import { type BreadcrumbItem, SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { CreditCard, Edit, Plus, Receipt, Search as SearchIcon, ShieldCheck, Trash, Users } from 'lucide-react';
-import { useCallback, useEffect, ReactNode, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Form } from './Form';
 import RegisterPaymentModal from './RegisterPaymentModal';
 import SubscriptionDetailModal from './SubscriptionDetailModal';
@@ -227,7 +227,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
             <div className="space-y-6 p-4">
                 <PageHeader title="Usuarios" description="Gestión de usuarios del sistema." />
 
-                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
+                <div className="flex flex-col justify-between gap-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
                     <div className="flex flex-1 max-w-sm gap-2">
                         <div className="relative flex-1">
                             <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -247,7 +247,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
                     </Button>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}
@@ -295,17 +295,17 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
 
             {selectedUser && (
                 <>
-                    <RegisterPaymentModal 
-                        user={selectedUser} 
-                        open={isPaymentModalOpen} 
-                        onOpenChange={setIsPaymentModalOpen} 
-                        onSuccess={fetchData} 
+                    <RegisterPaymentModal
+                        user={selectedUser}
+                        open={isPaymentModalOpen}
+                        onOpenChange={setIsPaymentModalOpen}
+                        onSuccess={fetchData}
                     />
-                    <SubscriptionDetailModal 
-                        user={selectedUser} 
-                        open={isSubscriptionModalOpen} 
-                        onOpenChange={setIsSubscriptionModalOpen} 
-                        onSuccess={fetchData} 
+                    <SubscriptionDetailModal
+                        user={selectedUser}
+                        open={isSubscriptionModalOpen}
+                        onOpenChange={setIsSubscriptionModalOpen}
+                        onSuccess={fetchData}
                     />
                 </>
             )}

@@ -352,7 +352,7 @@ export default function AccountIndex() {
                                 <CardDescription>¿Necesitas ayuda o quieres reportar un pago? Contáctanos.</CardDescription>
                             </CardHeader>
                             <CardContent className="grid gap-6 md:grid-cols-2 max-w-3xl">
-                                <div className="flex items-start gap-4 p-4 rounded-xl border hover:bg-muted/50 transition-colors">
+                                <div className="flex items-start gap-4 p-4 rounded-md border hover:bg-muted/50 transition-colors">
                                     <div className="p-3 rounded-full bg-green-500/10 text-green-600">
                                         <MessageSquare className="h-6 w-6" />
                                     </div>
@@ -369,7 +369,7 @@ export default function AccountIndex() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-start gap-4 p-4 rounded-xl border hover:bg-muted/50 transition-colors">
+                                <div className="flex items-start gap-4 p-4 rounded-md border hover:bg-muted/50 transition-colors">
                                     <div className="p-3 rounded-full bg-blue-500/10 text-blue-600">
                                         <CreditCard className="h-6 w-6" />
                                     </div>
@@ -385,7 +385,7 @@ export default function AccountIndex() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-start gap-4 p-4 rounded-xl border hover:bg-muted/50 transition-colors">
+                                <div className="flex items-start gap-4 p-4 rounded-md border hover:bg-muted/50 transition-colors">
                                     <div className="p-3 rounded-full bg-purple-500/10 text-purple-600">
                                         <Monitor className="h-6 w-6" />
                                     </div>

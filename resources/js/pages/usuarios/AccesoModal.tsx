@@ -56,7 +56,7 @@ export const AccesoModal = ({ isOpen, onClose, usuario, bodega, onSuccess }: Acc
     return (
         <Modal show={isOpen} onClose={onClose} closeable={true} title={`Permisos: ${bodega.nombre}`}>
             <form onSubmit={handleSubmit} className="p-4 space-y-6">
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl mb-6">
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-md mb-6">
                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                         Usuario a configurar
                     </p>
@@ -66,7 +66,7 @@ export const AccesoModal = ({ isOpen, onClose, usuario, bodega, onSuccess }: Acc
                 </div>
 
                 <div className="space-y-4">
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-md border border-border bg-card">
                         <SwitchField
                             name="can_view"
                             title="Ver Stock"
@@ -78,7 +78,7 @@ export const AccesoModal = ({ isOpen, onClose, usuario, bodega, onSuccess }: Acc
                         </p>
                     </div>
 
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-md border border-border bg-card">
                         <SwitchField
                             name="can_order"
                             title="Pedir Stock"
@@ -90,7 +90,7 @@ export const AccesoModal = ({ isOpen, onClose, usuario, bodega, onSuccess }: Acc
                         </p>
                     </div>
 
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-md border border-border bg-card">
                         <InputField
                             name="descuento"
                             title="Descuento Autorizado ($)"

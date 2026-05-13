@@ -1,10 +1,11 @@
-import { Button } from '@/components/ui/button';
+import '@/../css/calendar.scss';
 import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { SelectField } from '@/components/ui/form/SelectField';
 import AppLayout from '@/layouts/app-layout';
 import { type Auth, type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { SelectField } from '@/components/ui/form/SelectField';
 import {
     CheckCircle2,
     Loader2,
@@ -16,13 +17,12 @@ import {
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import Swal from 'sweetalert2';
-import '@/../css/calendar.scss';
 
 // Components
 import { ActivityModal } from './components/ActivityModal';
+import { CalendarView } from './components/CalendarView';
 import { EditActivityModal } from './components/EditActivityModal';
 import { QRModal } from './components/QRModal';
-import { CalendarView } from './components/CalendarView';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -63,11 +63,11 @@ export default function WhatsappPage({ cuentas }: Props) {
                 params: { cuenta_id: filterCuentaId }
             });
             const messages = Array.isArray(response.data) ? response.data : [];
-            
+
             const calendarEvents = messages.map((msg: any) => ({
                 id: msg.id,
-                title: msg.message 
-                    ? msg.message.split('\n')[0].replace(/\*/g, '') 
+                title: msg.message
+                    ? msg.message.split('\n')[0].replace(/\*/g, '')
                     : (msg.recipient || 'Mensaje'),
                 start: msg.scheduledTime,
                 color: msg.status === 'sent' ? '#10b981' : '#3b82f6',
@@ -214,11 +214,10 @@ export default function WhatsappPage({ cuentas }: Props) {
 
                         <div
                             onClick={() => status === 'disconnected' && setShowQRModal(true)}
-                            className={`flex items-center gap-3 px-4 py-2 rounded-full border shadow-sm transition-all duration-300 ${
-                                status === 'connected' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
-                                status === 'disconnected' ? 'bg-red-50 border-red-200 text-red-700 cursor-pointer hover:bg-red-100' :
-                                'bg-slate-50 border-slate-200 text-slate-700'
-                            }`}
+                            className={`flex items-center gap-3 px-4 py-2 rounded-full border shadow-sm transition-all duration-300 ${status === 'connected' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
+                                    status === 'disconnected' ? 'bg-red-50 border-red-200 text-red-700 cursor-pointer hover:bg-red-100' :
+                                        'bg-slate-50 border-slate-200 text-slate-700'
+                                }`}
                         >
                             {status === 'loading' ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -260,15 +259,15 @@ export default function WhatsappPage({ cuentas }: Props) {
                 </div>
 
                 {status === 'loading' ? (
-                    <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4 bg-white dark:bg-slate-900 rounded-xl border shadow-sm">
+                    <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4 bg-white dark:bg-slate-900 rounded-md border shadow-sm">
                         <Loader2 className="h-12 w-12 animate-spin text-emerald-500" />
                         <p className="text-slate-500 animate-pulse">Verificando conexión con WhatsApp...</p>
                     </div>
                 ) : status === 'connected' ? (
-                    <CalendarView 
-                        events={events} 
-                        onDateClick={handleDateClick} 
-                        onEventClick={handleEventClick} 
+                    <CalendarView
+                        events={events}
+                        onDateClick={handleDateClick}
+                        onEventClick={handleEventClick}
                     />
                 ) : (
                     <div className="group relative overflow-hidden rounded-3xl border bg-card p-12 text-center hover:border-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-500/5 transition-all duration-300 hover:-translate-y-1">
@@ -287,7 +286,7 @@ export default function WhatsappPage({ cuentas }: Props) {
                             <div className="pt-4">
                                 <Button
                                     onClick={() => setShowQRModal(true)}
-                                    className="px-8 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10"
+                                    className="px-8 py-2 rounded-md bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/10"
                                 >
                                     Vincular WhatsApp ahora
                                 </Button>

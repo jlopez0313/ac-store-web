@@ -5,8 +5,8 @@ import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/use-auth';
-import { createPrintRequest } from '@/lib/firebase';
 import AppLayout from '@/layouts/app-layout';
+import { createPrintRequest } from '@/lib/firebase';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -83,12 +83,12 @@ export default function Index({ filters: initialFilters, cuentas, locals, curren
             selector: (row: any) =>
                 row.fecha
                     ? new Date(row.fecha).toLocaleString('es-CO', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                      })
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                    })
                     : '-',
             sortable: true,
         },
@@ -145,7 +145,7 @@ export default function Index({ filters: initialFilters, cuentas, locals, curren
             <div className="p-4 space-y-6">
                 <PageHeader title="Gestión de Cambios" description="Historial de devoluciones y cambios de productos." />
 
-                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
+                <div className="flex flex-col justify-between gap-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
                     <div className="flex flex-1 max-w-md gap-2">
                         <div className="relative flex-1">
                             <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -168,7 +168,7 @@ export default function Index({ filters: initialFilters, cuentas, locals, curren
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}

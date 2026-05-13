@@ -392,7 +392,7 @@
 
     /* Module card */
     .module-card {
-        @apply bg-card cursor-pointer rounded-xl border p-6 transition-all duration-200;
+        @apply bg-card cursor-pointer rounded-md border p-6 transition-all duration-200;
         box-shadow: var(--shadow-card);
     }
     .module-card:hover {

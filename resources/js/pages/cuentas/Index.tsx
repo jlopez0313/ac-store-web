@@ -2,16 +2,16 @@ import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataGrid } from '@/components/ui/DataTable';
-import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/input';
+import { Modal } from '@/components/ui/Modal';
 import { useCrudPage } from '@/hooks/useCrudPage';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { Edit, Plus, Trash, Search as SearchIcon } from 'lucide-react';
-import { Form } from './Form';
-import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+import { Edit, Plus, Search as SearchIcon, Trash } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Form } from './Form';
 
 const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Panel principal', href: route('dashboard') },
@@ -22,7 +22,7 @@ export default function Index({ filters: initialFilters, estados, default_accoun
 	const [items, setItems] = useState<any[]>([]);
 	const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
 	const [loading, setLoading] = useState(true);
-	
+
 	const [filters, setFilters] = useState({
 		search: initialFilters?.search || '',
 		per_page: initialFilters?.per_page || 25,
@@ -143,29 +143,29 @@ export default function Index({ filters: initialFilters, estados, default_accoun
 					description="Gestión de cuentas del sistema."
 				/>
 
-				<div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                        <div className="flex flex-1 max-w-sm gap-2">
-                            <div className="relative flex-1">
-                                <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                                <Input
-                                    id="search-input"
-                                    placeholder="Buscar por nombre..."
-                                    className="pl-9"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
-                                />
-                            </div>
-                        </div>
-                        <Button onClick={() => onToggleModal(true)}>
-                            <Plus className="h-5 w-5 mr-2" />
-                            Nueva Cuenta
-                        </Button>
-                    </div>
+				<div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+					<div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+						<div className="flex flex-1 max-w-sm gap-2">
+							<div className="relative flex-1">
+								<SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+								<Input
+									id="search-input"
+									placeholder="Buscar por nombre..."
+									className="pl-9"
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
+								/>
+							</div>
+						</div>
+						<Button onClick={() => onToggleModal(true)}>
+							<Plus className="h-5 w-5 mr-2" />
+							Nueva Cuenta
+						</Button>
+					</div>
 				</div>
 
-				<div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
+				<div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
 					<DataGrid
 						data={items}
 						columns={columns}
@@ -179,11 +179,11 @@ export default function Index({ filters: initialFilters, estados, default_accoun
 						fetchPage={(page) => setFilters(prev => ({ ...prev, page }))}
 						setPageSize={(per_page) => setFilters(prev => ({ ...prev, per_page, page: 1 }))}
 						onSort={(column: any, sortOrder) => {
-							setFilters(prev => ({ 
-								...prev, 
-								sort_field: column.sortField, 
+							setFilters(prev => ({
+								...prev,
+								sort_field: column.sortField,
 								sort_order: sortOrder,
-								page: 1 
+								page: 1
 							}));
 						}}
 					/>
@@ -196,7 +196,7 @@ export default function Index({ filters: initialFilters, estados, default_accoun
 					estados={estados}
 					processing={processing}
 					setIsOpen={onToggleModal}
-					onStore={(storeFn: any, updateFn: any, data: any) => 
+					onStore={(storeFn: any, updateFn: any, data: any) =>
 						onStore(storeFn, updateFn, data, false).then((response: any) => {
 							if (response?.data?.db_credentials) {
 								console.log("🔑 DATABASE CREDENTIALS:", response.data.db_credentials);

@@ -305,7 +305,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                 <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
                     {/* Sección 1: Datos maestros (Excel) */}
                     <div
-                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secMaestros ? 'border-gray-200 dark:border-gray-700' : 'border-gray-100 opacity-40 dark:border-gray-800'}`}
+                        className={`space-y-3 rounded-md border p-4 transition-opacity ${secMaestros ? 'border-gray-200 dark:border-gray-700' : 'border-gray-100 opacity-40 dark:border-gray-800'}`}
                     >
                         <div className="flex items-center gap-2">
                             <input
@@ -408,7 +408,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
 
                     {/* Sección 2: Inventario (CSV) */}
                     <div
-                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secInventario ? 'border-blue-200 bg-blue-50/30 dark:border-blue-800 dark:bg-blue-950/20' : 'border-gray-100 opacity-40 dark:border-gray-800'}`}
+                        className={`space-y-3 rounded-md border p-4 transition-opacity ${secInventario ? 'border-blue-200 bg-blue-50/30 dark:border-blue-800 dark:bg-blue-950/20' : 'border-gray-100 opacity-40 dark:border-gray-800'}`}
                     >
                         <div className="flex items-center gap-2">
                             <input
@@ -546,7 +546,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
 
                     {/* Sección 3: Transacciones (Excel) */}
                     <div
-                        className={`space-y-3 rounded-xl border p-4 transition-opacity ${secTransacciones ? 'border-gray-200 dark:border-gray-700' : 'border-gray-100 opacity-40 dark:border-gray-800'}`}
+                        className={`space-y-3 rounded-md border p-4 transition-opacity ${secTransacciones ? 'border-gray-200 dark:border-gray-700' : 'border-gray-100 opacity-40 dark:border-gray-800'}`}
                     >
                         <div className="flex items-center gap-2">
                             <input

@@ -45,7 +45,7 @@ export const customStyles = {
   },
   cells: {
     style: {
-      fontSize: '14px',
+      fontSize: '13px',
       color: 'var(--card-foreground)',
       paddingLeft: '16px',
       paddingRight: '16px',

@@ -156,13 +156,12 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
             cell: (row: any) => (
                 <Badge
                     variant={row.estado === 'activo' ? 'outline' : 'default'}
-                    className={`text-[10px] font-bold uppercase ${
-                        row.estado === 'activo'
+                    className={`text-[10px] font-bold uppercase ${row.estado === 'activo'
                             ? 'border-green-200 bg-green-50 text-green-700'
                             : row.estado === 'vendido'
-                              ? 'border-amber-200 bg-amber-50 text-amber-700'
-                              : 'border-red-200 bg-red-50 text-red-700'
-                    }`}
+                                ? 'border-amber-200 bg-amber-50 text-amber-700'
+                                : 'border-red-200 bg-red-50 text-red-700'
+                        }`}
                 >
                     {row.estado}
                 </Badge>
@@ -173,11 +172,11 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
         },
         ...(isSuperAdmin
             ? [
-                  {
-                      name: 'Cuenta',
-                      selector: (row: any) => row.cuenta?.nombre,
-                  },
-              ]
+                {
+                    name: 'Cuenta',
+                    selector: (row: any) => row.cuenta?.nombre,
+                },
+            ]
             : []),
         {
             name: 'Impreso',
@@ -217,7 +216,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
             <div className="p-4 space-y-6">
                 <PageHeader title="Distribución de Muestras" description="Historial de muestras enviadas a locales." />
 
-                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
+                <div className="flex flex-col justify-between gap-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
                     <div className="flex flex-1 max-w-md gap-2">
                         <div className="relative flex-1">
                             <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -243,7 +242,7 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
                     </Button>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}

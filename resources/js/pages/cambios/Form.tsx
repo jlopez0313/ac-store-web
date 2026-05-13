@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,7 +8,6 @@ import { useForm } from '@inertiajs/react';
 import axios from 'axios';
 import {
     Check,
-    Search,
     Image as ImageIcon
 } from 'lucide-react';
 import { FormEventHandler, useEffect, useMemo, useState } from 'react';
@@ -48,15 +46,15 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
 
     const getPriceHighlight = (precio: number, sugerido: number, descuento: number) => {
         const baseConDescuento = sugerido - (sugerido * (descuento / 100));
-        
+
         // Intensity increased for "colorcito"
         if (descuento > 0 && Math.abs(precio - baseConDescuento) < 1)
             return 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-900/40 dark:text-amber-200 dark:border-amber-700';
-            
+
         if (precio === sugerido || sugerido === 0) return 'bg-white text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600';
-        
+
         if (precio < baseConDescuento) return 'bg-red-100 text-red-900 border-red-300 dark:bg-red-900/40 dark:text-red-200 dark:border-red-700';
-        
+
         return 'bg-white text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600';
     };
 
@@ -84,7 +82,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
         if (!refId) return;
         setLoading(prev => ({ ...prev, stock: true }));
         try {
-            const res = await axios.get(route('api.muestras.stock', { 
+            const res = await axios.get(route('api.muestras.stock', {
                 referencia_id: refId,
                 local_id: selectedLocal !== 'ALL' ? selectedLocal : null
             }));
@@ -127,8 +125,8 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
         }
         setLoading(prev => ({ ...prev, storing: true }));
         try {
-            await onStore({ 
-                ...data, 
+            await onStore({
+                ...data,
                 venta_detalle_id: selectedItemId,
                 venta_id: selectedItem?.venta_id
             });
@@ -169,7 +167,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
         }
     }, [selectedItemId]);
 
-    const diasCambio = data.cuenta_id 
+    const diasCambio = data.cuenta_id
         ? (cuentas.find((c: any) => c.id.toString() === data.cuenta_id)?.dias_cambio ?? 15)
         : (current_cuenta?.dias_cambio ?? 15);
 
@@ -202,7 +200,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
                                 item={{ idx: 'id', value: 'name' }}
                             />
                         </div>
-                                                
+
                         {isSuperAdmin && (
                             <div className="md:col-span-3">
                                 <SelectField
@@ -212,13 +210,13 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
                                     onChange={(val) => {
                                         const newCuentaId = val as string;
                                         setData('cuenta_id', newCuentaId);
-                                        
+
                                         // Si el local actual no pertenece a la nueva cuenta, lo reseteamos
                                         const currentLocal = locals.find((l: any) => l.id.toString() === selectedLocal);
                                         if (currentLocal && currentLocal.cuenta_id?.toString() !== newCuentaId) {
                                             setSelectedLocal('ALL');
                                         }
-                                        
+
                                         setSoldItems([]);
                                     }}
                                     lista={cuentas}
@@ -239,7 +237,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
                         </div>
                     </div>
 
-                    <div className="border rounded-xl bg-white overflow-hidden dark:bg-slate-900 dark:border-slate-700">
+                    <div className="border rounded-md bg-white overflow-hidden dark:bg-slate-900 dark:border-slate-700">
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="text-left border-b bg-slate-50/50 dark:bg-slate-800/50">
@@ -321,7 +319,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
                                 talla_nueva: '',
                                 observacion: '',
                             }));
-                            
+
                             if (val === 'size' && selectedItem) {
                                 fetchStock(selectedItem.producto_id);
                             } else {
@@ -337,7 +335,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
                                 <div className="space-y-6">
                                     <TabsContent value="size" className="mt-0 space-y-4">
                                         <p className="text-xs text-slate-500">Selecciona la nueva talla para la referencia <span className="font-bold">{selectedItem?.producto.codigo}</span></p>
-                                        
+
                                         {loading.stock ? (
                                             <p className="text-xs text-indigo-600 animate-pulse">Cargando stock...</p>
                                         ) : (
@@ -350,7 +348,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
                                                         const talla = val as string;
                                                         setSelectedTalla(talla);
                                                         setData('nuevo_inventario_id', ''); // Reset selected inventory
-                                                        
+
                                                         // Auto-select if only one bodega has this size
                                                         const available = stockItems.filter(i => i.talla === talla);
                                                         if (available.length === 1) {
@@ -406,7 +404,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
                                                         const talla = val as string;
                                                         setSelectedTalla(talla);
                                                         setData('nuevo_inventario_id', '');
-                                                        
+
                                                         const available = stockItems.filter(i => i.talla === talla);
                                                         if (available.length === 1) {
                                                             const item = available[0];
@@ -438,9 +436,9 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
                                     </TabsContent>
                                 </div>
 
-                                <div className="bg-slate-50 rounded-xl p-6 border border-dashed dark:bg-slate-800/50 flex flex-col justify-between">
+                                <div className="bg-slate-50 rounded-md p-6 border border-dashed dark:bg-slate-800/50 flex flex-col justify-between">
                                     {data.nuevo_inventario_id && stockItems.find(i => i.id.toString() === data.nuevo_inventario_id) ? (
-                                        <div className="mb-4 flex items-center gap-4 p-3 bg-white rounded-xl border shadow-sm dark:bg-slate-800 dark:border-slate-700">
+                                        <div className="mb-4 flex items-center gap-4 p-3 bg-white rounded-md border shadow-sm dark:bg-slate-800 dark:border-slate-700">
                                             <div className="h-16 w-16 rounded-lg border overflow-hidden bg-slate-100 flex items-center justify-center">
                                                 {stockItems.find(i => i.id.toString() === data.nuevo_inventario_id)?.referencia_foto ? (
                                                     <img src={stockItems.find(i => i.id.toString() === data.nuevo_inventario_id).referencia_foto} className="h-full w-full object-cover" />

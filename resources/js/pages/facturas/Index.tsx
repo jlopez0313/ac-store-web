@@ -5,10 +5,10 @@ import { DataGrid } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { cn } from '@/lib/utils';
 import { DollarSign, Eye, Package, Search as SearchIcon, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -248,8 +248,8 @@ export default function Index({ filters: initialFilters }: any) {
                     <PageHeader title="Gestión de Facturas" description="Historial de facturas de venta." />
 
                     <div className="flex flex-wrap items-center gap-4 self-end md:self-start">
-                        <div className="flex items-center gap-5 rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-md transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-indigo-900">
+                        <div className="flex items-center gap-5 rounded-md border border-slate-200 bg-white px-5 py-3 shadow-md transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md bg-indigo-600 text-white shadow-lg shadow-indigo-100 dark:shadow-indigo-900">
                                 <DollarSign className="h-4 w-4" />
                             </div>
                             <div>
@@ -262,8 +262,8 @@ export default function Index({ filters: initialFilters }: any) {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-5 rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-md transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-100 dark:shadow-emerald-900">
+                        <div className="flex items-center gap-5 rounded-md border border-slate-200 bg-white px-5 py-3 shadow-md transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white shadow-lg shadow-emerald-100 dark:shadow-emerald-900">
                                 <Package className="h-4 w-4" />
                             </div>
                             <div>
@@ -278,7 +278,7 @@ export default function Index({ filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-end">
+                <div className="flex flex-col justify-between gap-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-end">
                     <div className="flex flex-1 flex-col gap-4 lg:flex-row lg:items-end">
                         <div className="flex max-w-md flex-1 items-center gap-2">
                             <div className="relative flex-1">
@@ -345,7 +345,7 @@ export default function Index({ filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={data}
                         columns={columns}

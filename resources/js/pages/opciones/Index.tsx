@@ -69,9 +69,9 @@ export default function OpcionesIndex({ cuentas, cuenta_id }: Props) {
                             <Link
                                 key={option.url}
                                 href={href}
-                                className="group bg-card hover:border-primary/40 flex flex-col items-center gap-3 rounded-xl border p-5 text-center transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md"
+                                className="group bg-card hover:border-primary/40 flex flex-col items-center gap-3 rounded-md border p-5 text-center transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md"
                             >
-                                <div className="bg-primary/10 flex h-11 w-11 items-center justify-center rounded-xl transition-transform group-hover:scale-110">
+                                <div className="bg-primary/10 flex h-11 w-11 items-center justify-center rounded-md transition-transform group-hover:scale-110">
                                     <option.icon className="text-primary h-5 w-5" />
                                 </div>
                                 <span className="text-sm leading-tight font-medium">{option.title}</span>

@@ -67,7 +67,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                         placeholder="Buscar por código o descripción..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="h-9 rounded-xl border-slate-200 bg-white pl-9 text-xs focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900"
+                        className="h-9 rounded-md border-slate-200 bg-white pl-9 text-xs focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900"
                     />
                 </div>
             </div>
@@ -236,7 +236,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                                             </div>
                                                         </div>
 
-                                                        <div className="mb-4 rounded-xl border border-white/5 bg-white/5 p-3">
+                                                        <div className="mb-4 rounded-md border border-white/5 bg-white/5 p-3">
                                                             <p className="text-[12px] leading-relaxed font-medium text-slate-200 italic">
                                                                 "{detalle.cambio.observacion || 'Sin observaciones'}"
                                                             </p>
@@ -248,7 +248,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                                                     e.preventDefault();
                                                                     onViewInvoice?.(detalle.cambio.nueva_venta_id);
                                                                 }}
-                                                                className="group/btn flex w-full items-center justify-between gap-3 rounded-xl border border-indigo-400/30 bg-indigo-600 px-3 py-2.5 text-white shadow-xl shadow-indigo-900/40 transition-all hover:bg-indigo-500"
+                                                                className="group/btn flex w-full items-center justify-between gap-3 rounded-md border border-indigo-400/30 bg-indigo-600 px-3 py-2.5 text-white shadow-xl shadow-indigo-900/40 transition-all hover:bg-indigo-500"
                                                             >
                                                                 <div className="flex items-center gap-2">
                                                                     <ExternalLink className="h-3.5 w-3.5 text-indigo-200 transition-transform group-hover/btn:scale-110" />

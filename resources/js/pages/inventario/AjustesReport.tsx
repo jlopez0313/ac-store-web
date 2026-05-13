@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { Search as SearchIcon, ArrowRight, User } from 'lucide-react';
-import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+import { ArrowRight, Search as SearchIcon, User } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
 	{ title: 'Panel principal', href: route('dashboard') },
@@ -20,7 +20,7 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 	const [items, setItems] = useState<any[]>([]);
 	const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
 	const [loading, setLoading] = useState(true);
-	
+
 	const [filters, setFilters] = useState({
 		search: initialFilters?.search || '',
 		from: initialFilters?.from || '',
@@ -153,7 +153,7 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 					description="Consulta todos los cambios realizados manualmente en el stock y precios de inventario."
 				/>
 
-				<div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-700">
+				<div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-md border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-700">
 					<div className="flex items-center gap-2 flex-1 min-w-[300px]">
 						<div className="relative flex-1">
 							<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -176,22 +176,22 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 							Buscar
 						</Button>
 					</div>
-					
+
 					<div className="flex items-center gap-2">
 						<div className="flex items-center gap-2">
 							<span className="text-xs font-medium text-muted-foreground">Desde</span>
-							<Input 
-								type="date" 
-								className="w-40" 
+							<Input
+								type="date"
+								className="w-40"
 								defaultValue={filters.from}
 								onChange={(e) => handleFilterChange('from', e.target.value)}
 							/>
 						</div>
 						<div className="flex items-center gap-2">
 							<span className="text-xs font-medium text-muted-foreground">Hasta</span>
-							<Input 
-								type="date" 
-								className="w-40" 
+							<Input
+								type="date"
+								className="w-40"
 								defaultValue={filters.to}
 								onChange={(e) => handleFilterChange('to', e.target.value)}
 							/>
@@ -199,7 +199,7 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 					</div>
 				</div>
 
-				<div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+				<div className="bg-white rounded-md shadow-xs border border-slate-200 overflow-hidden">
 					<DataGrid
 						data={items}
 						columns={columns}
@@ -211,7 +211,7 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 						paginationServer={true}
 						fetchPage={(page) => setFilters(prev => ({ ...prev, page }))}
 						setPageSize={(size) => setFilters(prev => ({ ...prev, per_page: size, page: 1 }))}
-						onSort={() => {}}
+						onSort={() => { }}
 					/>
 				</div>
 			</div>

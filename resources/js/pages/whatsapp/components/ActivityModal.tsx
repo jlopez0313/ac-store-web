@@ -3,8 +3,8 @@ import { SelectField } from '@/components/ui/form/SelectField';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/Modal';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -438,7 +438,7 @@ export function ActivityModal({
                 </div>
 
                 {selectedItems.length > 0 && (
-                    <div className="space-y-4 border rounded-xl overflow-hidden bg-slate-50/30 dark:bg-slate-900/30">
+                    <div className="space-y-4 border rounded-md overflow-hidden bg-slate-50/30 dark:bg-slate-900/30">
                         <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 border-b">
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                                 Productos Seleccionados ({selectedItems.length})

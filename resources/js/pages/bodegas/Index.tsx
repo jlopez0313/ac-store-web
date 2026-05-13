@@ -116,13 +116,13 @@ export default function Index({ filters: initialFilters, estados, cuentas }: any
         },
         ...(isSuperAdmin
             ? [
-                  {
-                      name: 'Cuenta / Empresa',
-                      selector: (row: any) => row.cuenta?.nombre || 'N/A',
-                      sortable: true,
-                      sortField: 'cuenta_id',
-                  },
-              ]
+                {
+                    name: 'Cuenta / Empresa',
+                    selector: (row: any) => row.cuenta?.nombre || 'N/A',
+                    sortable: true,
+                    sortField: 'cuenta_id',
+                },
+            ]
             : []),
         {
             name: 'Estado',
@@ -176,7 +176,7 @@ export default function Index({ filters: initialFilters, estados, cuentas }: any
             <div className="p-4 space-y-6">
                 <PageHeader title="Bodegas" description="Gestión de almacenes y bodegas del sistema." />
 
-                <div className="flex flex-col justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
+                <div className="flex flex-col justify-between gap-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
                     <div className="flex flex-1 max-w-md gap-2">
                         <div className="relative flex-1">
                             <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -202,7 +202,7 @@ export default function Index({ filters: initialFilters, estados, cuentas }: any
                     </Button>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}

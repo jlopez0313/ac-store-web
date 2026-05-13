@@ -115,7 +115,7 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas, onSuccess }: a
 		>
 			<form onSubmit={submit} className="flex flex-col h-[80vh]">
 				<div className="p-4 sm:p-6 flex-1 overflow-y-auto space-y-4">
-					<div className="flex flex-col sm:grid sm:grid-cols-[120px_1fr] gap-4 sm:gap-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-4">
+					<div className="flex flex-col sm:grid sm:grid-cols-[120px_1fr] gap-4 sm:gap-6 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-4">
 						<div
 							className="flex h-[120px] w-[120px] mx-auto sm:mx-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 shrink-0"
 							onClick={() => caja?.referencia_foto && openViewer(caja.referencia_foto)}

@@ -210,7 +210,7 @@ export default function Index({ locals, filters: initialFilters }: any) {
                     description="Registro detallado de productos eliminados de ventas y reintegrados al inventario."
                 />
 
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <div className="flex flex-wrap items-end gap-4">
                         <div className="min-w-[300px] flex-1 flex gap-2">
                             <div className="relative flex-1">
@@ -278,7 +278,7 @@ export default function Index({ locals, filters: initialFilters }: any) {
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                     <DataGrid
                         data={items}
                         columns={columns}

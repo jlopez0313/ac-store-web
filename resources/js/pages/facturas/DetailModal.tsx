@@ -1,12 +1,12 @@
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { DataGrid } from '@/components/ui/DataTable';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Modal } from '@/components/ui/Modal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ViewerModal } from '@/components/ui/ViewerModal';
+import { cn } from '@/lib/utils';
 import axios from 'axios';
-import { Calendar, ChevronDown, Clock, ExternalLink, House, Image as ImageIcon, Info, MapPin, RefreshCcw, Tag, User } from 'lucide-react';
+import { ChevronDown, ExternalLink, Image as ImageIcon, Info, RefreshCcw } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface DetailModalProps {
@@ -135,7 +135,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 									</div>
 								</div>
 
-								<div className="bg-muted rounded-xl p-3 border border-border mb-4">
+								<div className="bg-muted rounded-md p-3 border border-border mb-4">
 									<p className="text-[12px] leading-relaxed text-muted-foreground font-medium italic">
 										"{row.cambio.observacion || 'Sin observaciones'}"
 									</p>
@@ -147,7 +147,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 											e.preventDefault();
 											onViewInvoice?.(row.cambio.nueva_venta_id);
 										}}
-										className="w-full flex items-center justify-between gap-3 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all border border-indigo-400/30 group/btn shadow-xl shadow-indigo-900/40"
+										className="w-full flex items-center justify-between gap-3 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-md transition-all border border-indigo-400/30 group/btn shadow-xl shadow-indigo-900/40"
 									>
 										<div className="flex items-center gap-2">
 											<ExternalLink className="w-3.5 h-3.5 text-indigo-200 group-hover/btn:scale-110 transition-transform" />
@@ -176,7 +176,7 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, factu
 				<div className="bg-background">
 					<div className="p-6 space-y-6">
 						{/* Clean Header Summary */}
-						<div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-5">
+						<div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-md p-5">
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 								<div className="space-y-1">
 									<span className="text-[10px] font-bold text-slate-400 uppercase">Vendedor</span>

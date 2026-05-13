@@ -255,7 +255,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                     </CardContent>
                 </Card>
 
-                <div className="bg-background border-border overflow-hidden rounded-xl border shadow-xs">
+                <div className="bg-background border-border overflow-hidden rounded-md border shadow-xs">
                     <DataGrid
                         data={results}
                         columns={columns}

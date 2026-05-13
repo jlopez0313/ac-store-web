@@ -1,7 +1,7 @@
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import React, { FormEventHandler, useEffect } from 'react';
+import { FormEventHandler, useEffect } from 'react';
 
 import HeadingSmall from '@/components/heading-small';
 import { Button } from '@/components/ui/button';
@@ -98,7 +98,7 @@ export default function OpcionesHorarios({ horarios_ventas, bloquear_festivos, c
                         />
 
                         {isSuperadmin && cuentas.length > 0 && (
-                            <div className="bg-muted/30 border-border rounded-xl border p-4">
+                            <div className="bg-muted/30 border-border rounded-md border p-4">
                                 <Label className="mb-2 block text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                     Cuenta a configurar
                                 </Label>

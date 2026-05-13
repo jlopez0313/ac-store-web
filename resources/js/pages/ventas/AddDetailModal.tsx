@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/button';
-import { Modal } from '@/components/ui/Modal';
-import { ViewerModal } from '@/components/ui/ViewerModal';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { FormButtons } from '@/components/ui/form/FormButtons';
 import { SelectField } from '@/components/ui/form/SelectField';
+import { Modal } from '@/components/ui/Modal';
+import { ViewerModal } from '@/components/ui/ViewerModal';
 import { showAlert } from '@/plugins/sweetalert';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -374,7 +374,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         placeholder="Buscar por código, marca o descripción..."
-                                        className="bg-muted/50 border-border focus:ring-ring focus:border-ring text-foreground w-full rounded-xl border py-2.5 pr-4 pl-10 font-medium transition-all focus:ring-2 focus:outline-none"
+                                        className="bg-muted/50 border-border focus:ring-ring focus:border-ring text-foreground w-full rounded-md border py-2.5 pr-4 pl-10 font-medium transition-all focus:ring-2 focus:outline-none"
                                     />
                                 </div>
 
@@ -408,12 +408,12 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                         ) : (
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
+                                    <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
                                         {selectedRef?.foto ? (
                                             <button
                                                 type="button"
                                                 onClick={() => openViewer(selectedRef.foto)}
-                                                className="h-full w-full overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 transition-transform hover:scale-[1.02]"
+                                                className="h-full w-full overflow-hidden rounded-md border border-slate-100 dark:border-slate-800 transition-transform hover:scale-[1.02]"
                                             >
                                                 <img src={`/storage/${selectedRef.foto}`} alt="Product" className="h-full w-full object-cover" />
                                             </button>) : (
@@ -432,7 +432,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                 </div>
                                 <button
                                     onClick={() => setMode('search')}
-                                    className="text-muted-foreground hover:text-foreground bg-muted/50 border-border flex items-center gap-1 rounded-xl border px-3 py-2 text-xs font-bold transition-colors"
+                                    className="text-muted-foreground hover:text-foreground bg-muted/50 border-border flex items-center gap-1 rounded-md border px-3 py-2 text-xs font-bold transition-colors"
                                 >
                                     ← Volver
                                 </button>
@@ -579,7 +579,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                                                     </div>
                                                                 </div>
                                                                 {bodega.can_order && (
-                                                                    <div className="bg-background border-border/50 flex items-center gap-3 rounded-xl border p-1.5 shadow-xs">
+                                                                    <div className="bg-background border-border/50 flex items-center gap-3 rounded-md border p-1.5 shadow-xs">
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => handleQtyChange(item.key, -1, item.stock)}
@@ -612,7 +612,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                     {/* Footer Bar */}
                     <div className="bg-background border-t p-6">
                         {isOutsideHours && (
-                            <div className="mb-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                            <div className="mb-4 flex items-center gap-3 rounded-md border border-amber-200 bg-amber-50 p-3">
                                 <AlertCircle className="h-5 w-5 flex-shrink-0 text-amber-500" />
                                 <p className="text-xs font-medium text-amber-700">
                                     {is_holiday

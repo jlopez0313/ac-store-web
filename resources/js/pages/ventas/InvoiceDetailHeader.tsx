@@ -1,10 +1,10 @@
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 import { showAlert } from '@/plugins/sweetalert';
 import { router, usePage } from '@inertiajs/react';
 import axios from 'axios';
@@ -102,10 +102,10 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                         <div className="flex items-center gap-2">
                             <Badge
                                 variant="outline"
-                                className={`px-3 py-1.5 text-sm font-bold shadow-sm transition-all ${isFiltering 
-                                    ? 'border-amber-200 bg-amber-50 text-amber-700 animate-in fade-in zoom-in duration-300' 
+                                className={`px-3 py-1.5 text-sm font-bold shadow-sm transition-all ${isFiltering
+                                    ? 'border-amber-200 bg-amber-50 text-amber-700 animate-in fade-in zoom-in duration-300'
                                     : 'border-indigo-200 bg-indigo-50/50 text-indigo-700'
-                                }`}
+                                    }`}
                                 title={isFiltering ? 'Mostrando total filtrado' : 'Total de unidades en la factura'}
                             >
                                 <ShoppingCart className={`mr-2 h-4 w-4 ${isFiltering ? 'text-amber-500' : 'text-indigo-500'}`} />
@@ -142,7 +142,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                         <button
                                             type="button"
                                             onClick={() => setIsBulkModalOpen(true)}
-                                            className="group flex w-full flex-col justify-center gap-0.5 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200 md:w-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                                            className="group flex w-full flex-col justify-center gap-0.5 rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200 md:w-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                                         >
                                             <span className="text-[9px] tracking-tight text-slate-400 uppercase">
                                                 {sameRefItemsCount} con misma referencia
@@ -153,7 +153,7 @@ export const InvoiceDetailHeader: React.FC<InvoiceDetailHeaderProps> = ({
                                             variant="destructive"
                                             size="sm"
                                             onClick={onBulkDelete}
-                                            className="h-10 w-full rounded-xl bg-red-600 px-4 font-bold text-white transition-all hover:bg-red-700 md:w-auto active:scale-95"
+                                            className="h-10 w-full rounded-md bg-red-600 px-4 font-bold text-white transition-all hover:bg-red-700 md:w-auto active:scale-95"
                                         >
                                             Eliminar {selectedDetailIds.length} {selectedDetailIds.length === 1 ? 'seleccionado' : 'seleccionados'}
                                         </Button>

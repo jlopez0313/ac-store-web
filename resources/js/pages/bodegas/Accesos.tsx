@@ -7,10 +7,10 @@ import { useAuth } from '@/hooks/use-auth';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { ArrowLeft, Check, Search as SearchIcon, ShieldCheck, X } from 'lucide-react';
-import { useEffect, useState, useCallback } from 'react';
-import { AccesoModal } from './AccesoModal';
 import axios from 'axios';
+import { ArrowLeft, Check, Search as SearchIcon, ShieldCheck, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { AccesoModal } from './AccesoModal';
 
 export default function Accesos({ bodega }: any) {
 	const { isSuperAdmin } = useAuth();
@@ -155,7 +155,7 @@ export default function Accesos({ bodega }: any) {
 					</div>
 				</div>
 
-				<div className="bg-background rounded-xl shadow-xs border border-border overflow-hidden">
+				<div className="bg-background rounded-md shadow-xs border border-border overflow-hidden">
 					<DataGrid
 						data={items}
 						columns={columns}

@@ -242,7 +242,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                 {selectedRefData && (
                     <div className="animate-in fade-in slide-in-from-top-2 space-y-3 duration-300">
                         {/* Selected Product Summary */}
-                        <div className="flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                        <div className="flex items-center gap-4 rounded-md border border-slate-100 bg-slate-50/50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
                             <div
                                 className="flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
                                 onClick={() => selectedRefData?.foto && openViewer(selectedRefData.foto)}

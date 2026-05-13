@@ -40,6 +40,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
         page: initialFilters?.page || 1,
         cuenta_id: '',
         local_id: '',
+        estado: '',
     });
 
     const [dynamicLocales, setDynamicLocales] = useState<any[]>([]);
@@ -138,7 +139,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
 
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page, filters.cuenta_id, filters.local_id]);
+    }, [filters.page, filters.per_page, filters.cuenta_id, filters.local_id, filters.estado]);
 
     const handleSearch = (value: string) => {
         setFilters((prev) => ({ ...prev, search: value, page: 1 }));

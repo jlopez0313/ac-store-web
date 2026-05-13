@@ -1,9 +1,9 @@
-import { Calendar as CalendarIcon } from 'lucide-react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timegridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import FullCalendar from '@fullcalendar/react';
+import timegridPlugin from '@fullcalendar/timegrid';
+import { Calendar as CalendarIcon } from 'lucide-react';
 
 interface CalendarViewProps {
     events: any[];
@@ -13,7 +13,7 @@ interface CalendarViewProps {
 
 export function CalendarView({ events, onDateClick, onEventClick }: CalendarViewProps) {
     return (
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="rounded-md border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
             <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
                     <CalendarIcon className="h-5 w-5" />
