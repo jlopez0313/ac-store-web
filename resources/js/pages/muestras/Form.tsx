@@ -183,177 +183,175 @@ export const Form = ({ id, cuentas, locals, onClose, processing, onStore, onGetI
     };
 
     return (
-        <div className="pt-6 pb-12">
-            <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
-                <form onSubmit={submit}>
-                    <div className="grid grid-cols-1 gap-6 text-slate-900 md:grid-cols-2">
-                        <SelectField
-                            name="local_id"
-                            title="Local Destino"
-                            required
-                            value={data.local_id}
-                            onChange={(val) => setData('local_id', val as string)}
-                            lista={locals}
-                            item={{ idx: 'id', value: 'name' }}
-                            error={errors.local_id}
-                        />
+        <div className="p-6">
+            <form onSubmit={submit}>
+                <div className="grid grid-cols-1 gap-6 text-foreground md:grid-cols-2">
+                    <SelectField
+                        name="local_id"
+                        title="Local Destino"
+                        required
+                        value={data.local_id}
+                        onChange={(val) => setData('local_id', val as string)}
+                        lista={locals}
+                        item={{ idx: 'id', value: 'name' }}
+                        error={errors.local_id}
+                    />
 
-                        {isSuperAdmin && (
+                    {isSuperAdmin && (
+                        <SelectField
+                            name="cuenta_id"
+                            title="Cuenta / Empresa"
+                            required
+                            value={data.cuenta_id}
+                            onChange={(val) => {
+                                setData((old) => ({
+                                    ...old,
+                                    cuenta_id: val as string,
+                                    referencia_id: '',
+                                    inventario_id: '',
+                                    variante: '',
+                                    etiquetas: [],
+                                }));
+                                setSelectedRef(null);
+                                setSelectedInv(null);
+                            }}
+                            lista={cuentas}
+                            item={{ idx: 'id', value: 'nombre' }}
+                            error={errors.cuenta_id}
+                        />
+                    )}
+
+                    <SelectField
+                        name="referencia_id"
+                        title="Referencia"
+                        required
+                        disabled={!data.cuenta_id || loadingRefs}
+                        value={data.referencia_id}
+                        onChange={(val) => handleRefChange(val as string)}
+                        lista={references.map((r) => ({ id: r.id.toString(), display: `${r.codigo} - ${r.descripcion}` }))}
+                        item={{ idx: 'id', value: 'display' }}
+                        error={errors.referencia_id}
+                    />
+
+                    {selectedRef && (
+                        <>
                             <SelectField
-                                name="cuenta_id"
-                                title="Cuenta / Empresa"
+                                name="bodega_id"
+                                title="Seleccionar Bodega"
                                 required
-                                value={data.cuenta_id}
+                                disabled={loadingStock}
+                                value={selectedBodegaId}
                                 onChange={(val) => {
-                                    setData((old) => ({
-                                        ...old,
-                                        cuenta_id: val as string,
-                                        referencia_id: '',
-                                        inventario_id: '',
-                                        variante: '',
-                                        etiquetas: [],
-                                    }));
-                                    setSelectedRef(null);
-                                    setSelectedInv(null);
+                                    setSelectedBodegaId(val as string);
+                                    setSelectedEstanteriaId('');
+                                    setData('inventario_id', '');
                                 }}
-                                lista={cuentas}
-                                item={{ idx: 'id', value: 'nombre' }}
-                                error={errors.cuenta_id}
+                                lista={Array.from(new Set(stockItems.map((i) => i.bodega_id))).map((id) => {
+                                    const item = stockItems.find((i) => i.bodega_id === id);
+                                    return { id: id?.toString() || '', label: item?.bodega_nombre || 'Desconocida' };
+                                })}
+                                item={{ idx: 'id', value: 'label' }}
                             />
-                        )}
 
-                        <SelectField
-                            name="referencia_id"
-                            title="Referencia"
-                            required
-                            disabled={!data.cuenta_id || loadingRefs}
-                            value={data.referencia_id}
-                            onChange={(val) => handleRefChange(val as string)}
-                            lista={references.map((r) => ({ id: r.id.toString(), display: `${r.codigo} - ${r.descripcion}` }))}
-                            item={{ idx: 'id', value: 'display' }}
-                            error={errors.referencia_id}
-                        />
-
-                        {selectedRef && (
-                            <>
+                            {selectedBodegaId && (
                                 <SelectField
-                                    name="bodega_id"
-                                    title="Seleccionar Bodega"
+                                    name="estanteria_id"
+                                    title="Seleccionar Estantería"
                                     required
                                     disabled={loadingStock}
-                                    value={selectedBodegaId}
+                                    value={selectedEstanteriaId}
                                     onChange={(val) => {
-                                        setSelectedBodegaId(val as string);
-                                        setSelectedEstanteriaId('');
+                                        setSelectedEstanteriaId(val as string);
                                         setData('inventario_id', '');
                                     }}
-                                    lista={Array.from(new Set(stockItems.map((i) => i.bodega_id))).map((id) => {
-                                        const item = stockItems.find((i) => i.bodega_id === id);
-                                        return { id: id?.toString() || '', label: item?.bodega_nombre || 'Desconocida' };
+                                    lista={Array.from(
+                                        new Set(stockItems.filter((i) => i.bodega_id?.toString() === selectedBodegaId).map((i) => i.estanteria_id)),
+                                    ).map((id) => {
+                                        const item = stockItems.find((i) => i.estanteria_id === id);
+                                        return { id: id?.toString() ?? 'null', label: item?.estanteria_nombre || 'General' };
                                     })}
                                     item={{ idx: 'id', value: 'label' }}
                                 />
+                            )}
 
-                                {selectedBodegaId && (
-                                    <SelectField
-                                        name="estanteria_id"
-                                        title="Seleccionar Estantería"
-                                        required
-                                        disabled={loadingStock}
-                                        value={selectedEstanteriaId}
-                                        onChange={(val) => {
-                                            setSelectedEstanteriaId(val as string);
-                                            setData('inventario_id', '');
-                                        }}
-                                        lista={Array.from(
-                                            new Set(stockItems.filter((i) => i.bodega_id?.toString() === selectedBodegaId).map((i) => i.estanteria_id)),
-                                        ).map((id) => {
-                                            const item = stockItems.find((i) => i.estanteria_id === id);
-                                            return { id: id?.toString() ?? 'null', label: item?.estanteria_nombre || 'General' };
-                                        })}
-                                        item={{ idx: 'id', value: 'label' }}
-                                    />
-                                )}
-
-                                {selectedEstanteriaId && (
-                                    <SelectField
-                                        name="inventario_id"
-                                        title="Seleccionar Talla / Stock"
-                                        required
-                                        error={errors.inventario_id}
-                                        disabled={loadingStock}
-                                        value={data.inventario_id}
-                                        onChange={(val) => handleInvChange(val as string)}
-                                        lista={stockItems
-                                            .filter((i) => 
-                                                i.bodega_id?.toString() === selectedBodegaId && 
-                                                (i.estanteria_id?.toString() ?? 'null') === selectedEstanteriaId
-                                            )
-                                            .map((i) => ({
-                                                id: i.id.toString(),
-                                                label: `Talla: ${i.talla} (Disponible: ${i.stock})`,
-                                            }))}
-                                        item={{ idx: 'id', value: 'label' }}
-                                    />
-                                )}
-                            </>
-                        )}
-
-                        <div className="flex items-center space-x-2">
-                            <Switch
-                                id="impreso"
-                                checked={data.impreso}
-                                onCheckedChange={(checked: boolean) => setData('impreso', checked)}
-                            />
-                            <Label htmlFor="impreso" className="text-sm font-medium cursor-pointer">
-                                ¿Ya fue impreso?
-                            </Label>
-                        </div>
-                    </div>
-
-                    {selectedInv && selectedRef?.categoria?.subdivision_stock && (
-                        <div className="mt-6 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <Label className="text-sm font-medium">Seleccionar Partes / Etiquetas de Muestra</Label>
-                                {selectedInv.subdivision_stock && (
-                                    <div className="text-xs text-slate-500">
-                                        Partes sueltas en inventario:{' '}
-                                        {Object.entries(selectedInv.subdivision_stock)
-                                            .filter(([_, qty]: any) => qty > 0)
-                                            .map(([name, qty]) => `${name} (${qty})`)
-                                            .join(', ') || 'Ninguna'}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:grid-cols-3">
-                                {selectedRef.categoria.subdivision_stock.map((tag: string) => (
-                                    <div key={tag} className="flex items-center space-x-2">
-                                        <Checkbox id={`tag-${tag}`} checked={data.etiquetas.includes(tag)} onCheckedChange={() => toggleTag(tag)} />
-                                        <Label htmlFor={`tag-${tag}`} className="unselectable flex cursor-pointer items-center gap-2 text-sm">
-                                            {tag}
-                                            {selectedInv.subdivision_stock?.[tag] > 0 && (
-                                                <Badge variant="outline" className="border-green-200 bg-green-50 text-[10px] text-green-700">
-                                                    Disponible suelto
-                                                </Badge>
-                                            )}
-                                        </Label>
-                                    </div>
-                                ))}
-                            </div>
-                            {errors.etiquetas && <p className="text-sm text-red-600">{errors.etiquetas}</p>}
-                        </div>
+                            {selectedEstanteriaId && (
+                                <SelectField
+                                    name="inventario_id"
+                                    title="Seleccionar Talla / Stock"
+                                    required
+                                    error={errors.inventario_id}
+                                    disabled={loadingStock}
+                                    value={data.inventario_id}
+                                    onChange={(val) => handleInvChange(val as string)}
+                                    lista={stockItems
+                                        .filter((i) => 
+                                            i.bodega_id?.toString() === selectedBodegaId && 
+                                            (i.estanteria_id?.toString() ?? 'null') === selectedEstanteriaId
+                                        )
+                                        .map((i) => ({
+                                            id: i.id.toString(),
+                                            label: `Talla: ${i.talla} (Disponible: ${i.stock})`,
+                                        }))}
+                                    item={{ idx: 'id', value: 'label' }}
+                                />
+                            )}
+                        </>
                     )}
 
-                    <div className="mt-8 flex items-center justify-end gap-4">
-                        <FormButtons
-                            processing={processing}
-                            reset={() => onClose()}
-                            buttons={{ cancel: true, submit: true }}
-                            labels={{ cancel: 'Cancelar', submit: id ? 'Actualizar Muestra' : 'Registrar Muestra' }}
+                    <div className="flex items-center space-x-2">
+                        <Switch
+                            id="impreso"
+                            checked={data.impreso}
+                            onCheckedChange={(checked: boolean) => setData('impreso', checked)}
                         />
+                        <Label htmlFor="impreso" className="text-sm font-medium cursor-pointer">
+                            ¿Ya fue impreso?
+                        </Label>
                     </div>
-                </form>
-            </div>
+                </div>
+
+                {selectedInv && selectedRef?.categoria?.subdivision_stock && (
+                    <div className="mt-6 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <Label className="text-sm font-medium">Seleccionar Partes / Etiquetas de Muestra</Label>
+                            {selectedInv.subdivision_stock && (
+                                <div className="text-xs text-slate-500">
+                                    Partes sueltas en inventario:{' '}
+                                    {Object.entries(selectedInv.subdivision_stock)
+                                        .filter(([_, qty]: any) => qty > 0)
+                                        .map(([name, qty]) => `${name} (${qty})`)
+                                        .join(', ') || 'Ninguna'}
+                                </div>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:grid-cols-3 dark:border-slate-700 dark:bg-slate-800/50">
+                            {selectedRef.categoria.subdivision_stock.map((tag: string) => (
+                                <div key={tag} className="flex items-center space-x-2">
+                                    <Checkbox id={`tag-${tag}`} checked={data.etiquetas.includes(tag)} onCheckedChange={() => toggleTag(tag)} />
+                                    <Label htmlFor={`tag-${tag}`} className="unselectable flex cursor-pointer items-center gap-2 text-sm">
+                                        {tag}
+                                        {selectedInv.subdivision_stock?.[tag] > 0 && (
+                                            <Badge variant="outline" className="border-green-200 bg-green-50 text-[10px] text-green-700">
+                                                Disponible suelto
+                                            </Badge>
+                                        )}
+                                    </Label>
+                                </div>
+                            ))}
+                        </div>
+                        {errors.etiquetas && <p className="text-sm text-red-600">{errors.etiquetas}</p>}
+                    </div>
+                )}
+
+                <div className="mt-8 flex items-center justify-end gap-4">
+                    <FormButtons
+                        processing={processing}
+                        reset={() => onClose()}
+                        buttons={{ cancel: true, submit: true }}
+                        labels={{ cancel: 'Cancelar', submit: id ? 'Actualizar Muestra' : 'Registrar Muestra' }}
+                    />
+                </div>
+            </form>
         </div>
     );
 };

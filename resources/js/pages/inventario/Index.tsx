@@ -169,7 +169,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 			width: '150px',
 			selector: (row: any) => row.total_stock,
 			cell: (row: any) => (
-				<span className={`font-bold ${Number(row.total_stock) <= 0 ? 'text-red-500' : 'text-slate-900'}`}>
+				<span className={`font-bold ${Number(row.total_stock) <= 0 ? 'text-red-500' : 'text-slate-900 dark:text-slate-100'}`}>
 					{row.total_stock || 0}
 				</span>
 			),
@@ -264,7 +264,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 					</div>
 				</div>
 
-				<div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
+				<div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden dark:bg-slate-900 dark:border-slate-700">
 					<DataGrid
 						data={items}
 						columns={columns}

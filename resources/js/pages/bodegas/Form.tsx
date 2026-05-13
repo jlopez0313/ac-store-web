@@ -69,10 +69,9 @@ export const Form = ({ id, estados, cuentas, setIsOpen, processing, onStore, onG
 	}, [id]);
 
 	return (
-		<div className="pt-6 pb-12">
-			<div className="max-w-7xl mx-auto sm:px-6 lg:px-8 px-3">
-				<form onSubmit={submit}>
-					<div className="grid grid-cols-1 gap-4 text-slate-900">
+		<div className="p-6">
+			<form onSubmit={submit}>
+					<div className="grid grid-cols-1 gap-4 text-foreground">
 						<InputField
 							name="nombre"
 							title="Nombre de la Bodega"
@@ -123,8 +122,7 @@ export const Form = ({ id, estados, cuentas, setIsOpen, processing, onStore, onG
 							labels={{ cancel: 'Cancelar', submit: 'Guardar Bodega' }}
 						/>
 					</div>
-				</form>
-			</div>
+			</form>
 		</div>
 	);
 };

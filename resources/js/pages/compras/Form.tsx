@@ -97,108 +97,95 @@ export const Form = ({ id, proveedores, cuentas, onClose, processing, onStore, o
 
 	// Layout simplificado para Modal
 	return (
-		<div className="pt-6 pb-12">
-			<div className="max-w-7xl mx-auto sm:px-6 lg:px-8 px-3">
-				<form onSubmit={submit}>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-900">
+		<div className="p-6">
+			<form onSubmit={submit}>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-foreground">
 
-						{isSuperAdmin && (
-							<div className="col-span-1 md:col-span-2">
-								<SelectField
-									name="cuenta_id"
-									title="Cuenta / Empresa"
-									required
-									value={data.cuenta_id}
-									onChange={(val) => setData('cuenta_id', val as string)}
-									lista={cuentas}
-									item={{ idx: 'id', value: 'nombre' }}
-									error={errors.cuenta_id}
-								/>
-							</div>
-						)}
-
+					{isSuperAdmin && (
 						<div className="col-span-1 md:col-span-2">
 							<SelectField
-								name="proveedor_id"
-								title="Proveedor"
+								name="cuenta_id"
+								title="Cuenta / Empresa"
 								required
-								value={data.proveedor_id}
-								onChange={(val) => setData('proveedor_id', val as string)}
-								lista={proveedores}
+								value={data.cuenta_id}
+								onChange={(val) => setData('cuenta_id', val as string)}
+								lista={cuentas}
 								item={{ idx: 'id', value: 'nombre' }}
-								error={errors.proveedor_id}
+								error={errors.cuenta_id}
 							/>
 						</div>
+					)}
 
+					<div className="col-span-1 md:col-span-2">
 						<SelectField
-							name="estado"
-							title="Estado"
+							name="proveedor_id"
+							title="Proveedor"
 							required
-							value={data.estado}
-							onChange={(val) => setData('estado', val as string)}
-							lista={estados}
+							value={data.proveedor_id}
+							onChange={(val) => setData('proveedor_id', val as string)}
+							lista={proveedores}
 							item={{ idx: 'id', value: 'nombre' }}
-							error={errors.estado}
+							error={errors.proveedor_id}
 						/>
+					</div>
 
-						<InputField
-							name="fecha_apertura"
-							title="Fecha de Apertura"
-							type="datetime-local"
-							required
-							value={data.fecha_apertura}
-							onChange={(val) => setData('fecha_apertura', val as string)}
-							error={errors.fecha_apertura}
-						/>
+					<SelectField
+						name="estado"
+						title="Estado"
+						required
+						value={data.estado}
+						onChange={(val) => setData('estado', val as string)}
+						lista={estados}
+						item={{ idx: 'id', value: 'nombre' }}
+						error={errors.estado}
+					/>
 
-						{!isBodega && (
-							<div className="col-span-1 md:col-span-2">
-								<InputField
-									name="flete"
-									title="Valor del Flete"
-									type="number"
-									required
-									value={data.flete}
-									onChange={(val) => setData('flete', val as string)}
-									error={errors.flete}
-								/>
-							</div>
-						)}
+					<InputField
+						name="fecha_apertura"
+						title="Fecha de Apertura"
+						type="datetime-local"
+						required
+						value={data.fecha_apertura}
+						onChange={(val) => setData('fecha_apertura', val as string)}
+						error={errors.fecha_apertura}
+					/>
 
-						<div className="col-span-1 md:col-span-2 hidden">
-							<InputField
-								name="fecha_cierre"
-								title="Fecha de Cierre (Opcional)"
-								type="datetime-local"
-								value={data.fecha_cierre}
-								onChange={(val) => setData('fecha_cierre', val as string)}
-								error={errors.fecha_cierre}
-							/>
-						</div>
-
+					{!isBodega && (
 						<div className="col-span-1 md:col-span-2">
-							<TextAreaField
-								name="observaciones"
-								title="Observaciones"
-								rows={3}
-								value={data.observaciones}
-								onChange={(val) => setData('observaciones', val as string)}
-								error={errors.observaciones}
+							<InputField
+								name="flete"
+								title="Valor del Flete"
+								type="number"
+								required
+								value={data.flete}
+								onChange={(val) => setData('flete', val as string)}
+								error={errors.flete}
 							/>
 						</div>
+					)}
 
-					</div>
-
-					<div className="mt-8 flex items-center justify-end gap-4">
-						<FormButtons
-							processing={processing}
-							reset={() => onClose()}
-							buttons={{ cancel: true, submit: true }}
-							labels={{ cancel: 'Cancelar', submit: 'Guardar Factura' }}
+					<div className="col-span-1 md:col-span-2">
+						<TextAreaField
+							name="observaciones"
+							title="Observaciones"
+							rows={3}
+							value={data.observaciones}
+							onChange={(val) => setData('observaciones', val as string)}
+							error={errors.observaciones}
 						/>
 					</div>
-				</form>
-			</div>
+
+				</div>
+
+				<div className="mt-8 flex items-center justify-end gap-4">
+					<FormButtons
+						processing={processing}
+						reset={() => onClose()}
+						buttons={{ cancel: true, submit: true }}
+						labels={{ cancel: 'Cancelar', submit: 'Guardar Factura' }}
+					/>
+				</div>
+			</form>
 		</div>
 	);
 };

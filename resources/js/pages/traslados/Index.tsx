@@ -52,13 +52,13 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
             width: '85px',
             cell: (row: any) => (
                 <div 
-                    className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-slate-50 transition-transform hover:scale-110"
+                    className="flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-md border border-slate-100 bg-slate-50 transition-transform hover:scale-110 dark:border-slate-700 dark:bg-slate-800"
                     onClick={() => setViewerImage(row.referencia_foto)}
                 >
                     {row.referencia_foto ? (
                         <img src={`/storage/${row.referencia_foto}`} alt="" className="h-full w-full object-cover" />
                     ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-slate-100 text-[10px] text-slate-400">N/A</div>
+                        <div className="flex h-full w-full items-center justify-center bg-slate-100 text-[10px] text-slate-400 dark:bg-slate-700">N/A</div>
                     )}
                 </div>
             ),
@@ -86,8 +86,8 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
             grow: 1.2,
             cell: (row: any) => (
                 <div className="flex flex-col py-2">
-                    <div className="text-sm font-medium text-slate-900">{row.bodega_origen}</div>
-                    <div className="font-mono text-xs text-slate-500 italic">{row.estanteria_origen}</div>
+                    <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{row.bodega_origen}</div>
+                    <div className="font-mono text-xs text-slate-500 italic dark:text-slate-400">{row.estanteria_origen}</div>
                 </div>
             ),
             sortable: true,
@@ -98,8 +98,8 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
             grow: 1.2,
             cell: (row: any) => (
                 <div className="flex flex-col py-2">
-                    <div className="text-sm font-medium text-slate-900">{row.bodega_destino}</div>
-                    <div className="font-mono text-xs text-slate-500 italic">{row.estanteria_destino}</div>
+                    <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{row.bodega_destino}</div>
+                    <div className="font-mono text-xs text-slate-500 italic dark:text-slate-400">{row.estanteria_destino}</div>
                 </div>
             ),
             sortable: true,
@@ -108,7 +108,7 @@ export default function Index({ filters, lista, cuentas, referencias }: any) {
         {
             name: 'Cant.',
             width: '100px',
-            cell: (row: any) => <span className="font-bold text-slate-900">{row.cantidad}</span>,
+            cell: (row: any) => <span className="font-bold text-slate-900 dark:text-slate-100">{row.cantidad}</span>,
             sortable: true,
         },
         {

@@ -175,7 +175,7 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas, onSuccess }: a
 						Ingresa la cantidad por talla y selecciona el estante donde guardarás el stock físico.
 					</p>
 
-					<div className="border dark:border-slate-800 rounded-lg overflow-hidden flex flex-col max-w-md mx-auto w-full">
+					<div className="border dark:border-slate-800 rounded-lg overflow-hidden flex flex-col mx-auto w-full">
 						<div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 border-b dark:border-slate-700 grid grid-cols-[1fr_80px] gap-4">
 							<span>Talla</span>
 							<span className="text-right">Cantidad</span>

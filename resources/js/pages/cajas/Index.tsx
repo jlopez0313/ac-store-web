@@ -102,12 +102,9 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
             name: 'Producto',
             grow: 2,
             cell: (row: any) => (
-                <div className="flex flex-col py-2">
-                    <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{row.referencia_descripcion}</span>
-                    <span className="text-muted-foreground text-xs">
-                        Factura #{row.compra_id} ({row.compra_fecha})
-                    </span>
-                </div>
+                <span className="text-sm font-medium text-slate-900 dark:text-slate-100 py-2">
+                    {row.referencia_descripcion}
+                </span>
             ),
             sortable: true,
             noTruncate: true,
@@ -119,27 +116,43 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
             width: '120px',
         },
         {
+            name: '# Compra',
+            width: '100px',
+            cell: (row: any) => (
+                <span className="font-mono text-xs font-black text-indigo-600 dark:text-indigo-400">
+                    #{row.compra_id}
+                </span>
+            ),
+        },
+        {
+            name: 'Fecha',
+            width: '110px',
+            cell: (row: any) => (
+                <span className="text-xs text-muted-foreground">{row.compra_fecha}</span>
+            ),
+        },
+        {
             name: 'Bodega',
             selector: (row: any) => row.bodega_nombre,
             sortable: true,
-            width: '180px',
+            width: '160px',
             cell: (row: any) => <span className="font-bold text-slate-900 dark:text-slate-100">{row.bodega_nombre}</span>,
         },
         {
             name: 'Total Cajas',
             selector: (row: any) => Math.ceil(row.cantidad / row.pares_por_caja),
-            width: '120px',
+            width: '110px',
         },
         {
-            name: 'Total Unidades',
+            name: 'Total Uds.',
             selector: (row: any) => row.cantidad,
-            width: '120px',
+            width: '100px',
             cell: (row: any) => <span className="font-bold text-slate-900 dark:text-slate-100">{row.cantidad}</span>,
         },
         {
             name: 'P. Costo',
             selector: (row: any) => row.precio_compra,
-            width: '120px',
+            width: '110px',
             cell: (row: any) => (
                 <span className="font-semibold text-slate-600 dark:text-slate-400">${Number(row.precio_compra).toLocaleString()}</span>
             ),
@@ -147,7 +160,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
         {
             name: 'P. Venta',
             selector: (row: any) => row.precio_venta,
-            width: '120px',
+            width: '110px',
             cell: (row: any) => <span className="font-semibold text-green-600">${Number(row.precio_venta).toLocaleString()}</span>,
         },
     ];

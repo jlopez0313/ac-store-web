@@ -67,7 +67,7 @@ export const CreateModal = ({ isOpen, onClose, accounts, locals, vendedores, nex
 			onClose={onClose} 
 			title={data.user_id.length > 1 ? 'Crear Facturas Masivas' : `Nueva Factura de Venta #${nextId}`}
 		>
-			<form onSubmit={submit} className="p-6 space-y-6 bg-background">
+			<form onSubmit={submit} className="p-6 space-y-6">
 				<div className="grid grid-cols-1 gap-6">
 					{isSuperAdmin && (
 						<SelectField

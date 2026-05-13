@@ -53,11 +53,11 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
         if (descuento > 0 && Math.abs(precio - baseConDescuento) < 1)
             return 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-900/40 dark:text-amber-200 dark:border-amber-700';
             
-        if (precio === sugerido || sugerido === 0) return 'bg-white text-slate-700 border-slate-200';
+        if (precio === sugerido || sugerido === 0) return 'bg-white text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600';
         
         if (precio < baseConDescuento) return 'bg-red-100 text-red-900 border-red-300 dark:bg-red-900/40 dark:text-red-200 dark:border-red-700';
         
-        return 'bg-white text-slate-700 border-slate-200';
+        return 'bg-white text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600';
     };
 
     const handleSearch = async () => {
@@ -440,7 +440,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
 
                                 <div className="bg-slate-50 rounded-xl p-6 border border-dashed dark:bg-slate-800/50 flex flex-col justify-between">
                                     {data.nuevo_inventario_id && stockItems.find(i => i.id.toString() === data.nuevo_inventario_id) ? (
-                                        <div className="mb-4 flex items-center gap-4 p-3 bg-white rounded-xl border shadow-sm">
+                                        <div className="mb-4 flex items-center gap-4 p-3 bg-white rounded-xl border shadow-sm dark:bg-slate-800 dark:border-slate-700">
                                             <div className="h-16 w-16 rounded-lg border overflow-hidden bg-slate-100 flex items-center justify-center">
                                                 {stockItems.find(i => i.id.toString() === data.nuevo_inventario_id)?.referencia_foto ? (
                                                     <img src={stockItems.find(i => i.id.toString() === data.nuevo_inventario_id).referencia_foto} className="h-full w-full object-cover" />
@@ -458,7 +458,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
                                                     })()}
                                                 </span>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-600">
+                                                    <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                                                         Talla {stockItems.find(i => i.id.toString() === data.nuevo_inventario_id)?.talla}
                                                     </span>
                                                     <span className="text-[10px] text-slate-500 uppercase font-bold truncate">
@@ -483,7 +483,7 @@ export const Form = ({ cuentas, current_cuenta, locals, onClose, onStore, onRelo
                                         <div className="space-y-1">
                                             <Label className="text-[10px] font-black text-slate-400 uppercase">Observación</Label>
                                             <textarea
-                                                className="w-full bg-white border rounded-lg p-2 text-sm min-h-[80px]"
+                                                className="w-full bg-white border border-slate-200 rounded-lg p-2 text-sm min-h-[80px] dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400"
                                                 placeholder="Motivo del cambio..."
                                                 value={data.observacion}
                                                 onChange={(e) => setData('observacion', e.target.value)}
