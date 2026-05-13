@@ -415,7 +415,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
 
                                         if (type === 'cuadre') {
                                             const cuadreData = {
-                                                facturaId: freshFactura.id,
+                                                facturaId: freshFactura.numero ?? freshFactura.id,
                                                 localName,
                                                 vendedor: freshFactura.vendedor || auth.user.name,
                                                 items: detalles,
@@ -432,7 +432,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         if (type === 'factura') {
                                             const { printSoporteVenta } = await import('@/utils/printSoporteVenta');
                                             const soporteData = {
-                                                facturaId: freshFactura.id,
+                                                facturaId: freshFactura.numero ?? freshFactura.id,
                                                 localName,
                                                 vendedor: freshFactura.vendedor || auth.user.name,
                                                 items: detalles,
@@ -459,7 +459,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         }
 
                                         const printData = {
-                                            facturaId: freshFactura.id,
+                                            facturaId: freshFactura.numero ?? freshFactura.id,
                                             localName,
                                             items,
                                         };

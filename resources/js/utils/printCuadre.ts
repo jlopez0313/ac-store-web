@@ -9,7 +9,7 @@ interface CuadreItem {
 }
 
 interface CuadreData {
-    facturaId: number;
+    facturaId: number | string;
     localName: string;
     vendedor: string;
     items: CuadreItem[];

@@ -2,6 +2,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FormButtons } from '@/components/ui/form/FormButtons';
 import { SelectField } from '@/components/ui/form/SelectField';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/Modal';
 import { ViewerModal } from '@/components/ui/ViewerModal';
 import { showAlert } from '@/plugins/sweetalert';
@@ -24,6 +26,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
     const [loadingStock, setLoadingStock] = useState(false);
     const [saving, setSaving] = useState(false);
     const [quantities, setQuantities] = useState<Record<string, number>>({});
+    const [boxPrices, setBoxPrices] = useState<Record<string, number>>({});
     const [viewerImage, setViewerImage] = useState<string | null>(null);
 
     const [selectedBodegaId, setSelectedBodegaId] = useState<number | null>(null);
@@ -76,6 +79,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                 setMeta(null);
                 setSelectedRef(null);
                 setQuantities({});
+                setBoxPrices({});
                 setSelectedBodegaId(null);
                 setSelectedTalla(null);
             }
@@ -171,6 +175,8 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
     };
 
     const handleSelectRef = (ref: any) => {
+        setQuantities({});
+        setBoxPrices({});
         setSelectedRef(ref);
         setMode('detail');
         fetchStock(ref);
@@ -187,10 +193,11 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                 return {
                     ...r,
                     displayStock: breakdown.reduce((acc: number, curr: any) => acc + (parseInt(curr.total_stock) || 0), 0),
+                    displayCajasStock: r.cajas_stock || 0,
                     displayTallas: new Set(breakdown.map((s: any) => s.talla)).size,
                 };
             })
-            .filter((r: any) => r.displayStock > 0);
+            .filter((r: any) => r.displayStock > 0 || r.has_cajas);
     }, [results, selectedBodegaId, selectedTalla, permittedBodegaIds]);
     const availableTallas = useMemo(() => {
         const set = new Set<string>();
@@ -200,8 +207,9 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 
     // Price with discount helper
     const getAdjustedPrice = (price: number, bodegaId: number | null) => {
+        console.log(price)
         if (!bodegaId) return price;
-        const access = bodega_accesos?.find((a: any) => factura && a.bodega_id === bodegaId && a.user_id === factura.local?.id);
+        const access = bodega_accesos?.find((a: any) => factura && parseInt(a.bodega_id) === parseInt(bodegaId as any) && parseInt(a.user_id) === parseInt(factura.local?.id));
         const discount = Number(access?.descuento || 0);
         return Math.max(0, price - discount);
     };
@@ -222,6 +230,28 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
         const groups: Record<string, any> = {};
 
         allStock.forEach((s) => {
+            if (s.type === 'caja') {
+                if (!groups['cajas']) {
+                    const access = bodega_accesos?.find((a: any) => factura && parseInt(a.bodega_id) === parseInt(s.bodega_id) && parseInt(a.user_id) === parseInt(factura.local?.id));
+                    groups['cajas'] = {
+                        id: 'cajas',
+                        nombre: 'Cajas Disponibles',
+                        total_stock: 0,
+                        items: [],
+                        can_order: true,
+                        is_box_group: true,
+                        descuento: Number(access?.descuento || 0),
+                    };
+                }
+                groups['cajas'].items.push({
+                    ...s,
+                    key: `c:${s.id}`,
+                    precio_ajustado: getAdjustedPrice(s.precio_venta, s.bodega_id),
+                });
+                groups['cajas'].total_stock += s.stock;
+                return;
+            }
+
             if (s.type === 'muestra') {
                 // If it's in the stock list, it's either because user is admin or it belongs to this local
                 if (!groups['muestras']) {
@@ -279,7 +309,9 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
         const result = Object.values(groups);
         return result.sort((a: any, b: any) => {
             if (a.is_muestra_group) return -1;
-            if (b.is_muestra_group) return 1;
+            if (b.is_muestra_group) return -1;
+            if (a.is_box_group) return 1;
+            if (b.is_box_group) return -1;
             return 0;
         });
     }, [allStock, bodega_accesos, factura, permittedBodegaIds, auth.user.role]);
@@ -298,6 +330,18 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                 const item = group?.items.find((i: any) => i.muestra_id === muestraId);
                 finalPrice = item?.precio_ajustado || 0;
                 invId = item?.id;
+            } else if (key.startsWith('c:')) {
+                const boxId = parseInt(key.replace('c:', ''));
+                const group = groupedStock.find((g: any) => g.is_box_group);
+                const item = group?.items.find((i: any) => i.id === boxId);
+                invId = boxId;
+                finalPrice = boxPrices[key] || item?.precio_ajustado || 0;
+                return {
+                    id: boxId,
+                    is_caja: true,
+                    cantidad: qty,
+                    precio_unitario: finalPrice,
+                };
             } else {
                 invId = parseInt(key);
                 for (const group of groupedStock) {
@@ -492,14 +536,27 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-6">
-                                            <Badge
-                                                variant="secondary"
-                                                className="bg-muted text-muted-foreground flex items-center gap-2 rounded-full border-none px-3 py-1 text-[10px] uppercase"
-                                            >
-                                                <Box className="h-3 w-3" />
-                                                {r.displayStock} uds
-                                            </Badge>
-                                            ${Number(r.precio_venta || 0).toLocaleString()}
+                                            <div className="flex items-center gap-2">
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="bg-muted text-muted-foreground flex items-center gap-2 rounded-full border-none px-3 py-1 text-[10px] uppercase"
+                                                >
+                                                    <Warehouse className="h-3 w-3" />
+                                                    {r.displayStock} uds
+                                                </Badge>
+                                                {r.displayCajasStock > 0 && (
+                                                    <Badge
+                                                        variant="secondary"
+                                                        className="bg-indigo-50 text-indigo-700 flex items-center gap-2 rounded-full border-none px-3 py-1 text-[10px] uppercase dark:bg-indigo-900/30 dark:text-indigo-300"
+                                                    >
+                                                        <Box className="h-3 w-3" />
+                                                        {r.displayCajasStock} pares
+                                                    </Badge>
+                                                )}
+                                                <span className="text-sm font-bold ml-2">
+                                                    ${Number(r.precio_venta || 0).toLocaleString()}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -552,7 +609,8 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                                                         <span className="text-foreground text-xs font-bold">{item.talla}</span>
                                                                     </div>
                                                                     <div className="space-y-0.5">
-                                                                        <div className="flex items-center gap-2">
+                                                                        <div className="flex items-center gap-1">
+                                                                            <Warehouse className="text-muted-foreground h-3 w-3" />
                                                                             <span className="text-foreground/80 text-sm font-bold">
                                                                                 {item.is_muestra ? item.bodega_nombre : 'Stock en Bodega'}
                                                                             </span>
@@ -578,7 +636,53 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                {bodega.can_order && (
+                                                                {bodega.is_box_group ? (
+                                                                    <div className="flex items-start gap-4">
+                                                                        <div className="flex flex-col">
+                                                                            <Label className="uppercase text-[10px] font-bold text-slate-500">Cantidad</Label>
+                                                                            <div className="bg-background border-border/50 flex h-10 mt-1 items-center gap-3 rounded-md border p-1.5 shadow-xs">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => handleQtyChange(item.key, -1, item.stock * item.pares_por_caja)}
+                                                                                    className="hover:bg-muted text-muted-foreground flex h-8 w-8 items-center justify-center rounded-lg transition-all active:scale-95"
+                                                                                >
+                                                                                    <Minus className="h-4 w-4" />
+                                                                                </button>
+                                                                                <input
+                                                                                    type="number"
+                                                                                    className="w-12 h-8 text-center text-sm font-bold border-none focus:ring-0 outline-none bg-transparent"
+                                                                                    value={qty}
+                                                                                    onChange={(e) => {
+                                                                                        const val = parseInt(e.target.value) || 0;
+                                                                                        const max = item.stock * item.pares_por_caja;
+                                                                                        setQuantities(prev => ({ ...prev, [item.key]: Math.min(max, val) }));
+                                                                                    }}
+                                                                                />
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => handleQtyChange(item.key, 1, item.stock * item.pares_por_caja)}
+                                                                                    className="hover:bg-muted text-foreground flex h-8 w-8 items-center justify-center rounded-lg shadow-sm transition-all active:scale-95"
+                                                                                >
+                                                                                    <Plus className="h-4 w-4" />
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                        {qty > 0 && (
+                                                                            <div className="w-40">
+                                                                                <div className="flex flex-col">
+                                                                                    <Label className="uppercase text-[10px] font-bold text-slate-500">Precio Final</Label>
+                                                                                    <Input
+                                                                                        type="number"
+                                                                                        className="h-10 mt-1 text-right font-bold"
+                                                                                        placeholder="0"
+                                                                                        value={boxPrices[item.key] !== undefined ? boxPrices[item.key] : item.precio_ajustado}
+                                                                                        onChange={(e) => setBoxPrices(prev => ({ ...prev, [item.key]: parseInt(e.target.value) || 0 }))}
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                ) : bodega.can_order && (
                                                                     <div className="bg-background border-border/50 flex items-center gap-3 rounded-md border p-1.5 shadow-xs">
                                                                         <button
                                                                             type="button"

@@ -10,7 +10,7 @@ interface SoporteItem {
 }
 
 interface SoporteData {
-    facturaId: number;
+    facturaId: number | string;
     localName: string;
     vendedor: string;
     items: SoporteItem[];
@@ -93,7 +93,7 @@ export function printSoporteVenta(data: SoporteData, returnHtml = false): string
 <body onload="window.print()">
     <div class="ticket">
         <div class="header-box">
-            <h2>SOPORTE DE VENTA</h2>
+            <h2>SOPORTE DE VENTA #${data.facturaId}</h2>
         </div>
         <h3>${data.localName}</h3>
         <div class="info">${fecha} ${hora}</div>

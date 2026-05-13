@@ -31,6 +31,12 @@ export function getPrintRequestsRef(cuentaId?: number | null): DatabaseReference
 }
 
 export function createPrintRequest(cuentaId: number, data: Omit<PrintRequest, 'key' | 'created_at'>) {
+    // Check if we should skip Firebase printing (useful for local development)
+    if (import.meta.env.VITE_APP_ENV !== 'production') {
+        console.log('[LOCAL PRINT] Skip Firebase request:', data);
+        return Promise.resolve({ key: 'local-test' });
+    }
+
     const listRef = getPrintRequestsRef(cuentaId);
     return push(listRef, {
         ...data,

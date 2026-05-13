@@ -15,7 +15,7 @@ interface PrintItem {
 }
 
 interface PrintData {
-    facturaId: number;
+    facturaId: number | string;
     localName: string;
     items: PrintItem[];
     footer?: string;
@@ -37,7 +37,7 @@ function generateBarcodeSvg(value: string): string {
     }
 }
 
-function buildTicketHtml(item: PrintItem, facturaId: number, localName: string, footer: string): string {
+function buildTicketHtml(item: PrintItem, facturaId: number | string, localName: string, footer: string): string {
     const now = new Date();
     const fecha = now.toLocaleDateString('es-CO');
     const hora = now.toLocaleTimeString('es-CO');

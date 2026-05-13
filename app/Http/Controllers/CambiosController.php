@@ -183,9 +183,16 @@ class CambiosController extends Controller
                 }
 
                 // 1. Restore original stock
-                $invOriginal = Inventario::find($detalleOriginal->inventario_id);
-                if ($invOriginal) {
-                    $invOriginal->increment('stock', 1);
+                if ($detalleOriginal->caja_id) {
+                    $caja = \App\Models\Caja::find($detalleOriginal->caja_id);
+                    if ($caja) {
+                        $caja->increment('cantidad', $detalleOriginal->cantidad);
+                    }
+                } elseif ($detalleOriginal->inventario_id) {
+                    $invOriginal = Inventario::find($detalleOriginal->inventario_id);
+                    if ($invOriginal) {
+                        $invOriginal->increment('stock', $detalleOriginal->cantidad);
+                    }
                 }
 
                 // 2. Deduct new stock

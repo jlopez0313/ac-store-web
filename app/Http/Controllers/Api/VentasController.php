@@ -111,12 +111,23 @@ class VentasController extends Controller
 
         $paginated = $query->paginate(20);
 
-        $data = collect($paginated->items())->map(function ($r) {
+        $data = collect($paginated->items())->map(function ($r) use ($user) {
             $invs = Inventario::where('referencia_id', $r->id)
                 ->join('estanterias', 'inventarios.estanteria_id', '=', 'estanterias.id')
                 ->selectRaw('estanterias.bodega_id, inventarios.talla, SUM(inventarios.stock) as total_stock, MAX(inventarios.precio_venta) as max_precio')
                 ->groupBy('estanterias.bodega_id', 'inventarios.talla')
                 ->get();
+
+            $cajasInfo = null;
+            $cajasStock = 0;
+            $maxPrecioCaja = 0;
+            if ($user->hasAnyRole(['admin', 'bodega', 'superadmin'])) {
+                $cajasInfo = \App\Models\Caja::where('referencia_id', $r->id)
+                    ->selectRaw('SUM(cantidad) as total_pares, MAX(precio_venta) as max_precio')
+                    ->first();
+                $cajasStock = (int) ($cajasInfo->total_pares ?? 0);
+                $maxPrecioCaja = (float) ($cajasInfo->max_precio ?? 0);
+            }
 
             return [
                 'id' => $r->id,
@@ -126,10 +137,12 @@ class VentasController extends Controller
                 'foto' => $r->foto,
                 'categoria' => $r->categoria?->nombre,
                 'cuenta_id' => $r->cuenta_id,
-                'stock_global' => (int) $invs->sum('total_stock'),
+                'stock_global' => (int) $invs->sum('total_stock') + $cajasStock,
+                'cajas_stock' => $cajasStock,
                 'total_tallas' => (int) $invs->pluck('talla')->unique()->count(),
-                'precio_venta' => (float) $invs->max('max_precio'),
+                'precio_venta' => (float) max($invs->max('max_precio') ?: 0, $r->precio_venta ?: 0, $maxPrecioCaja),
                 'stock_breakdown' => $invs,
+                'has_cajas' => $cajasStock > 0
             ];
         });
 
@@ -169,6 +182,7 @@ class VentasController extends Controller
             });
 
         $muestras = collect();
+        $cajas = collect();
         $user = auth()->user();
 
         if ($user->hasAnyRole(['admin', 'bodega', 'superadmin', 'local'])) {
@@ -197,9 +211,32 @@ class VentasController extends Controller
                         'etiquetas' => $m->etiquetas
                     ];
                 });
+
+            // Add Cajas for admin/bodega/superadmin
+            if ($user->hasAnyRole(['admin', 'bodega', 'superadmin'])) {
+                $cajas = \App\Models\Caja::where('referencia_id', $request->referencia_id)
+                    ->where('cantidad', '>', 0)
+                    ->with('bodega')
+                    ->get()
+                    ->map(function ($c) {
+                        return [
+                            'id' => $c->id,
+                            'type' => 'caja',
+                            'bodega_id' => $c->bodega_id,
+                            'bodega_nombre' => $c->bodega->nombre,
+                            'estanteria_id' => null,
+                            'estanteria_nombre' => "Caja de {$c->pares_por_caja} pares",
+                            'talla' => 'C',
+                            'stock' => $c->cantidad,
+                            'precio_venta' => $c->precio_venta,
+                            'pares_por_caja' => $c->pares_por_caja,
+                            'is_caja' => true
+                        ];
+                    });
+            }
         }
 
-        return response()->json(['data' => $stock->concat($muestras)]);
+        return response()->json(['data' => $stock->concat($muestras)->concat($cajas)]);
     }
 
 
@@ -330,6 +367,35 @@ class VentasController extends Controller
                         'muestra_id' => $muestra->id
                     ]);
                     $venta->increment('total', $unitPrice);
+                } elseif (isset($item['is_caja']) && $item['is_caja']) {
+                    $caja = \App\Models\Caja::findOrFail($item['id']);
+                    // In this context, 'cantidad' is the number of boxes (based on user request for "cantidad de pares", 
+                    // we'll assume the frontend sends the calculated total units or we handle boxes)
+                    $totalUnidades = (int) $item['cantidad'];
+                    
+                    if ($caja->cantidad < $totalUnidades) {
+                        throw new \Exception("Stock de unidades en cajas insuficiente. Se requieren {$totalUnidades} unidades.");
+                    }
+                    
+                    $caja->decrement('cantidad', $totalUnidades);
+
+                    $unitPrice = (float) $item['precio_unitario'];
+                    $subtotal = $totalUnidades * $unitPrice;
+
+                    for ($i = 0; $i < $totalUnidades; $i++) {
+                        $venta->detalles()->create([
+                            'caja_id' => $caja->id,
+                            'es_caja' => true,
+                            'producto_id' => $caja->referencia_id,
+                            'bodega_id' => $caja->bodega_id,
+                            'talla' => 'C',
+                            'cantidad' => 1,
+                            'precio_unitario' => $unitPrice,
+                            'subtotal' => $unitPrice,
+                            'observacion' => "Venta desde Caja #{$caja->id}"
+                        ]);
+                    }
+                    $venta->increment('total', $subtotal);
                 } else {
                     $inv = Inventario::with('estanteria')->findOrFail($item['inventario_id']);
 
@@ -477,6 +543,11 @@ class VentasController extends Controller
             $muestra = Muestra::find($detalle->muestra_id);
             if ($muestra) {
                 $muestra->update(['estado' => 'activo']);
+            }
+        } elseif ($detalle->caja_id) {
+            $caja = \App\Models\Caja::find($detalle->caja_id);
+            if ($caja) {
+                $caja->increment('cantidad', $detalle->cantidad);
             }
         } else {
             $inv = Inventario::find($detalle->inventario_id);

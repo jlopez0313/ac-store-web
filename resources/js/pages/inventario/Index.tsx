@@ -90,7 +90,26 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 			const details = response.data.data;
 
 			if (details.length === 0) {
-				showAlert('warning', 'Este producto no tiene existencias registradas en ninguna estantería.');
+				// If no stock, allow picking a default bodega/shelf to start with
+				if (bodegas.length > 0) {
+					const firstBodega = bodegas[0];
+					const firstShelf = firstBodega.estanterias?.[0];
+					
+					if (firstShelf) {
+						setSelectedShelf({
+							id: firstShelf.id,
+							nombre: firstShelf.nombre,
+							bodega_id: firstBodega.id,
+							bodega_nombre: firstBodega.nombre,
+						});
+						setDistributionDetails([]);
+						setAdjustmentOpen(true);
+					} else {
+						showAlert('warning', 'Este producto no tiene existencias y la bodega seleccionada no tiene estanterías.');
+					}
+				} else {
+					showAlert('warning', 'Este producto no tiene existencias registradas. Por favor, cree una bodega primero.');
+				}
 				return;
 			}
 

@@ -28,6 +28,8 @@ class VentaDetalle extends Model
         'cantidad',
         'precio_unitario',
         'subtotal',
+        'caja_id',
+        'es_caja',
         'muestra_id',
         'estado',
         'observacion',

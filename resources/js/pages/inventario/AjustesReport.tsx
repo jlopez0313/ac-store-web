@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
+import { SharedData } from '@/types';
 import axios from 'axios';
 import { ArrowRight, Search as SearchIcon, User } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -17,6 +19,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function AjustesReport({ filters: initialFilters }: any) {
+	const { auth } = usePage<SharedData>().props;
 	const [items, setItems] = useState<any[]>([]);
 	const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
 	const [loading, setLoading] = useState(true);
@@ -25,6 +28,8 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 		search: initialFilters?.search || '',
 		from: initialFilters?.from || '',
 		to: initialFilters?.to || '',
+		sort_field: initialFilters?.sort_field || 'created_at',
+		sort_order: initialFilters?.sort_order || 'desc',
 		per_page: initialFilters?.per_page || 25,
 		page: initialFilters?.page || 1,
 	});
@@ -45,7 +50,7 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 
 	useEffect(() => {
 		fetchData();
-	}, [filters.page, filters.per_page, filters.from, filters.to]);
+	}, [filters.page, filters.per_page, filters.from, filters.to, filters.sort_field, filters.sort_order]);
 
 	const handleSearch = (search: string) => {
 		setFilters(prev => ({ ...prev, search, page: 1 }));
@@ -60,6 +65,8 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 		{
 			name: 'Fecha',
 			selector: (row: any) => row.created_at,
+			sortable: true,
+			sortField: 'created_at',
 			width: '180px',
 			cell: (row: any) => (
 				<div className="flex flex-col">
@@ -71,6 +78,8 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 		{
 			name: 'Usuario',
 			selector: (row: any) => row.creador?.name,
+			sortable: true,
+			sortField: 'creado_por',
 			width: '150px',
 			cell: (row: any) => (
 				<div className="flex items-center gap-2">
@@ -82,6 +91,8 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 		{
 			name: 'Referencia',
 			grow: 1.5,
+			sortable: true,
+			sortField: 'referencia',
 			cell: (row: any) => (
 				<div className="flex flex-col">
 					<span className="font-mono font-bold text-indigo-600">{row.referencia?.codigo}</span>
@@ -102,38 +113,61 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 		{
 			name: 'Cambios Precios',
 			width: '200px',
-			cell: (row: any) => (
-				<div className="flex flex-col gap-1 py-2">
-					<div className="flex items-center gap-2 text-[10px] bg-slate-100 px-2 py-0.5 rounded">
-						<span className="font-medium w-12 lowercase text-muted-foreground">Costo:</span>
-						<span>${Number(row.precio_compra_anterior).toLocaleString()}</span>
-						<ArrowRight className="h-2.5 w-2.5" />
-						<span className="font-bold">${Number(row.precio_compra_nuevo).toLocaleString()}</span>
+			cell: (row: any) => {
+				const costChanged = row.precio_compra_anterior !== row.precio_compra_nuevo;
+				const saleChanged = row.precio_venta_anterior !== row.precio_venta_nuevo;
+
+				if (!costChanged && !saleChanged) return <span className="text-[10px] text-muted-foreground italic"> - </span>;
+
+				return (
+					<div className="flex flex-col gap-1 py-2">
+						{costChanged && (
+							<div className="flex items-center gap-2 text-[10px] bg-slate-100 px-2 py-0.5 rounded">
+								<span className="font-medium w-12 lowercase text-muted-foreground">Costo:</span>
+								<span>${Number(row.precio_compra_anterior).toLocaleString()}</span>
+								<ArrowRight className="h-2.5 w-2.5" />
+								<span className="font-bold">${Number(row.precio_compra_nuevo).toLocaleString()}</span>
+							</div>
+						)}
+						{saleChanged && (
+							<div className="flex items-center gap-2 text-[10px] bg-indigo-50 px-2 py-0.5 rounded text-indigo-700">
+								<span className="font-medium w-12 lowercase text-indigo-400">Venta:</span>
+								<span>${Number(row.precio_venta_anterior).toLocaleString()}</span>
+								<ArrowRight className="h-2.5 w-2.5" />
+								<span className="font-bold">${Number(row.precio_venta_nuevo).toLocaleString()}</span>
+							</div>
+						)}
 					</div>
-					<div className="flex items-center gap-2 text-[10px] bg-indigo-50 px-2 py-0.5 rounded text-indigo-700">
-						<span className="font-medium w-12 lowercase text-indigo-400">Venta:</span>
-						<span>${Number(row.precio_venta_anterior).toLocaleString()}</span>
-						<ArrowRight className="h-2.5 w-2.5" />
-						<span className="font-bold">${Number(row.precio_venta_nuevo).toLocaleString()}</span>
-					</div>
-				</div>
-			),
+				);
+			},
 		},
 		{
 			name: 'Ajuste de Stock',
 			grow: 1.2,
-			cell: (row: any) => (
-				<div className="flex flex-wrap gap-1 py-2">
-					{row.detalle_stock?.map((d: any) => (
-						<Badge key={d.talla} variant="outline" className="text-[10px] flex items-center gap-1 bg-background border-border">
-							<span className="font-mono">{d.talla}:</span>
-							<span className="text-muted-foreground line-through">{d.anterior}</span>
-							<ArrowRight className="h-2 w-2" />
-							<span className="font-bold text-primary">{d.nuevo}</span>
-						</Badge>
-					))}
-				</div>
-			),
+			cell: (row: any) => {
+				const variations = row.detalle_stock?.filter((d: any) => d.anterior !== d.nuevo) || [];
+				if (variations.length === 0) return <span className="text-[10px] text-muted-foreground italic"> - </span>;
+
+				return (
+					<div className="flex flex-wrap gap-1 py-2">
+						{variations.map((d: any) => {
+							const isIncrease = d.nuevo > d.anterior;
+							return (
+								<Badge
+									key={d.talla}
+									variant="outline"
+									className={`text-[10px] flex items-center gap-1 bg-background ${isIncrease ? 'border-green-200 text-green-700' : 'border-red-200 text-red-700'}`}
+								>
+									<span className="font-mono">{d.talla}:</span>
+									<span className="opacity-50 line-through">{d.anterior}</span>
+									<ArrowRight className="h-2 w-2 opacity-50" />
+									<span className="font-bold">{d.nuevo}</span>
+								</Badge>
+							);
+						})}
+					</div>
+				);
+			},
 		},
 		{
 			name: 'Observación',
@@ -211,7 +245,14 @@ export default function AjustesReport({ filters: initialFilters }: any) {
 						paginationServer={true}
 						fetchPage={(page) => setFilters(prev => ({ ...prev, page }))}
 						setPageSize={(size) => setFilters(prev => ({ ...prev, per_page: size, page: 1 }))}
-						onSort={() => { }}
+						onSort={(column: any, sortOrder) => {
+							setFilters(prev => ({
+								...prev,
+								sort_field: column.sortField,
+								sort_order: sortOrder,
+								page: 1
+							}));
+						}}
 					/>
 				</div>
 			</div>

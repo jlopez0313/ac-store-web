@@ -29,6 +29,8 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
         search: initialFilters?.search || '',
         per_page: initialFilters?.per_page || 25,
         page: initialFilters?.page || 1,
+        sort_field: 'id',
+        sort_order: 'desc',
     });
 
     const fetchData = useCallback(
@@ -62,7 +64,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
 
     useEffect(() => {
         fetchData();
-    }, [filters.page, filters.per_page, filters.search]);
+    }, [filters.page, filters.per_page, filters.search, filters.sort_field, filters.sort_order]);
 
     const handleSearch = (search: string) => {
         setFilters((prev) => ({ ...prev, search, page: 1 }));
@@ -100,6 +102,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
         {
             name: 'Producto',
             grow: 2,
+            sortField: 'referencia_descripcion',
             cell: (row: any) => (
                 <span className="text-sm font-medium text-slate-900 dark:text-slate-100 py-2">
                     {row.referencia_descripcion}
@@ -111,7 +114,7 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
         {
             name: 'Marca',
             selector: (row: any) => row.referencia_marca,
-            sortable: true,
+            sortable: false,
             width: '120px',
         },
         {
@@ -216,7 +219,14 @@ export default function Index({ filters: initialFilters, bodegas }: any) {
                         paginationServer={true}
                         fetchPage={(page) => setFilters((prev) => ({ ...prev, page }))}
                         setPageSize={(size) => setFilters((prev) => ({ ...prev, per_page: size, page: 1 }))}
-                        onSort={() => { }}
+                        onSort={(column: any, sortDirection: string) => {
+                            setFilters((prev) => ({
+                                ...prev,
+                                sort_field: column.sortField || column.selector?.toString().split('.').pop() || 'id',
+                                sort_order: sortDirection,
+                                page: 1
+                            }));
+                        }}
                     />
                 </div>
             </div>

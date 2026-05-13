@@ -16,8 +16,21 @@ class AjustesReportController extends Controller
         $user = auth()->user();
         $isSuper = $user->role === 'superadmin';
 
-        $query = AjusteInventario::with(['referencia', 'estanteria.bodega', 'creador'])
-            ->orderBy('created_at', 'desc');
+        $sortField = $request->input('sort_field', 'created_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+
+        $query = AjusteInventario::with(['referencia', 'estanteria.bodega', 'creador']);
+
+        // Order by
+        if ($sortField === 'referencia') {
+            $query->join('referencias', 'ajuste_inventarios.referencia_id', '=', 'referencias.id')
+                ->select('ajuste_inventarios.*')
+                ->orderBy('referencias.codigo', $sortOrder);
+        } elseif ($sortField === 'created_at') {
+            $query->orderBy('ajuste_inventarios.created_at', $sortOrder);
+        } else {
+            $query->orderBy($sortField, $sortOrder);
+        }
 
         // Tenancy filtering
         if (!$isSuper) {

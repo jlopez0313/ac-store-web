@@ -285,15 +285,14 @@ class VentasController extends Controller
                     $venta->increment('total', $unitPrice);
                 } elseif (isset($item['es_caja']) && $item['es_caja']) {
                     $caja = \App\Models\Caja::findOrFail($item['id']);
-                    $cantidadCajas = (int) $item['cantidad']; // Here 'cantidad' refers to number of boxes
+                    $totalUnidades = (int) $item['cantidad']; // Already pairs from frontend
 
-                    if ($caja->cantidad < $cantidadCajas) {
-                        throw new \Exception("Stock de cajas insuficiente.");
+                    if ($caja->cantidad < $totalUnidades) {
+                        throw new \Exception("Stock de unidades en cajas insuficiente.");
                     }
 
-                    $caja->decrement('cantidad', $cantidadCajas);
+                    $caja->decrement('cantidad', $totalUnidades);
 
-                    $totalUnidades = $cantidadCajas * $caja->pares_por_caja;
                     $unitPrice = (float) $item['precio_unitario'];
                     $subtotal = $totalUnidades * $unitPrice;
 
@@ -306,7 +305,7 @@ class VentasController extends Controller
                         'cantidad' => $totalUnidades,
                         'precio_unitario' => $unitPrice,
                         'subtotal' => $subtotal,
-                        'observacion' => "Venta de {$cantidadCajas} caja(s) de {$caja->pares_por_caja} pares"
+                        'observacion' => "Venta desde Caja #{$caja->id}"
                     ]);
                     $venta->increment('total', $subtotal);
                 } else {
@@ -464,12 +463,10 @@ class VentasController extends Controller
                 $muestra->update(['estado' => 'activo']);
             }
         } elseif ($detalle->es_caja && $detalle->caja_id) {
-            // Restore box stock
+            // Restore box stock (stored as pairs)
             $caja = \App\Models\Caja::find($detalle->caja_id);
             if ($caja) {
-                // Re-calculate number of boxes to return
-                $numCajas = $detalle->cantidad / ($caja->pares_por_caja ?: 1);
-                $caja->increment('cantidad', $numCajas);
+                $caja->increment('cantidad', $detalle->cantidad);
             }
         } else {
             // Restore inventory

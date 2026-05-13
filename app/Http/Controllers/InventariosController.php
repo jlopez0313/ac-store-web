@@ -119,7 +119,14 @@ class InventariosController extends Controller
                 }
 
                 $stockAnterior = $inv->stock ?? 0;
-                $inv->stock = $det['stock'];
+                $nuevoStock = $det['stock'];
+
+                // Restriction for 'bodega' role: Cannot decrease stock manually
+                if ($user->hasRole('bodega') && $nuevoStock < $stockAnterior) {
+                    throw new \Exception("Como usuario de Bodega, no tiene permitido disminuir el stock manualmente (Talla: {$det['talla']}).");
+                }
+
+                $inv->stock = $nuevoStock;
                 $inv->precio_compra = $request->precio_compra;
                 $inv->precio_venta = $request->precio_venta;
                 $inv->save();
@@ -127,7 +134,7 @@ class InventariosController extends Controller
                 $detalleStockLog[] = [
                     'talla' => $det['talla'],
                     'anterior' => $stockAnterior,
-                    'nuevo' => $det['stock'],
+                    'nuevo' => $nuevoStock,
                 ];
             }
 
