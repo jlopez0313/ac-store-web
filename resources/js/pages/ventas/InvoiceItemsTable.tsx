@@ -77,7 +77,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-12 px-4 py-3">
+                                <TableHead className="w-16 px-6 py-3">
                                     {isAdmin && factura.estado === 'abierta' && (
                                         <Checkbox
                                             checked={filteredDetalles.length > 0 && selectedDetailIds.length === filteredDetalles.length}
@@ -106,7 +106,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({
                                         !detalle.impreso && 'bg-yellow-50/60 dark:bg-yellow-950/20',
                                     )}
                                 >
-                                    <TableCell className="px-4 py-4">
+                                    <TableCell className="px-6 py-4">
                                         {isAdmin && factura.estado === 'abierta' && (
                                             <Checkbox
                                                 checked={selectedDetailIds.includes(detalle.id)}

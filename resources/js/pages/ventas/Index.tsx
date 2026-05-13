@@ -102,7 +102,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
     // Handle selecting an invoice and fetching details if missing
     const handleSelectInvoice = async (factura: any) => {
         setSelectedFactura(factura);
-        
+
         // If it's just the summary from the list, fetch the full object with details
         if (!factura.detalles) {
             setLoading(true);
@@ -110,7 +110,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                 const res = await axios.get(route('api.ventas.show', { venta: factura.id }));
                 const fullFactura = res.data.data;
                 setSelectedFactura(fullFactura);
-                
+
                 // Also update the item in the list so we don't fetch it again
                 setFacturas(prev => prev.map(f => f.id === factura.id ? fullFactura : f));
             } catch (err) {
@@ -182,7 +182,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
             );
             setSelectedFactura({ ...selectedFactura, detalles: response.data.data });
             showAlert('success', 'Devolucion registrada, stock restaurado.');
-            
+
             // Trigger print request
             const cuentaId = selectedFactura.cuenta_id || auth.user.cuenta_id;
             if (cuentaId) {
@@ -249,7 +249,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                     data: { ids: selectedDetailIds, observacion: result.value },
                 });
                 setSelectedFactura({ ...selectedFactura, detalles: response.data.data });
-                
+
                 // Trigger print request for bulk return
                 const cuentaId = selectedFactura.cuenta_id || auth.user.cuenta_id;
                 if (cuentaId) {
@@ -296,7 +296,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
         if (!selectedFactura?.detalles) return [];
         if (!searchTerm) return selectedFactura.detalles;
         const term = searchTerm.toLowerCase();
-        return selectedFactura.detalles.filter((d: any) => 
+        return selectedFactura.detalles.filter((d: any) =>
             d.producto?.codigo?.toLowerCase().includes(term) ||
             d.producto?.descripcion?.toLowerCase().includes(term)
         );
@@ -333,7 +333,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
                     <InvoiceList
                         invoices={facturas}
                         selectedFactura={selectedFactura}
@@ -426,7 +426,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                             }
                                             return;
                                         }
- 
+
                                         if (type === 'factura') {
                                             const { printSoporteVenta } = await import('@/utils/printSoporteVenta');
                                             const soporteData = {
