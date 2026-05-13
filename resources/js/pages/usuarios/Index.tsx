@@ -132,7 +132,7 @@ export default function Index({ filters: initialFilters, roles, cuentas, estados
         {
             name: 'Accesos',
             cell: (row: any) => (
-                <Badge variant="outline" className="font-bold border-indigo-200 bg-indigo-50 text-indigo-700">
+                <Badge variant="outline" className="font-bold border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
                     {row.accesos_count || 0} Bodegas
                 </Badge>
             ),

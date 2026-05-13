@@ -54,6 +54,18 @@ export default function Index({ filters: initialFilters, tipos_control, tipos_mu
         fetchData();
     }, [filters.page, filters.per_page, filters.sort_field, filters.sort_order]);
 
+    const [searchQuery, setSearchQuery] = useState(filters.search);
+
+    // Debounced automatic search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery !== filters.search) {
+                handleSearch(searchQuery);
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
     const handleSearch = (search: string) => {
         setFilters((prev) => ({ ...prev, search, page: 1 }));
         fetchData({ search, page: 1 });

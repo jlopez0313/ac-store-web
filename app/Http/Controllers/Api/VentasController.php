@@ -23,7 +23,7 @@ class VentasController extends Controller
         $sortField = $request->input('sort_field', 'id');
         $sortOrder = $request->input('sort_order', 'desc');
 
-        $query = Venta::with(['local', 'detalles.producto', 'detalles.estanteria.bodega', 'cuenta']);
+        $query = Venta::with(['local', 'cuenta']);
 
         if (!$isSuper) {
             if ($user->role === 'local') {

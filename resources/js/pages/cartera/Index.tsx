@@ -75,7 +75,7 @@ export default function Index({ filters: initialFilters }: any) {
             cell: (row: any) => (
                 <div className="flex items-center gap-3">
                     <div className={`h-2 w-2 rounded-full ${row.saldo > 0 ? 'bg-amber-400' : 'bg-green-400'}`} />
-                    <span className="text-sm font-medium tracking-tight text-slate-900 uppercase">{row.nombre}</span>
+                    <span className="text-sm font-medium tracking-tight text-slate-900 dark:text-slate-100 uppercase">{row.nombre}</span>
                 </div>
             ),
             sortable: true,

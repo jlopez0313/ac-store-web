@@ -91,6 +91,29 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
         [filters, selectedFactura],
     );
 
+    // Handle selecting an invoice and fetching details if missing
+    const handleSelectInvoice = async (factura: any) => {
+        setSelectedFactura(factura);
+        
+        // If it's just the summary from the list, fetch the full object with details
+        if (!factura.detalles) {
+            setLoading(true);
+            try {
+                const res = await axios.get(route('api.ventas.show', { venta: factura.id }));
+                const fullFactura = res.data.data;
+                setSelectedFactura(fullFactura);
+                
+                // Also update the item in the list so we don't fetch it again
+                setFacturas(prev => prev.map(f => f.id === factura.id ? fullFactura : f));
+            } catch (err) {
+                console.error("Error fetching invoice details:", err);
+                showAlert('error', 'No se pudieron cargar los detalles de la factura');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
     // Fetch dynamic locales based on account
     useEffect(() => {
         const fetchLocales = async () => {
@@ -306,7 +329,7 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                     <InvoiceList
                         invoices={facturas}
                         selectedFactura={selectedFactura}
-                        onSelectInvoice={setSelectedFactura}
+                        onSelectInvoice={handleSelectInvoice}
                         filters={filters}
                         onSearch={handleSearch}
                         loading={loading}

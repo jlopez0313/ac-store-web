@@ -24,7 +24,7 @@ export const FloatingMenu = ({ actions, item, onClose }: Props) => {
             {
                 actions.map((action, idx) => {
                     return <button key={idx}
-                        className="flex items-center gap-3 w-full px-4 py-2 hover:bg-gray-100 text-sm cursor-pointer"
+                        className="flex items-center gap-3 w-full px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm text-slate-700 dark:text-slate-200 cursor-pointer transition-colors group"
                         onClick={() =>{
                             action.action(item.id ?? item.hide_id, item);
                             onClose();
@@ -32,9 +32,9 @@ export const FloatingMenu = ({ actions, item, onClose }: Props) => {
                     >
                         <Icon
                             iconNode={action.icon}
-                            className=" w-5 h-5"
+                            className="w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300 transition-colors"
                         />
-                        <span className="text-left"> {action.title} </span>
+                        <span className="text-left font-medium"> {action.title} </span>
                     </button>
                 })
             }

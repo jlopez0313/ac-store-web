@@ -30,7 +30,7 @@ export default function PortalMenu({ anchorRef, onClose, children }: any) {
     return createPortal(
         <div
             ref={menuRef}
-            className="absolute bg-white shadow-lg rounded-md p-2 z-[9999] border right-0"
+            className="absolute bg-white shadow-lg rounded-md p-2 z-[9999] border right-0 dark:bg-slate-800 dark:border-slate-700"
             style={{
                 position: "fixed",
                 top: coords.top,

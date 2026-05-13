@@ -27,14 +27,12 @@ export const MoreActions = ({ actions, row }: Props) => {
 			</button>
 
 			{open && (
-				<div className="absolute right-0 z-50 mt-1 w-40 rounded-md border bg-white shadow-lg">
-					<PortalMenu
-						anchorRef={anchorRef}
-						onClose={() => setOpen(false)}
-					>
-						<FloatingMenu onClose={() => setOpen(false)} actions={actions} item={row} />
-					</PortalMenu>
-				</div>
+				<PortalMenu
+					anchorRef={anchorRef}
+					onClose={() => setOpen(false)}
+				>
+					<FloatingMenu onClose={() => setOpen(false)} actions={actions} item={row} />
+				</PortalMenu>
 			)}
 		</div>
 	);

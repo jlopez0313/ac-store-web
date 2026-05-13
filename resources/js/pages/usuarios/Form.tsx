@@ -167,10 +167,9 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
     }, [id]);
 
     return (
-        <div className="pt-6 pb-12">
-            <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
-                <form onSubmit={submit}>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="p-6">
+            <form onSubmit={submit}>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 text-foreground">
                         <InputField
                             name="name"
                             title="Nombre Completo"
@@ -355,7 +354,6 @@ export const Form = ({ id, roles, cuentas, estados, onClose, processing, onStore
                         />
                     </div>
                 </form>
-            </div>
         </div>
     );
 };

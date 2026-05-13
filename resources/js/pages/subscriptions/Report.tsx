@@ -58,7 +58,7 @@ export default function Report() {
             selector: (row: any) => row.precio_suscripcion,
             sortable: true,
             sortField: 'precio_suscripcion',
-            cell: (row: any) => <span className="font-semibold text-slate-700">${Number(row.precio_suscripcion || 0).toLocaleString()}</span>,
+            cell: (row: any) => <span className="font-semibold text-slate-700 dark:text-slate-300">${Number(row.precio_suscripcion || 0).toLocaleString()}</span>,
         },
         {
             name: 'Vencimiento',
@@ -95,7 +95,7 @@ export default function Report() {
             selector: (row: any) => row.precio_suscripcion,
             sortable: true,
             sortField: 'precio_suscripcion',
-            cell: (row: any) => <span className="font-semibold text-slate-700">${Number(row.precio_suscripcion || 0).toLocaleString()}</span>,
+            cell: (row: any) => <span className="font-semibold text-slate-700 dark:text-slate-300">${Number(row.precio_suscripcion || 0).toLocaleString()}</span>,
         },
         {
             name: 'Vencimiento',
@@ -182,10 +182,10 @@ export default function Report() {
 
 function SubscriptionsSection({ title, description, icon: Icon, typeActive, typeInactive, columns }: any) {
     return (
-        <Card className="border-slate-200 shadow-sm overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between py-4">
+        <Card className="border-slate-200 shadow-sm overflow-hidden dark:border-slate-700">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between py-4 dark:bg-slate-800/50 dark:border-slate-700">
                 <div>
-                    <CardTitle className="text-base font-bold text-slate-900">{title}</CardTitle>
+                    <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">{title}</CardTitle>
                     <p className="text-xs text-muted-foreground">{description}</p>
                 </div>
                 <Icon className="h-5 w-5 text-slate-400" />
@@ -249,7 +249,7 @@ function SubscriptionTable({ type, columns }: { type: string, columns: any[] }) 
     }, [fetchData]);
 
     return (
-        <div className="border-t border-slate-100">
+        <div className="border-t border-slate-100 dark:border-slate-700">
             <DataGrid
                 data={items}
                 columns={columns}
