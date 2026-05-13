@@ -19,5 +19,9 @@ return [
             'name' => 'Nequi',
             'details' => env('PAYMENT_NEQUI', '322 5086903'),
         ],
+        [
+            'name' => 'Efectivo',
+            'details' => 'Pago presencial en oficina o punto físico.',
+        ],
     ],
 ];

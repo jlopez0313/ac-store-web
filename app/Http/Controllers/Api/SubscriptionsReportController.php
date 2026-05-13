@@ -14,12 +14,19 @@ class SubscriptionsReportController extends Controller
     {
         $now = Carbon::now();
 
-        $totalCuentas = Cuenta::where('estado', 1)->sum('precio_suscripcion');
-        $totalLocales = User::role('local')->where('estado', 1)->sum('precio_suscripcion');
+        $activeCuentas = Cuenta::where('estado', 1);
+        $totalCuentas = $activeCuentas->sum('precio_suscripcion');
+        $countCuentas = $activeCuentas->count();
+
+        $activeLocales = User::role('local')->where('estado', 1);
+        $totalLocales = $activeLocales->sum('precio_suscripcion');
+        $countLocales = $activeLocales->count();
 
         return response()->json([
             'cuentas' => (float)$totalCuentas,
+            'cuentas_count' => $countCuentas,
             'locales' => (float)$totalLocales,
+            'locales_count' => $countLocales,
             'general' => (float)($totalCuentas + $totalLocales),
         ]);
     }

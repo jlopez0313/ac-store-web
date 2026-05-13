@@ -270,6 +270,39 @@ export default function Ventas({ cuentas, locales }: any) {
                 <PageHeader
                     title="Reporte de Ventas"
                     description="Analiza las ventas en un rango de fechas con filtros detallados."
+                    actions={
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white px-5 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-indigo-600 text-white shadow-md">
+                                    <ShoppingCart className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400 mb-0.5">Facturas</p>
+                                    <p className="text-xl font-bold text-slate-900 dark:text-white leading-tight">{Number(meta.total_facturas || 0).toLocaleString()}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white px-5 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-600 text-white shadow-md">
+                                    <Package className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400 mb-0.5">Productos</p>
+                                    <p className="text-xl font-bold text-slate-900 dark:text-white leading-tight">{Number(meta.total_productos).toLocaleString()}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white px-5 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-violet-600 text-white shadow-md">
+                                    <BarChart3 className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400 mb-0.5">Total</p>
+                                    <p className="text-xl font-bold text-slate-900 dark:text-white leading-tight">${Number(meta.total_ventas).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 />
 
                 {/* Filters */}
@@ -304,25 +337,25 @@ export default function Ventas({ cuentas, locales }: any) {
                         </div>
 
                         <div className="flex flex-wrap items-end gap-4">
-                            <div className="space-y-1.5">
+                            <div className="flex flex-col gap-2">
                                 <Label htmlFor="desde" className="text-[11px] font-bold uppercase text-slate-400">Desde</Label>
                                 <Input
                                     id="desde"
                                     type="date"
                                     value={filters.desde}
                                     onChange={(e) => setFilters(p => ({ ...p, desde: e.target.value }))}
-                                    className="h-10 w-40 bg-white dark:bg-slate-800"
+                                    className="h-10 w-40"
                                 />
                             </div>
 
-                            <div className="space-y-1.5">
+                            <div className="flex flex-col gap-2">
                                 <Label htmlFor="hasta" className="text-[11px] font-bold uppercase text-slate-400">Hasta</Label>
                                 <Input
                                     id="hasta"
                                     type="date"
                                     value={filters.hasta}
                                     onChange={(e) => setFilters(p => ({ ...p, hasta: e.target.value }))}
-                                    className="h-10 w-40 bg-white dark:bg-slate-800"
+                                    className="h-10 w-40"
                                 />
                             </div>
 
@@ -331,39 +364,6 @@ export default function Ventas({ cuentas, locales }: any) {
                                     <X className="h-4 w-4" />
                                 </Button>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* KPI Cards */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-indigo-600 text-white shadow-lg">
-                            <ShoppingCart className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-medium uppercase text-slate-400">Facturas</p>
-                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{Number(meta.total_facturas || 0).toLocaleString()}</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white shadow-lg">
-                            <Package className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-medium uppercase text-slate-400">Productos Vendidos</p>
-                            <p className="text-2xl font-bold text-slate-900 dark:text-white">{Number(meta.total_productos).toLocaleString()}</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-violet-600 text-white shadow-lg">
-                            <BarChart3 className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-medium uppercase text-slate-400">Total Vendido</p>
-                            <p className="text-2xl font-bold text-slate-900 dark:text-white">${Number(meta.total_ventas).toLocaleString()}</p>
                         </div>
                     </div>
                 </div>

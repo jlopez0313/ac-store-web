@@ -332,6 +332,7 @@ class UsuariosController extends Controller
 
         $request->validate([
             'amount' => 'required|numeric|min:0',
+            'method' => 'nullable|string|max:255',
             'payment_date' => 'required|date',
             'next_cutoff_date' => 'nullable|date',
             'observations' => 'nullable|string',
@@ -340,6 +341,7 @@ class UsuariosController extends Controller
         \App\Models\UserPayment::create([
             'user_id' => $usuario->id,
             'amount' => $request->amount,
+            'method' => $request->method,
             'payment_date' => $request->payment_date,
             'next_cutoff_date' => $request->next_cutoff_date,
             'observations' => $request->observations,

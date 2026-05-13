@@ -37,13 +37,25 @@ export function SystemNotificationsBell() {
 
         const setupListener = async () => {
             const { getNotificationsPingRef, onValue } = await import('@/lib/firebase');
-            const pingRef = getNotificationsPingRef();
+            const { auth } = (window as any).Inertia?.page?.props || { auth: { user: null } };
+            const user = auth.user;
 
-            unsubscribe = onValue(pingRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    fetchNotifications();
-                }
-            });
+            if (!user) return;
+
+            const unsubscribes: any[] = [];
+
+            // Listen to Global
+            unsubscribes.push(onValue(getNotificationsPingRef({ type: 'all' }), () => fetchNotifications()));
+
+            // Listen to Account
+            if (user.cuenta_id) {
+                unsubscribes.push(onValue(getNotificationsPingRef({ type: 'account', id: user.cuenta_id }), () => fetchNotifications()));
+            }
+
+            // Listen to User
+            unsubscribes.push(onValue(getNotificationsPingRef({ type: 'user', id: user.id }), () => fetchNotifications()));
+
+            unsubscribe = () => unsubscribes.forEach(u => u());
         };
 
         setupListener();

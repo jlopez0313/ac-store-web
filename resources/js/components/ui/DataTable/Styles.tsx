@@ -13,6 +13,8 @@ export const customStyles = {
       borderTopColor: 'var(--border)',
       borderBottomWidth: '1px',
       borderBottomColor: 'var(--border)',
+      borderLeftWidth: '1px',
+      borderLeftColor: 'var(--border)',
       minHeight: '48px',
     },
   },
@@ -37,6 +39,8 @@ export const customStyles = {
       borderBottomStyle: 'solid' as any,
       borderBottomWidth: '1px',
       borderBottomColor: 'var(--border)',
+      borderLeftWidth: '1px',
+      borderLeftColor: 'var(--border)',
       '&:hover': {
         backgroundColor: 'var(--muted)',
         transition: 'all 0.2s ease',

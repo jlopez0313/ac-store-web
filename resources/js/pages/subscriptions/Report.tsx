@@ -122,40 +122,40 @@ export default function Report() {
                 <PageHeader
                     title="Reporte de Suscripciones"
                     description="Resumen de recaudación y estado de suscripciones manejado en tiempo real."
-                />
+                    actions={
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white px-5 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-indigo-600 text-white shadow-md">
+                                    <CreditCard className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400 mb-0.5">Bodegas ({stats.cuentas_count || 0})</p>
+                                    <p className="text-xl font-bold text-slate-900 dark:text-white leading-tight">${Number(stats.cuentas || 0).toLocaleString()}</p>
+                                </div>
+                            </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Bodegas Suscritas</CardTitle>
-                            <CreditCard className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">${Number(stats.cuentas).toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground">Total proyectado cuentas activas</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Locales Suscritos</CardTitle>
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">${Number(stats.locales).toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground">Total usuarios locales con suscripción activa</p>
-                        </CardContent>
-                    </Card>
-                    <Card className="bg-primary/5 border-primary/20">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Ingresos Proyectados</CardTitle>
-                            <DollarSign className="h-4 w-4 text-primary" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-primary">${Number(stats.general).toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground">Suma total proyectada</p>
-                        </CardContent>
-                    </Card>
-                </div>
+                            <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white px-5 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-600 text-white shadow-md">
+                                    <Users className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400 mb-0.5">Locales ({stats.locales_count || 0})</p>
+                                    <p className="text-xl font-bold text-slate-900 dark:text-white leading-tight">${Number(stats.locales || 0).toLocaleString()}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white px-5 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-violet-600 text-white shadow-md">
+                                    <DollarSign className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase text-slate-400 mb-0.5">Total Proyectado</p>
+                                    <p className="text-xl font-bold text-slate-900 dark:text-white leading-tight">${Number(stats.general || 0).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                />
 
                 <div className="grid gap-6 md:grid-cols-2">
                     <SubscriptionsSection
@@ -202,10 +202,10 @@ function SubscriptionsSection({ title, description, icon: Icon, typeActive, type
                             </TabsTrigger>
                         </TabsList>
                     </div>
-                    <TabsContent value="active" className="mt-4">
+                    <TabsContent value="active" className="mt-4 px-4 pb-4">
                         <SubscriptionTable type={typeActive} columns={columns} />
                     </TabsContent>
-                    <TabsContent value="inactive" className="mt-4">
+                    <TabsContent value="inactive" className="mt-4 px-4 pb-4">
                         <SubscriptionTable type={typeInactive} columns={columns} />
                     </TabsContent>
                 </Tabs>
@@ -249,7 +249,7 @@ function SubscriptionTable({ type, columns }: { type: string, columns: any[] }) 
     }, [fetchData]);
 
     return (
-        <div className="border-t border-slate-100 dark:border-slate-700">
+        <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-900">
             <DataGrid
                 data={items}
                 columns={columns}

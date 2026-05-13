@@ -98,9 +98,17 @@ export default function NotificationsIndex() {
         try {
             await axios.post('/api/notifications/broadcast', formData);
 
-            // Ping Firebase so all clients refresh their bell
+            // Ping Firebase so only targeted clients refresh their bell
             const { pingNotifications } = await import('@/lib/firebase');
-            pingNotifications().catch(err => console.error('Error pinging Firebase:', err));
+            pingNotifications({
+                type: formData.target_type as any,
+                id: formData.target_id
+            }).catch(err => console.error('Error pinging Firebase:', err));
+
+            // Also ping global if it's 'all'
+            if (formData.target_type === 'all') {
+                pingNotifications({ type: 'all' }).catch(() => {});
+            }
 
             showAlert('success', 'Anuncios enviados correctamente.');
             setFormData({

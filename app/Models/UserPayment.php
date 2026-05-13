@@ -9,6 +9,7 @@ class UserPayment extends Model
     protected $fillable = [
         'user_id',
         'amount',
+        'method',
         'payment_date',
         'next_cutoff_date',
         'observations',

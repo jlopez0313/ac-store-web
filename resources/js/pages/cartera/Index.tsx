@@ -113,6 +113,21 @@ export default function Index({ filters: initialFilters }: any) {
                 <PageHeader
                     title="Cartera de Clientes"
                     description={`${meta.stats.total_clientes} clientes · ${meta.stats.con_saldo_pendiente} con saldo pendiente`}
+                    actions={
+                        <div className="flex items-center gap-4 rounded-md border border-slate-200 bg-white px-5 py-2.5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-900 text-white shadow-md dark:bg-slate-800">
+                                <DollarSign className="h-5 w-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="mb-0.5 text-[10px] font-bold uppercase text-slate-400">
+                                    Saldo Total
+                                </span>
+                                <span className="text-xl font-bold text-slate-900 dark:text-white leading-tight">
+                                    ${meta.stats.saldo_total.toLocaleString()}
+                                </span>
+                            </div>
+                        </div>
+                    }
                 />
 
                 <div className="flex flex-col justify-between gap-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 md:flex-row md:items-center">
@@ -127,20 +142,6 @@ export default function Index({ filters: initialFilters }: any) {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchQuery)}
                             />
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-4 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white dark:bg-slate-700">
-                            <DollarSign className="h-4 w-4" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="mb-1 text-[10px] leading-none font-medium text-slate-400 uppercase dark:text-slate-500">
-                                Saldo Total
-                            </span>
-                            <span className="text-lg leading-none font-medium tracking-tighter text-slate-900 dark:text-white">
-                                ${meta.stats.saldo_total.toLocaleString()}
-                            </span>
                         </div>
                     </div>
                 </div>

@@ -545,7 +545,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                                                         return (
                                                             <div
                                                                 key={item.key}
-                                                                className="hover:bg-muted/20 flex items-center justify-between p-4 transition-colors"
+                                                                className="hover:bg-muted/20 flex items-center justify-between px-4 py-2 transition-colors"
                                                             >
                                                                 <div className="flex items-center gap-6">
                                                                     <div className="border-border bg-background flex h-8 w-8 items-center justify-center rounded-lg border">

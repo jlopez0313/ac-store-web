@@ -81,7 +81,14 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                     if (found) setSelectedFactura(found);
                 } else if (selectedFactura) {
                     const updated = data.find((f: any) => f.id == selectedFactura.id);
-                    if (updated) setSelectedFactura(updated);
+                    if (updated) {
+                        setSelectedFactura((prev: any) => ({
+                            ...updated,
+                            detalles: updated.detalles || prev?.detalles,
+                            devoluciones_detalle: updated.devoluciones_detalle || prev?.devoluciones_detalle,
+                            has_devoluciones: updated.has_devoluciones !== undefined ? updated.has_devoluciones : prev?.has_devoluciones
+                        }));
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching sales:', error);

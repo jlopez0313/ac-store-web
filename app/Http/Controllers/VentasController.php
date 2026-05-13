@@ -118,11 +118,11 @@ class VentasController extends Controller
             // Count active samples
             $muestrasQuery = \App\Models\Muestra::where('referencia_id', $r->id)
                 ->where('estado', 'activo');
-            
+
             if (!$user->hasAnyRole(['admin', 'bodega', 'superadmin'])) {
                 $muestrasQuery->where('local_id', $user->id);
             }
-            
+
             $muestrasCount = $muestrasQuery->count();
             $muestrasTallas = $muestrasQuery->pluck('variante')->unique();
 
@@ -167,7 +167,7 @@ class VentasController extends Controller
         // Only 'local' users are restricted to their allowed bodegas
         if ($user->role === 'local') {
             $allowedBodegas = \App\Models\BodegaAcceso::where('user_id', $user->id)->pluck('bodega_id');
-            $stockQuery->whereHas('estanteria', function($q) use ($allowedBodegas) {
+            $stockQuery->whereHas('estanteria', function ($q) use ($allowedBodegas) {
                 $q->whereIn('bodega_id', $allowedBodegas);
             });
         }
@@ -236,7 +236,7 @@ class VentasController extends Controller
                 'muestra_id' => $m->id,
                 'type' => 'muestra',
                 'bodega_id' => null,
-                'bodega_nombre' => "En Local: " . ($m->local->name ?? 'N/A'),
+                'bodega_nombre' => ($m->local->name ?? 'N/A'),
                 'estanteria_id' => null,
                 'estanteria_nombre' => 'Muestra Física',
                 'talla' => $m->inventario->talla ?? $m->variante,
@@ -269,7 +269,7 @@ class VentasController extends Controller
                         throw new \Exception("La muestra ya no está activa.");
                     }
                     $muestra->update(['estado' => 'vendido']);
-                    
+
                     $unitPrice = $item['precio_unitario'];
                     $venta->detalles()->create([
                         'inventario_id' => $muestra->inventario_id,
@@ -389,7 +389,8 @@ class VentasController extends Controller
             \DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 422);
         }
-    }    public function bulkDeleteDetails(Request $request, \App\Models\Venta $venta)
+    }
+    public function bulkDeleteDetails(Request $request, \App\Models\Venta $venta)
     {
         $request->validate([
             'ids' => 'required|array',
@@ -406,7 +407,8 @@ class VentasController extends Controller
 
             foreach ($request->ids as $id) {
                 $detalle = \App\Models\VentaDetalle::find($id);
-                if (!$detalle || $detalle->venta_id !== $venta->id) continue;
+                if (!$detalle || $detalle->venta_id !== $venta->id)
+                    continue;
                 $this->processDetailDeletion($venta, $detalle, $request->observacion);
             }
 
@@ -472,7 +474,7 @@ class VentasController extends Controller
         } else {
             // Restore inventory
             $inv = \App\Models\Inventario::find($detalle->inventario_id);
-            
+
             // Fallback for old records
             if (!$inv) {
                 $inv = \App\Models\Inventario::where([
@@ -548,16 +550,18 @@ class VentasController extends Controller
             $nextNumero = \App\Models\Venta::where('cuenta_id', $cuenta_id)->max('numero') ?? 0;
 
             foreach ($userIds as $userId) {
-                if ($userId === 'ALL') continue;
+                if ($userId === 'ALL')
+                    continue;
 
                 $local = \App\Models\User::find($userId);
-                if (!$local) continue;
+                if (!$local)
+                    continue;
 
                 // Check if local manages sellers and has any
                 if ($local->maneja_vendedores) {
                     $vendedores = \App\Models\Vendedor::where('user_id', $local->id)
                         ->where('estado', true)
-                        ->when($request->filled('vendedor_ids'), function($q) use ($request) {
+                        ->when($request->filled('vendedor_ids'), function ($q) use ($request) {
                             return $q->whereIn('id', $request->vendedor_ids);
                         })
                         ->get();
@@ -615,7 +619,7 @@ class VentasController extends Controller
                 // precio_sugerido is mapped from inventario->precio_venta in VentaResource
                 $base_price = $detalle->inventario->precio_venta ?? 0;
                 $new_precio_unitario = max(0, $base_price - $discount_value);
-                
+
                 $detalle->update([
                     'precio_unitario' => $new_precio_unitario,
                     'subtotal' => $new_precio_unitario * $detalle->cantidad,

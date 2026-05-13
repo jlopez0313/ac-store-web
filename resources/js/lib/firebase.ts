@@ -43,14 +43,21 @@ export function removePrintRequest(cuentaId: number, key: string) {
     return remove(itemRef);
 }
 
-export function getNotificationsPingRef(): DatabaseReference {
-    return ref(database, 'notifications_ping');
+export function getNotificationsPingRef(target?: { type: 'all' | 'account' | 'user', id?: string | number }): DatabaseReference {
+    if (target?.type === 'account' && target.id) {
+        return ref(database, `notifications_ping/account/${target.id}`);
+    }
+    if (target?.type === 'user' && target.id) {
+        return ref(database, `notifications_ping/user/${target.id}`);
+    }
+    return ref(database, 'notifications_ping/global');
 }
 
-export function pingNotifications() {
-    const pingRef = getNotificationsPingRef();
+export function pingNotifications(target?: { type: 'all' | 'account' | 'user', id?: string | number }) {
+    const pingRef = getNotificationsPingRef(target);
     return push(pingRef, {
         timestamp: Date.now(),
+        type: target?.type || 'all'
     });
 }
 

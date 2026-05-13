@@ -72,23 +72,26 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, selectedFact
                             placeholder="Todos los locales"
                         />
 
-                        <SelectField
-                            title="Estado"
-                            name="estado"
-                            item={{ idx: 'id', value: 'nombre' }}
-                            lista={[
-                                { id: 'abierta', nombre: 'Abierta' },
-                                { id: 'cerrada', nombre: 'Cerrada' },
-                            ]}
-                            value={filters.estado}
-                            onChange={(val) => onFilterChange({ estado: val })}
-                            error={undefined}
-                            placeholder="Filtrar por estado"
-                        />
-
-                        <div className="h-px bg-slate-100 dark:bg-slate-800 my-2" />
                     </div>
                 )}
+
+                <div className="space-y-4">
+                    <SelectField
+                        title="Estado"
+                        name="estado"
+                        item={{ idx: 'id', value: 'nombre' }}
+                        lista={[
+                            { id: 'abierta', nombre: 'Abierta' },
+                            { id: 'cerrada', nombre: 'Cerrada' },
+                        ]}
+                        value={filters.estado}
+                        onChange={(val) => onFilterChange({ estado: val })}
+                        error={undefined}
+                        placeholder="Filtrar por estado"
+                    />
+
+                    <div className="h-px bg-slate-100 dark:bg-slate-800 my-2" />
+                </div>
 
                 <div className="space-y-1 p-1">
                     <div className="flex gap-2 mb-2">

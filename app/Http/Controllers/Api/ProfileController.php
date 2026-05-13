@@ -48,6 +48,7 @@ class ProfileController extends Controller
                     'amount' => $p->amount,
                     'payment_date' => $p->payment_date->format('Y-m-d'),
                     'next_cutoff_date' => $p->next_cutoff_date ? $p->next_cutoff_date->format('Y-m-d') : null,
+                    'method' => $p->method,
                     'observations' => $p->observations,
                     'registered_by' => $p->registeredBy->name ?? 'N/A',
                 ];

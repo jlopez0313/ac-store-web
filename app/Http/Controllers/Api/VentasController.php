@@ -187,7 +187,7 @@ class VentasController extends Controller
                         'muestra_id' => $m->id,
                         'type' => 'muestra',
                         'bodega_id' => null,
-                        'bodega_nombre' => "En Local: " . ($m->local->name ?? 'N/A'),
+                        'bodega_nombre' => ($m->local->name ?? 'N/A'),
                         'estanteria_id' => null,
                         'estanteria_nombre' => 'Muestra Física',
                         'talla' => $m->variante,
