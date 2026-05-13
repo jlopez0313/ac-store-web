@@ -47,6 +47,13 @@ class BodegasController extends Controller
 
         $bodega = Bodega::create($validated);
 
+        // Crear estantería GENERAL por defecto
+        \App\Models\Estanteria::create([
+            'bodega_id' => $bodega->id,
+            'nombre'    => 'GENERAL',
+            'estado'    => true,
+        ]);
+
         return new BodegaResource($bodega);
     }
 
