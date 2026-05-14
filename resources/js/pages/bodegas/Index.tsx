@@ -125,6 +125,12 @@ export default function Index({ filters: initialFilters, estados, cuentas }: any
             ]
             : []),
         {
+            name: 'Imp. Traslados',
+            cell: (row: any) => <Badge variant={row.imprimir_traslados ? 'default' : 'outline'}>{row.imprimir_traslados ? 'Sí' : 'No'}</Badge>,
+            sortable: true,
+            sortField: 'imprimir_traslados',
+        },
+        {
             name: 'Estado',
             cell: (row: any) => <Badge variant={row.estado ? 'default' : 'destructive'}>{row.estado ? 'Activa' : 'Inactiva'}</Badge>,
             sortable: true,

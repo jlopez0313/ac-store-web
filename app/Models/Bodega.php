@@ -14,11 +14,13 @@ class Bodega extends Model
         'nombre',
         'direccion',
         'estado',
+        'imprimir_traslados',
         'cuenta_id',
     ];
 
     protected $casts = [
         'estado' => 'boolean',
+        'imprimir_traslados' => 'boolean',
     ];
 
     public function cuenta()

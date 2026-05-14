@@ -18,8 +18,9 @@ class BodegaResource extends JsonResource
             'id'         => $this->id,
             'nombre'     => $this->nombre,
             'direccion'  => $this->direccion,
-            'estado'     => $this->estado,
-            'cuenta_id'  => $this->cuenta_id,
+            'estado'             => $this->estado,
+            'imprimir_traslados' => $this->imprimir_traslados,
+            'cuenta_id'          => $this->cuenta_id,
             'cuenta'     => [
                 'id'     => $this->cuenta?->id,
                 'nombre' => $this->cuenta?->nombre,

@@ -38,6 +38,7 @@ class BodegasController extends Controller
             'nombre'    => 'required|string|max:255',
             'direccion' => 'nullable|string|max:255',
             'estado'    => 'required|boolean',
+            'imprimir_traslados' => 'required|boolean',
             'cuenta_id' => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
         ]);
 
@@ -74,6 +75,7 @@ class BodegasController extends Controller
             'nombre'    => 'required|string|max:255',
             'direccion' => 'nullable|string|max:255',
             'estado'    => 'required|boolean',
+            'imprimir_traslados' => 'required|boolean',
             'cuenta_id' => auth()->user()->hasRole('superadmin') ? 'required|exists:cuentas,id' : 'nullable',
         ]);
 

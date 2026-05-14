@@ -1,6 +1,7 @@
 import { FormButtons } from '@/components/ui/form/FormButtons';
 import { InputField } from '@/components/ui/form/InputField';
 import { SelectField } from '@/components/ui/form/SelectField';
+import { SwitchField } from '@/components/ui/form/SwitchField';
 import { SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useEffect } from 'react';
@@ -10,6 +11,7 @@ type ThisForm = {
 	nombre: string;
 	direccion: string;
 	estado: string;
+	imprimir_traslados: boolean;
 	cuenta_id: string;
 };
 
@@ -20,6 +22,7 @@ export const Form = ({ id, estados, cuentas, setIsOpen, processing, onStore, onG
 		nombre: '',
 		direccion: '',
 		estado: '1',
+		imprimir_traslados: false,
 		cuenta_id: '',
 	});
 
@@ -61,6 +64,7 @@ export const Form = ({ id, estados, cuentas, setIsOpen, processing, onStore, onG
 					nombre: item.nombre,
 					direccion: item.direccion || '',
 					estado: item.estado ? '1' : '0',
+					imprimir_traslados: !!item.imprimir_traslados,
 					cuenta_id: item.cuenta_id?.toString() || '',
 				});
 			}
@@ -111,6 +115,13 @@ export const Form = ({ id, estados, cuentas, setIsOpen, processing, onStore, onG
 							lista={estados}
 							item={{ idx: 'id', value: 'name' }}
 							error={errors.estado}
+						/>
+
+						<SwitchField
+							name="imprimir_traslados"
+							title="¿Imprimir traslados?"
+							checked={data.imprimir_traslados}
+							onChange={(val) => setData('imprimir_traslados', val)}
 						/>
 					</div>
 
