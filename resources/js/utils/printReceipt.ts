@@ -12,6 +12,7 @@ interface PrintItem {
     talla: string;
     cantidad: number;
     muestra_id?: number | null;
+    is_traslado?: boolean;
 }
 
 interface PrintData {
@@ -87,7 +88,9 @@ function buildTicketHtml(item: PrintItem, facturaId: number | string, localName:
                     </td>
                 </tr>
             </table>
-            <div class="footer-banner">${item.muestra_id ? 'RECOGER MUESTRA' : 'PEDIDO'}</div>
+            <div class="footer-banner">
+                ${item.muestra_id ? 'MUESTRA' : 'PEDIDO'}${item.is_traslado ? ' / TRASLADO' : ''}
+            </div>
             <div class="footer-text">${footer}</div>
         </div>
     `;

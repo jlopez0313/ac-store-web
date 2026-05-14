@@ -122,6 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Traslados
         Route::prefix('traslados')->group(function () {
+            Route::get('{traslado}', [App\Http\Controllers\TrasladosController::class, 'show'])->name('api.traslados.show');
             Route::get('referencias', [App\Http\Controllers\TrasladosController::class, 'getReferenciasByCuenta'])->name('api.traslados.referencias');
             Route::get('bodegas', [App\Http\Controllers\TrasladosController::class, 'getBodegasByCuenta'])->name('api.traslados.bodegas');
             Route::get('estanterias', [App\Http\Controllers\TrasladosController::class, 'getEstanteriasByBodega'])->name('api.traslados.estanterias');

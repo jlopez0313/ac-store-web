@@ -47,6 +47,11 @@ class TrasladosController extends Controller
         ]);
     }
 
+    public function show(Traslado $traslado)
+    {
+        return new TrasladoResource($traslado->load(['referencia.marca', 'bodegaOrigen', 'estanteriaOrigen', 'bodegaDestino', 'estanteriaDestino', 'usuario']));
+    }
+
     public function getReferenciasByCuenta(Request $request)
     {
         $request->validate(['cuenta_id' => 'required|exists:cuentas,id']);
@@ -146,8 +151,7 @@ class TrasladosController extends Controller
             // Ensure we have the destination shelf relation for the transfer log
             $destino->load('estanteria');
 
-            // 4. Register transfer
-            Traslado::create([
+            $traslado = Traslado::create([
                 'cuenta_id' => $cuenta_id,
                 'referencia_id' => $request->referencia_id,
                 'talla' => $request->talla,
@@ -158,6 +162,22 @@ class TrasladosController extends Controller
                 'cantidad' => $request->cantidad,
                 'user_id' => auth()->id(),
             ]);
+
+            // 5. Notify Firebase if destination bodega requires printing
+            $bodegaDestino = Bodega::find($destino->estanteria->bodega_id);
+            if ($bodegaDestino && $bodegaDestino->imprimir_traslados) {
+                try {
+                    $firebase = app('firebase.database');
+                    $firebase->getReference("print_requests/{$cuenta_id}")->push([
+                        'type' => 'traslado',
+                        'traslado_id' => $traslado->id,
+                        'created_at' => now()->timestamp * 1000,
+                        'local_name' => $bodegaDestino->nombre,
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error("Error pushing traslado to Firebase: " . $e->getMessage());
+                }
+            }
 
             DB::commit();
 

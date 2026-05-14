@@ -1,5 +1,5 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { PrintNotificationBell } from '@/components/print-notification-bell';
+import { PrintNotificationBell } from '@/components/print/PrintNotificationBell';
 import { SystemNotificationsBell } from '@/components/system-notifications-bell';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';

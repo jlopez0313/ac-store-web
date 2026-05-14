@@ -175,7 +175,7 @@ const RETURN_TICKET_CSS = `
         .footer-banner {
             margin-top: 6px;
             text-align: center;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             border: 2px solid #000;
             padding: 3px 0;

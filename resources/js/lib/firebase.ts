@@ -16,9 +16,10 @@ const database = getDatabase(app);
 
 export interface PrintRequest {
     key?: string;
-    venta_id: number;
+    venta_id?: number;
+    traslado_id?: number;
     local_name: string;
-    type: 'pendientes' | 'cuadre' | 'devolucion' | 'cambio' | 'factura';
+    type: 'pendientes' | 'cuadre' | 'devolucion' | 'cambio' | 'factura' | 'traslado' | 'stickers';
     ids?: number[]; // Specific item IDs for returns or targeted printing
     created_at: number;
 }
