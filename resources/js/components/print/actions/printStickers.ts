@@ -30,7 +30,5 @@ export async function handlePrintStickers(request: PrintRequest, auth: any, effe
         }
     }
 
-    await axios.post(route('api.stickers.mark_printed'), {
-        ids: stickers.map((s: any) => s.id)
-    });
+    // Deletion is now handled manually or during the next tallado batch in the backend
 }

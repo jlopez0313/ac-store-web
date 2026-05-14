@@ -55,7 +55,10 @@ function buildStickerHtml(sticker: any): string {
             </div>
             <div class="descripcion">${ref.descripcion}</div>
             <div class="location">
-                ${sticker.estanteria.bodega?.nombre || ''} - ${sticker.estanteria.nombre}
+                ${sticker.estanteria?.bodega?.nombre || ''} - ${sticker.estanteria?.nombre || ''}
+            </div>
+            <div style="font-size: 14px; font-weight: 900; margin-bottom: 8px; border: 2px solid #000; padding: 2px; display: inline-block;">
+                CANTIDAD TOTAL: ${sticker.cantidad || 1}
             </div>
             <div class="barcode-area">
                 ${barcodeSvg ? `<div class="barcode-svg">${barcodeSvg}</div>` : ''}
@@ -66,23 +69,31 @@ function buildStickerHtml(sticker: any): string {
 }
 
 export function buildStickerPageHtml(stickers: any[]): string[] {
-    const pages: string[] = [];
-    stickers.forEach(sticker => {
-        // Repeat for quantity
-        for (let i = 0; i < (sticker.cantidad || 1); i++) {
-            pages.push(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <style>${STICKER_CSS}</style>
-                </head>
-                <body onload="window.print()">
-                    ${buildStickerHtml(sticker)}
-                </body>
-                </html>
-            `);
+    // Group stickers by reference and size to print a single summary sticker
+    const grouped: Record<string, any> = {};
+
+    stickers.forEach(s => {
+        const key = `${s.referencia_id}-${s.talla}-${s.estanteria_id}`;
+        if (!grouped[key]) {
+            grouped[key] = { ...s, cantidad: 0 };
         }
+        grouped[key].cantidad += (s.cantidad || 1);
+    });
+
+    const pages: string[] = [];
+    Object.values(grouped).forEach(sticker => {
+        pages.push(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>${STICKER_CSS}</style>
+            </head>
+            <body onload="window.print()">
+                ${buildStickerHtml(sticker)}
+            </body>
+            </html>
+        `);
     });
     return pages;
 }

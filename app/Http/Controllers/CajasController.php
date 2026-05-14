@@ -68,6 +68,8 @@ class CajasController extends Controller
         try {
             DB::beginTransaction();
 
+            \Log::info("Starting tallado for Caja ID: {$caja->id}, Cuenta ID: {$caja->cuenta_id}");
+            
             // Clear previous pending stickers for this account before starting new batch
             \App\Models\EtiquetaPendiente::where('cuenta_id', $caja->cuenta_id)
                 ->where('impreso', false)
@@ -79,6 +81,8 @@ class CajasController extends Controller
                 if (!$estanteriaId) {
                     throw new \Exception("No se ha especificado la estantería de destino para la talla " . $item['size']);
                 }
+
+                \Log::info("Processing talla: {$item['size']}, qty: {$item['qty']}");
 
                 // 1. Update or create Inventory record
                 $inventario = Inventario::firstOrCreate(
@@ -123,6 +127,7 @@ class CajasController extends Controller
                         'impreso' => false,
                     ]);
                 }
+                \Log::info("Created {$item['qty']} stickers for talla {$item['size']}");
             }
 
             // 4. Update or remove Caja record

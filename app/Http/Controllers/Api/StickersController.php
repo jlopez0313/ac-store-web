@@ -37,20 +37,6 @@ class StickersController extends Controller
             }
         }
 
-        // Pushing to Firebase for automated printing
-        try {
-            $firebase = app('firebase.database');
-            $firebase->getReference("print_requests/{$cuenta_id}")->push([
-                'type' => 'stickers',
-                'ids' => $sticker_ids,
-                'created_at' => now()->timestamp * 1000,
-                'local_name' => $referencia->cuenta->nombre ?? 'Principal',
-            ]);
-        } catch (\Exception $e) {
-            // Log error but don't fail the request
-            \Log::error("Error pushing sticker request to Firebase: " . $e->getMessage());
-        }
-
         return response()->json(['message' => 'Solicitud de etiquetas creada correctamente.']);
     }
 
