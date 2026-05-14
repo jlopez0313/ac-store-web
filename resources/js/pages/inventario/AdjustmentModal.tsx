@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SelectField } from '@/components/ui/form/SelectField';
 import { Input } from '@/components/ui/input';
