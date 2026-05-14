@@ -1,7 +1,7 @@
 import { removePrintRequest, type PrintRequest } from '@/lib/firebase';
 import { showAlert } from '@/plugins/sweetalert';
 import { usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { handlePrintCambio } from '../components/print/actions/printCambio';
 import { handlePrintDevolucion } from '../components/print/actions/printDevolucion';
 import { handlePrintStickers } from '../components/print/actions/printStickers';
@@ -11,9 +11,25 @@ import { handlePrintVenta } from '../components/print/actions/printVenta';
 export function usePrintAction(cuentaIdProp?: number | null) {
     const [processingKey, setProcessingKey] = useState<string | null>(null);
     const { auth } = usePage().props as any;
+    const activePrints = useRef<Set<string>>(new Set());
 
     const handlePrint = async (request: PrintRequest) => {
         const effectiveCuentaId = cuentaIdProp || (request as any)._cuentaId;
+        
+        // Lock key to prevent double printing if multiple notifications arrive for the same entity
+        // For stickers, use the unique request key to avoid blocking independent batches
+        const entityId = request.type === 'stickers' ? request.key : (request.venta_id || request.traslado_id || 'manual');
+        const lockKey = `${request.type}:${entityId}`;
+        
+        if (activePrints.current.has(lockKey)) {
+            console.warn(`[PRINT LOCK] Already printing ${lockKey}, skipping duplicate request.`);
+            if (request.key) {
+                await removePrintRequest(effectiveCuentaId, request.key);
+            }
+            return;
+        }
+
+        activePrints.current.add(lockKey);
         setProcessingKey(request.key || null);
         
         try {
@@ -52,6 +68,7 @@ export function usePrintAction(cuentaIdProp?: number | null) {
             console.error('Error al imprimir:', error);
             showAlert('error', 'Error al imprimir: ' + (error.message || 'Verifique la conexión de la impresora.'));
         } finally {
+            activePrints.current.delete(lockKey);
             setProcessingKey(null);
         }
     };
