@@ -64,7 +64,7 @@ export default function Ventas({ cuentas, locales }: any) {
     }, [filters]);
 
     useEffect(() => {
-        fetchData();
+        fetchData({ page: 1 });
     }, [filters.desde, filters.hasta, filters.local_id, filters.cuenta_id]);
 
     const handleClear = () => {
