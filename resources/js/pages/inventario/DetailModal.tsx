@@ -47,7 +47,39 @@ export const DetailModal: React.FC<DetailModalProps> = ({ isOpen, onClose, refer
         setLoading(true);
         try {
             const response = await axios.get(route('api.inventario.detail', { referencia: referencia.id }));
-            setDetails(response.data.data);
+            const data = response.data.data || [];
+
+            // Helper to get size index from category variations
+            const getSizeIndex = (talla: string) => {
+                const variations = referencia.categoria?.variaciones_json;
+                if (!variations) return 999;
+                try {
+                    const parsed = typeof variations === 'string' ? JSON.parse(variations) : variations;
+                    if (Array.isArray(parsed)) {
+                        return parsed.findIndex((v: any) => {
+                            const label = typeof v === 'object' ? (v.text || v.nombre || v.talla || v.valor || Object.values(v)[0]) : String(v);
+                            return String(label) === String(talla);
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error parsing variations for sorting", e);
+                }
+                return 999;
+            };
+
+            // Sort by Estanteria Name and then by Category Size Order
+            const sorted = [...data].sort((a, b) => {
+                // 1. Sort by Estanteria Name
+                const shelfA = a.estanteria_nombre || '';
+                const shelfB = b.estanteria_nombre || '';
+                const shelfCmp = shelfA.localeCompare(shelfB, undefined, { numeric: true, sensitivity: 'base' });
+                if (shelfCmp !== 0) return shelfCmp;
+
+                // 2. Sort by Talla (Category Order)
+                return getSizeIndex(a.talla) - getSizeIndex(b.talla);
+            });
+
+            setDetails(sorted);
         } catch (error) {
             console.error('Error fetching inventory details:', error);
         } finally {
