@@ -89,7 +89,7 @@ function buildTicketHtml(item: PrintItem, facturaId: number | string, localName:
                 </tr>
             </table>
             <div class="footer-banner">
-                ${item.muestra_id ? 'MUESTRA' : 'PEDIDO'}${item.is_traslado ? ' / TRASLADO' : ''}
+                ${item.muestra_id ? 'RECOGER MUESTRA' : 'PEDIDO'}${item.is_traslado ? ' / TRASLADO' : ''}
             </div>
             <div class="footer-text">${footer}</div>
         </div>
@@ -153,7 +153,7 @@ const TICKET_CSS = `
         .footer-banner {
             margin-top: 6px;
             text-align: center;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             border: 2px solid #000;
             padding: 3px 0;
