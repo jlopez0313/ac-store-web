@@ -16,7 +16,7 @@ class ReferenciaSearchController extends Controller
         $user = auth()->user();
         $isSuper = $user->hasRole('superadmin');
         
-        $query = Referencia::with(['marca', 'cuenta'])
+        $query = Referencia::with(['marca', 'cuenta', 'categoria'])
             ->withSum(['inventarios as total_stock' => function ($q) use ($user, $isSuper, $request) {
                 $q->where('stock', '>', 0);
                 if (!$isSuper) {
@@ -106,6 +106,11 @@ class ReferenciaSearchController extends Controller
                     'filtered_stock' => $request->filled('talla') ? (int) $item->filtered_stock : null,
                     'foto' => $item->foto ? asset('storage/' . ltrim($item->foto, '/')) : null,
                     'cuenta' => $item->cuenta->nombre ?? 'N/A',
+                    'categoria' => [
+                        'id' => $item->categoria->id ?? null,
+                        'nombre' => $item->categoria->nombre ?? '',
+                        'variaciones_json' => $item->categoria->variaciones_json ?? null,
+                    ],
                 ];
             }),
             'total' => $paginated->total(),

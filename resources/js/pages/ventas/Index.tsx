@@ -391,8 +391,8 @@ export default function Index({ filters: initialFilters, lista, cuentas, referen
                                         const detalles = freshFactura.detalles || [];
                                         const localName = freshFactura.local?.name || auth.user.name;
 
-                                        // Local users send print request to Firebase for bodega to handle
-                                        if (auth.user.role === 'local' && (type === 'pendientes' || type === 'cuadre' || type === 'factura')) {
+                                        // Send print request to Firebase so the designated printer station can handle it
+                                        if (type === 'pendientes' || type === 'cuadre' || type === 'factura') {
                                             const cuentaId = freshFactura.cuenta_id || auth.user.cuenta_id;
                                             if (!cuentaId) {
                                                 showAlert('error', 'No se pudo determinar la cuenta.');
