@@ -36,6 +36,7 @@ export default function Ventas({ cuentas, locales }: any) {
     const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25, total_facturas: 0, total_ventas: 0, total_productos: 0 });
     const [viewerImage, setViewerImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [sort, setSort] = useState({ column: 'id', direction: 'desc' });
 
     // Invoice details modal
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -51,8 +52,14 @@ export default function Ventas({ cuentas, locales }: any) {
     const fetchData = useCallback(async (params: any = {}) => {
         setLoading(true);
         try {
+            const fetchParams = {
+                ...filters,
+                sort_by: params.sort_by || sort.column,
+                sort_dir: params.sort_dir || sort.direction,
+                ...params
+            };
             const response = await axios.get(route('api.reportes.ventas'), {
-                params: { ...filters, ...params },
+                params: fetchParams,
             });
             setData(response.data.data);
             setMeta(response.data.meta);
@@ -61,11 +68,17 @@ export default function Ventas({ cuentas, locales }: any) {
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, [filters, sort]);
 
     useEffect(() => {
         fetchData({ page: 1 });
     }, []);
+
+    const handleSort = (column: any, direction: string) => {
+        const sortColumn = column.sortField || column.id;
+        setSort({ column: sortColumn, direction });
+        fetchData({ page: 1, sort_by: sortColumn, sort_dir: direction });
+    };
 
     const handleClear = () => {
         setFilters({ desde: today, hasta: today, local_id: '', cuenta_id: 'all' });
@@ -102,15 +115,17 @@ export default function Ventas({ cuentas, locales }: any) {
         {
             name: 'Factura',
             selector: (row: any) => row.factura_numero,
+            sortable: true,
+            sortField: 'factura_numero',
             width: '120px',
             cell: (row: any) => <span className="font-bold text-indigo-600">{row.factura_numero}</span>,
-            sortable: true,
         },
         {
             name: 'Fecha',
             selector: (row: any) => row.fecha,
-            width: '120px',
             sortable: true,
+            sortField: 'fecha',
+            width: '120px',
         },
         ...(isSuper ? [{
             name: 'Cuenta',
@@ -120,11 +135,15 @@ export default function Ventas({ cuentas, locales }: any) {
         {
             name: 'Local',
             selector: (row: any) => row.local,
+            sortable: true,
+            sortField: 'local',
             grow: 1,
         },
         {
             name: 'Items',
             selector: (row: any) => row.items_count,
+            sortable: true,
+            sortField: 'items_count',
             width: '100px',
             center: true,
             cell: (row: any) => (
@@ -137,6 +156,8 @@ export default function Ventas({ cuentas, locales }: any) {
         {
             name: 'Total Factura',
             selector: (row: any) => row.total,
+            sortable: true,
+            sortField: 'total',
             width: '150px',
             right: true,
             cell: (row: any) => (
@@ -168,7 +189,7 @@ export default function Ventas({ cuentas, locales }: any) {
             name: 'Foto',
             width: '85px',
             cell: (row: any) => {
-                const fotoUrl = row.producto?.foto ? asset('storage/' + ltrim(row.producto.foto, '/')) : null;
+                const fotoUrl = row.producto?.foto;
                 return (
                     <div
                         onClick={() => fotoUrl && setViewerImage(fotoUrl)}

@@ -36,7 +36,22 @@ class ReportesController extends Controller
         }
 
         $query->whereHas('detalles'); // Only invoices with items
-        $query->orderByDesc('id');
+
+        $sortBy = $request->input('sort_by', 'id');
+        $sortDir = $request->input('sort_dir', 'desc');
+
+        // Map frontend field names to database columns
+        $sortMap = [
+            'factura_numero' => 'numero',
+            'fecha' => 'fecha',
+            'local' => 'user_id', // Simplified, better would be join for name
+            'items_count' => 'total_cantidad',
+            'total' => 'total_valor',
+            'id' => 'id'
+        ];
+
+        $column = $sortMap[$sortBy] ?? 'id';
+        $query->orderBy($column, $sortDir);
 
         // Totals for KPIs (using VentaDetalle to get the same logic as before)
         $detailsQuery = \App\Models\VentaDetalle::whereHas('venta', function ($q) use ($user, $isSuper, $request) {

@@ -24,7 +24,7 @@ class ReferenciaResource extends JsonResource
             ],
             'total_stock' => $this->total_stock,
             'precio_venta' => $this->precio_venta,
-            'impreso' => (bool)$this->impreso,
+            'impreso' => (bool) $this->impreso,
             'foto' => $this->foto ? asset('storage/' . $this->foto) : null,
             'categoria' => [
                 'id' => $this->categoria->id ?? null,
