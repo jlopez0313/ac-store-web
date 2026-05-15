@@ -13,8 +13,8 @@ import { confirmDialog, showAlert } from '@/plugins/sweetalert';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import { Edit, Layers, Package, Plus, Search, ShoppingCart, Trash } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { Edit, Layers, Package, Plus, Search, ShoppingCart, Trash, TrendingDown, TrendingUp } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AddDetailModal } from './AddDetailModal';
 import { Form } from './Form';
 
@@ -24,7 +24,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ filters: initialFilters, cuentas, proveedores, referencias, bodegas, next_id }: any) {
-    const { isBodega } = useAuth();
+    const { isBodega, isAdmin, isSuperAdmin } = useAuth();
+    const canSeeFinancials = isAdmin || isSuperAdmin;
 
     const [facturas, setFacturas] = useState<any[]>([]);
     const [meta, setMeta] = useState<any>({ total: 0, current_page: 1, per_page: 25 });
@@ -40,6 +41,7 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
     const [refSearch, setRefSearch] = useState('');
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [selectedRef, setSelectedRef] = useState<any>(null);
+    const [selectedDetail, setSelectedDetail] = useState<any>(null);
 
     const fetchData = useCallback(
         async (newParams = {}) => {
@@ -47,8 +49,19 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
             const params = { ...filters, ...newParams };
             try {
                 const response = await axios.get(route('api.compras.index'), { params });
-                setFacturas(response.data.data);
+                const data = response.data.data;
+                setFacturas(data);
                 setMeta(response.data.meta);
+
+                if (selectedFactura) {
+                    const updated = data.find((f: any) => f.id === selectedFactura.id);
+                    if (updated) {
+                        setSelectedFactura((prev: any) => ({
+                            ...updated,
+                            detalles: updated.detalles || prev?.detalles
+                        }));
+                    }
+                }
             } catch (error) {
                 console.error('Error fetching invoices:', error);
             } finally {
@@ -80,6 +93,13 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
 
     const openAdd = (ref: any) => {
         setSelectedRef(ref);
+        setSelectedDetail(null);
+        setDetailModalOpen(true);
+    };
+
+    const handleEditDetail = (detalle: any) => {
+        setSelectedRef(detalle.producto);
+        setSelectedDetail(detalle);
         setDetailModalOpen(true);
     };
 
@@ -113,6 +133,19 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
     const { id, show, processing, onToggleModal, onTrash, onStore, onGetItem, onSetItem } = useCrudPage(null, (params: any) => ({
         url: route('api.compras.destroy', { compra: params.id }),
     }));
+
+    const financials = useMemo(() => {
+        const detalles = selectedFactura?.detalles || [];
+        const flete = Number(selectedFactura?.flete || 0);
+        const totalUnidades = detalles.reduce((sum: number, d: any) => sum + Number(d.cantidad || 0), 0);
+        const totalCostoBase = detalles.reduce((sum: number, d: any) => sum + Number(d.subtotal || 0), 0);
+        const totalConFlete = totalCostoBase + flete;
+        const totalVenta = detalles.reduce((sum: number, d: any) => sum + (Number(d.precio_venta || 0) * Number(d.cantidad || 0)), 0);
+        const utilidadDolares = totalVenta - totalConFlete;
+        const utilidadPorcentaje = totalConFlete > 0 ? (utilidadDolares / totalConFlete) * 100 : 0;
+        const precioPromedioPar = totalUnidades > 0 ? totalConFlete / totalUnidades : 0;
+        return { totalUnidades, totalCostoBase, totalConFlete, totalVenta, utilidadDolares, utilidadPorcentaje, precioPromedioPar };
+    }, [selectedFactura?.detalles, selectedFactura?.flete]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -171,7 +204,7 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                                                 <span className="text-sm font-semibold">Factura #{factura.numero ?? factura.id}</span>
                                                 <Badge
                                                     variant="outline"
-                                                    className={`text-xs capitalize ${isSelected ? 'border-white/40 text-white' : 'badge-open'}`}
+                                                    className={`text-xs capitalize ${isSelected ? 'border-white/40 text-white' : (factura.estado === 'cerrada' ? 'badge-closed' : 'badge-open')}`}
                                                 >
                                                     {factura.estado}
                                                 </Badge>
@@ -234,7 +267,7 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                                                 <Label className="text-xs">Proveedor</Label>
                                                 <div className="text-sm font-medium">{selectedFactura.proveedor?.nombre}</div>
                                             </div>
-                                            {!isBodega && (
+                                            {canSeeFinancials && (
                                                 <div>
                                                     <Label className="text-xs">Valor del Flete</Label>
                                                     <div className="text-sm font-bold text-indigo-600">
@@ -249,14 +282,78 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex justify-end">
-                                            <Button size="sm" onClick={() => onSetItem(selectedFactura.id)}>
-                                                <Edit className="mr-2 h-4 w-4" />
-                                                Editar Factura
-                                            </Button>
-                                        </div>
+                                        {canSeeFinancials && (
+                                            <div className="flex justify-end">
+                                                <Button size="sm" onClick={() => onSetItem(selectedFactura.id)}>
+                                                    <Edit className="mr-2 h-4 w-4" />
+                                                    Editar Factura
+                                                </Button>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
+
+                                {/* ── Financial KPI Panel ── */}
+                                {canSeeFinancials && (
+                                    <Card className="border-slate-200 bg-gradient-to-br from-slate-50 to-white shadow-sm dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
+                                        <CardContent className="p-4">
+                                            <div className="mb-3 flex items-center gap-2">
+                                                <TrendingUp className="h-4 w-4 text-slate-500" />
+                                                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Resumen Financiero</span>
+                                                <span className="text-xs text-muted-foreground ml-auto">{financials.totalUnidades.toLocaleString()} unidades en total</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                                                {/* Costo Total */}
+                                                <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-xs dark:border-slate-700 dark:bg-slate-800">
+                                                    <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Costo Total</div>
+                                                    <div className="mt-1 text-lg font-bold text-slate-800 dark:text-slate-100">${financials.totalConFlete.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</div>
+                                                    <div className="text-[10px] text-slate-400">compra + flete</div>
+                                                </div>
+
+                                                {/* Precio Promedio */}
+                                                <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-3 shadow-xs dark:border-indigo-900 dark:bg-indigo-950/40">
+                                                    <div className="text-[10px] font-semibold uppercase tracking-wider text-indigo-400">Promedio / Par</div>
+                                                    <div className="mt-1 text-lg font-bold text-indigo-700 dark:text-indigo-300">${financials.precioPromedioPar.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</div>
+                                                    <div className="text-[10px] text-indigo-400">costo real c/flete</div>
+                                                </div>
+
+                                                {/* Total Venta */}
+                                                <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 shadow-xs dark:border-emerald-900 dark:bg-emerald-950/40">
+                                                    <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-500">Total Venta</div>
+                                                    <div className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-300">${financials.totalVenta.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</div>
+                                                    <div className="text-[10px] text-emerald-400">potencial de venta</div>
+                                                </div>
+
+                                                {/* Utilidad $ */}
+                                                <div className={`rounded-xl border p-3 shadow-xs ${financials.utilidadDolares >= 0
+                                                        ? 'border-green-100 bg-green-50/60 dark:border-green-900 dark:bg-green-950/40'
+                                                        : 'border-red-100 bg-red-50/60 dark:border-red-900 dark:bg-red-950/40'
+                                                    }`}>
+                                                    <div className={`text-[10px] font-semibold uppercase tracking-wider ${financials.utilidadDolares >= 0 ? 'text-green-500' : 'text-red-500'}`}>Utilidad $</div>
+                                                    <div className={`mt-1 flex items-center gap-1 text-lg font-bold ${financials.utilidadDolares >= 0 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                                                        {financials.utilidadDolares >= 0
+                                                            ? <TrendingUp className="h-4 w-4 flex-shrink-0" />
+                                                            : <TrendingDown className="h-4 w-4 flex-shrink-0" />}
+                                                        ${Math.abs(financials.utilidadDolares).toLocaleString('es-CO', { maximumFractionDigits: 0 })}
+                                                    </div>
+                                                    <div className={`text-[10px] ${financials.utilidadDolares >= 0 ? 'text-green-400' : 'text-red-400'}`}>ganancia neta</div>
+                                                </div>
+
+                                                {/* Utilidad % */}
+                                                <div className={`rounded-xl border p-3 shadow-xs ${financials.utilidadPorcentaje >= 0
+                                                        ? 'border-blue-100 bg-blue-50/60 dark:border-blue-900 dark:bg-blue-950/40'
+                                                        : 'border-red-100 bg-red-50/60 dark:border-red-900 dark:bg-red-950/40'
+                                                    }`}>
+                                                    <div className={`text-[10px] font-semibold uppercase tracking-wider ${financials.utilidadPorcentaje >= 0 ? 'text-blue-500' : 'text-red-500'}`}>Margen %</div>
+                                                    <div className={`mt-1 text-lg font-bold ${financials.utilidadPorcentaje >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}`}>
+                                                        {financials.utilidadPorcentaje.toFixed(1)}%
+                                                    </div>
+                                                    <div className={`text-[10px] ${financials.utilidadPorcentaje >= 0 ? 'text-blue-400' : 'text-red-400'}`}>sobre costo</div>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
 
                                 {selectedFactura.estado === 'abierta' && (
                                     <Card>
@@ -360,14 +457,26 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                                                             ${Number(detalle.subtotal).toLocaleString()}
                                                         </TableCell>
                                                         <TableCell className="text-right">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-700"
-                                                                onClick={() => handleDeleteDetail(detalle.id)}
-                                                            >
-                                                                <Trash className="h-4 w-4" />
-                                                            </Button>
+                                                            {canSeeFinancials && selectedFactura.estado === 'abierta' && (
+                                                                <div className="flex justify-end gap-1">
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700"
+                                                                        onClick={() => handleEditDetail(detalle)}
+                                                                    >
+                                                                        <Edit className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-700"
+                                                                        onClick={() => handleDeleteDetail(detalle.id)}
+                                                                    >
+                                                                        <Trash className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            )}
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
@@ -397,9 +506,10 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
                     next_id={next_id}
                     onClose={() => onToggleModal(false)}
                     onStore={(storeFn: any, updateFn: any, data: any) =>
-                        onStore(storeFn, updateFn, data, false).then(() => {
+                        onStore(storeFn, updateFn, data, false).then((res) => {
                             onToggleModal(false);
                             fetchData();
+                            return res;
                         })
                     }
                     onGetItem={onGetItem}
@@ -413,16 +523,26 @@ export default function Index({ filters: initialFilters, cuentas, proveedores, r
 
             <AddDetailModal
                 isOpen={detailModalOpen}
-                onClose={() => setDetailModalOpen(false)}
+                onClose={() => { setDetailModalOpen(false); setSelectedDetail(null); }}
                 referencia={selectedRef}
                 factura={selectedFactura}
                 bodegas={bodegas}
-                onAdded={(nuevoDetalle: any) => {
-                    const updatedFactura = { ...selectedFactura };
-                    if (!updatedFactura.detalles) updatedFactura.detalles = [];
-                    updatedFactura.detalles.push(nuevoDetalle);
-                    setSelectedFactura(updatedFactura);
-                    setRefSearch('');
+                detalle={selectedDetail}
+                onAdded={(newDetalle: any) => {
+                    const existingIndex = selectedFactura.detalles?.findIndex((d: any) => d.id === newDetalle.id);
+                    if (existingIndex !== -1) {
+                        const newDetalles = [...selectedFactura.detalles];
+                        newDetalles[existingIndex] = newDetalle;
+                        setSelectedFactura({ ...selectedFactura, detalles: newDetalles });
+                    } else {
+                        setSelectedFactura({
+                            ...selectedFactura,
+                            detalles: [...(selectedFactura.detalles || []), newDetalle],
+                        });
+                    }
+                    setDetailModalOpen(false);
+                    setSelectedDetail(null);
+                    fetchData();
                 }}
             />
         </AppLayout>

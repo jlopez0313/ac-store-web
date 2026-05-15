@@ -42,6 +42,7 @@ export default function Ventas({ cuentas, locales }: any) {
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const [invoiceDetails, setInvoiceDetails] = useState<any[]>([]);
+    const [detailsMeta, setDetailsMeta] = useState<any>({ total: 0, current_page: 1, per_page: 10 });
     const [loadingDetails, setLoadingDetails] = useState(false);
 
     // Returns modal
@@ -84,18 +85,25 @@ export default function Ventas({ cuentas, locales }: any) {
         setFilters({ desde: today, hasta: today, local_id: '', cuenta_id: 'all' });
     };
 
-    const handleViewDetails = async (invoice: any) => {
-        setSelectedInvoice(invoice);
-        setIsDetailsModalOpen(true);
+    const fetchDetails = async (invoiceId: number, page: number = 1) => {
         setLoadingDetails(true);
         try {
-            const response = await axios.get(route('api.ventas.detalles', { venta: invoice.id }));
+            const response = await axios.get(route('api.ventas.detalles', { venta: invoiceId }), {
+                params: { page, per_page: detailsMeta.per_page }
+            });
             setInvoiceDetails(response.data.data);
+            setDetailsMeta(response.data.meta);
         } catch (e) {
             console.error("Error fetching invoice details:", e);
         } finally {
             setLoadingDetails(false);
         }
+    };
+
+    const handleViewDetails = (invoice: any) => {
+        setSelectedInvoice(invoice);
+        setIsDetailsModalOpen(true);
+        fetchDetails(invoice.id, 1);
     };
 
     const handleViewReturns = async (invoice: any) => {
@@ -414,7 +422,7 @@ export default function Ventas({ cuentas, locales }: any) {
                         paginationPerPage={meta.per_page}
                         fetchPage={(page) => fetchData({ page })}
                         setPageSize={(per_page) => fetchData({ per_page, page: 1 })}
-                        onSort={() => { }}
+                        onSort={handleSort}
                     />
                 </div>
             </div>
@@ -486,11 +494,14 @@ export default function Ventas({ cuentas, locales }: any) {
                         <DataGrid
                             data={invoiceDetails}
                             columns={detailColumns}
-                            total={invoiceDetails.length}
+                            total={detailsMeta.total}
                             processing={loadingDetails}
+                            serverSide={true}
+                            paginationServer={true}
+                            currentPage={detailsMeta.current_page}
+                            paginationPerPage={detailsMeta.per_page}
+                            fetchPage={(page) => fetchDetails(selectedInvoice.id, page)}
                             onSort={() => { }}
-                            fetchPage={() => { }}
-                            setPageSize={() => { }}
                         />
                     </div>
 

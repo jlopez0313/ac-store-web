@@ -177,7 +177,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                     <CardContent className="p-4">
                         <form onSubmit={onSearchSubmit} className="grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-12">
                             {isSuperAdmin && (
-                                <div className="lg:col-span-2">
+                                <div className="lg:col-span-3">
                                     <SelectField
                                         name="cuenta_id"
                                         title="Cuenta"
@@ -201,7 +201,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                                 />
                             </div>
 */}
-                            <div className="space-y-2 lg:col-span-2">
+                            <div className={`space-y-2 ${isSuperAdmin ? 'lg:col-span-2' : 'lg:col-span-3'}`}>
                                 <Label htmlFor="codigo">Código</Label>
                                 <Input
                                     id="codigo"
@@ -212,7 +212,7 @@ export default function Search({ results: initialResults, filters, cuentas, marc
                                 />
                             </div>
 
-                            <div className="space-y-2 lg:col-span-3">
+                            <div className={`space-y-2 ${isSuperAdmin ? 'lg:col-span-4' : 'lg:col-span-6'}`}>
                                 <Label htmlFor="referencia">Referencia / Descripción</Label>
                                 <Input
                                     id="referencia"

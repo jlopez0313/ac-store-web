@@ -15,7 +15,7 @@ export const customStyles = {
       borderBottomColor: 'var(--border)',
       borderLeftWidth: '1px',
       borderLeftColor: 'var(--border)',
-      minHeight: '48px',
+      minHeight: '45px',
     },
   },
   headCells: {
@@ -33,7 +33,7 @@ export const customStyles = {
   },
   rows: {
     style: {
-      minHeight: '45px',
+      minHeight: '42px',
       backgroundColor: 'var(--card)',
       color: 'var(--card-foreground)',
       borderBottomStyle: 'solid' as any,
@@ -72,7 +72,7 @@ export const customStyles = {
       color: 'var(--muted-foreground)',
       borderTopWidth: '1px',
       borderTopColor: 'var(--border)',
-      fontSize: '13px',
+      fontSize: '12px',
     },
     pageButtonsStyle: {
       fill: 'var(--muted-foreground)',

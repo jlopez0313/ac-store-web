@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { showAlert } from '@/plugins/sweetalert';
 import axios from 'axios';
-import { Layers, Package, Plus } from 'lucide-react';
+import { Edit, Layers, Package, Plus } from 'lucide-react';
 import { FormEventHandler, useEffect, useState } from 'react';
 
 type AddDetailForm = {
@@ -17,7 +17,7 @@ type AddDetailForm = {
 	precio_unitario: number | '';
 };
 
-export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, onAdded }: any) => {
+export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, onAdded, detalle }: any) => {
 	const [loading, setLoading] = useState(false);
 	const [addMode, setAddMode] = useState<'simple' | 'sized'>('simple');
 	const [simpleBoxes, setSimpleBoxes] = useState('1');
@@ -44,39 +44,99 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 
 	useEffect(() => {
 		if (isOpen && referencia) {
-			setSimplePrice('');
-			setSimpleSellingPrice('');
-			setSizedPrice('');
-			setSizedSellingPrice('');
-			setSizedWarehouse('');
-			setSizedShelf('');
+			if (detalle) {
+				// EDIT MODE
+				setAddMode(detalle.modo === 'tallado' ? 'sized' : 'simple');
+				
+				if (detalle.modo === 'cajas') {
+					setSimpleBoxes(detalle.numero_cajas?.toString() || '');
+					setSimplePairsPerBox(detalle.pares_por_caja?.toString() || '');
+					setSimplePrice(detalle.precio_unitario?.toString() || '');
+					setSimpleSellingPrice(detalle.precio_venta?.toString() || '');
+					setSimpleWarehouse(detalle.bodega_id?.toString() || '');
+				} else {
+					setSizedPrice(detalle.precio_unitario?.toString() || '');
+					setSizedSellingPrice(detalle.precio_venta?.toString() || '');
+					setSizedWarehouse(detalle.bodega_id?.toString() || '');
+					setSizedShelf(detalle.tallas?.[0]?.estanteria_id?.toString() || '');
+					
+					// Fill sized rows
+					const jsonStr = referencia.categoria?.variaciones_json;
+					let initialRows: { size: string, qty: string }[] = [];
 
-			let initialRows: { size: string, qty: string }[] = [];
-			const jsonStr = referencia.categoria?.variaciones_json;
-			if (jsonStr) {
-				try {
-					const parsed = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
-					if (Array.isArray(parsed)) {
-						initialRows = parsed.map((item: any) => {
-							let sizeLabel = String(item);
-							if (typeof item === 'object' && item !== null) {
-								sizeLabel = String(item.text || item.nombre || item.talla || item.valor || Object.values(item)[0] || JSON.stringify(item));
+					// Ensure tallas is an array (might be a JSON string from DB)
+					let currentTallas: any[] = [];
+					if (detalle.tallas) {
+						try {
+							currentTallas = typeof detalle.tallas === 'string' ? JSON.parse(detalle.tallas) : detalle.tallas;
+						} catch (e) {
+							console.error("Error parsing detalle.tallas", e);
+						}
+					}
+					if (!Array.isArray(currentTallas)) currentTallas = [];
+
+					if (jsonStr) {
+						try {
+							const parsed = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+							if (Array.isArray(parsed)) {
+								initialRows = parsed.map((item: any) => {
+									let sizeLabel = String(item);
+									if (typeof item === 'object' && item !== null) {
+										sizeLabel = String(item.text || item.nombre || item.talla || item.valor || Object.values(item)[0] || JSON.stringify(item));
+									}
+									const existingQty = currentTallas.find((t: any) => String(t.size) === String(sizeLabel))?.qty || '';
+									return { size: sizeLabel, qty: existingQty.toString() };
+								});
 							}
-							return { size: sizeLabel, qty: '' };
+						} catch (e) {
+							console.error("Error parsing variaciones_json", e);
+						}
+					}
+					if (initialRows.length === 0) {
+						initialRows = Array.from({ length: 15 }, (_, i) => {
+							const sizeLabel = String(34 + i);
+							const existingQty = currentTallas.find((t: any) => String(t.size) === String(sizeLabel))?.qty || '';
+							return { size: sizeLabel, qty: existingQty.toString() };
 						});
 					}
-				} catch (e) {
-					console.error("Error parsing variaciones_json", e);
+					setSizedRows(initialRows);
 				}
-			}
+			} else {
+				// ADD MODE
+				setSimplePrice('');
+				setSimpleSellingPrice('');
+				setSizedPrice('');
+				setSizedSellingPrice('');
+				setSizedWarehouse('');
+				setSizedShelf('');
 
-			if (initialRows.length === 0) {
-				initialRows = Array.from({ length: 15 }, (_, i) => ({ size: String(34 + i), qty: '' }));
-			}
+				let initialRows: { size: string, qty: string }[] = [];
+				const jsonStr = referencia.categoria?.variaciones_json;
+				if (jsonStr) {
+					try {
+						const parsed = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+						if (Array.isArray(parsed)) {
+							initialRows = parsed.map((item: any) => {
+								let sizeLabel = String(item);
+								if (typeof item === 'object' && item !== null) {
+									sizeLabel = String(item.text || item.nombre || item.talla || item.valor || Object.values(item)[0] || JSON.stringify(item));
+								}
+								return { size: sizeLabel, qty: '' };
+							});
+						}
+					} catch (e) {
+						console.error("Error parsing variaciones_json", e);
+					}
+				}
 
-			setSizedRows(initialRows);
+				if (initialRows.length === 0) {
+					initialRows = Array.from({ length: 15 }, (_, i) => ({ size: String(34 + i), qty: '' }));
+				}
+
+				setSizedRows(initialRows);
+			}
 		}
-	}, [isOpen, referencia]);
+	}, [isOpen, referencia, detalle]);
 
 	const submit: FormEventHandler = async (e) => {
 		e.preventDefault();
@@ -109,7 +169,12 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 				};
 			}
 
-			const response = await axios.post(`/api/compras/${factura.id}/detalles`, payload);
+			let response;
+			if (detalle) {
+				response = await axios.put(`/api/compras/${factura.id}/detalles/${detalle.id}`, payload);
+			} else {
+				response = await axios.post(`/api/compras/${factura.id}/detalles`, payload);
+			}
 
 			if (onAdded) {
 				onAdded(response.data.data);
@@ -130,7 +195,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 			show={isOpen}
 			closeable={true}
 			onClose={onClose}
-			title={`Agregar artículo a factura #${factura.id}`}
+			title={detalle ? `Editar artículo en factura #${factura.id}` : `Agregar artículo a factura #${factura.id}`}
 			subtitle={`${referencia.codigo} — ${referencia.descripcion} (${referencia.categoria?.nombre})`}
 			maxWidth="3xl"
 			className="flex flex-col h-[90vh]"
@@ -139,10 +204,10 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 				<div className="px-6 pb-6 flex-1 overflow-y-auto mt-4 flex flex-col">
 					<Tabs value={addMode} onValueChange={v => setAddMode(v as 'simple' | 'sized')} className="flex-1 flex flex-col">
 						<TabsList className="w-full">
-							<TabsTrigger value="simple" className="flex-1 gap-2">
+							<TabsTrigger value="simple" className="flex-1 gap-2" disabled={!!detalle && detalle.modo !== 'cajas'}>
 								<Package className="h-4 w-4" /> Por cajas (sin tallar)
 							</TabsTrigger>
-							<TabsTrigger value="sized" className="flex-1 gap-2">
+							<TabsTrigger value="sized" className="flex-1 gap-2" disabled={!!detalle && detalle.modo !== 'tallado'}>
 								<Layers className="h-4 w-4" /> Tallado directo
 							</TabsTrigger>
 						</TabsList>
@@ -288,8 +353,17 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 						Cancelar
 					</Button>
 					<Button type="submit" loading={loading}>
-						<Plus className="w-4 h-4 mr-2" />
-						Agregar a factura
+						{detalle ? (
+							<>
+								<Edit className="w-4 h-4 mr-2" />
+								Actualizar ítem
+							</>
+						) : (
+							<>
+								<Plus className="w-4 h-4 mr-2" />
+								Agregar a factura
+							</>
+						)}
 					</Button>
 				</div>
 			</form>

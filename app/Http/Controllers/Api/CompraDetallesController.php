@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\DB;
 
 class CompraDetallesController extends Controller
 {
+    private function authorizeAdmin()
+    {
+        if (!auth()->user()->hasRole('superadmin') && !auth()->user()->hasRole('admin')) {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
+    }
+
     public function store(Request $request, Compra $compra)
     {
         $validated = $request->validate([
@@ -118,8 +125,109 @@ class CompraDetallesController extends Controller
         ], 201);
     }
 
+    public function update(Request $request, Compra $compra, CompraDetalle $detalle)
+    {
+        $this->authorizeAdmin();
+        $validated = $request->validate([
+            'referencia_id' => 'required|exists:referencias,id',
+            'bodega_id' => 'required|exists:bodegas,id',
+            'modo' => 'required|in:cajas,tallado',
+            'numero_cajas' => 'nullable|integer',
+            'pares_por_caja' => 'nullable|integer',
+            'cantidad' => 'required|integer|min:1',
+            'precio_unitario' => 'required|numeric|min:0',
+            'precio_venta' => 'required|numeric|min:0',
+            'tallas' => 'nullable|array',
+            'tallas.*.size' => 'required_with:tallas|string',
+            'tallas.*.qty' => 'required_with:tallas|integer|min:0',
+            'tallas.*.estanteria_id' => 'required_if:modo,tallado|exists:estanterias,id',
+        ]);
+
+        $subtotal = $validated['cantidad'] * $validated['precio_unitario'];
+
+        $detalle = DB::transaction(function () use ($compra, $detalle, $validated, $subtotal) {
+            // 1. REVERT OLD EFFECTS
+            if ($detalle->modo === 'tallado' && !empty($detalle->tallas)) {
+                $cuenta_id = auth()->user()->cuenta_id ?? $compra->cuenta_id;
+                foreach ($detalle->tallas as $tallaData) {
+                    $inventario = Inventario::where([
+                        'cuenta_id' => $cuenta_id,
+                        'referencia_id' => $detalle->referencia_id,
+                        'estanteria_id' => $tallaData['estanteria_id'],
+                        'talla' => $tallaData['size'],
+                    ])->first();
+
+                    if ($inventario) {
+                        $inventario->decrement('stock', $tallaData['qty']);
+                    }
+                }
+            }
+
+            if ($detalle->modo === 'cajas') {
+                Caja::where('compra_detalle_id', $detalle->id)->delete();
+            }
+
+            // 2. UPDATE DETAIL
+            $detalle->update([
+                'referencia_id' => $validated['referencia_id'],
+                'bodega_id' => $validated['bodega_id'],
+                'modo' => $validated['modo'],
+                'numero_cajas' => $validated['numero_cajas'] ?? null,
+                'pares_por_caja' => $validated['pares_por_caja'] ?? null,
+                'cantidad' => $validated['cantidad'],
+                'precio_unitario' => $validated['precio_unitario'],
+                'precio_venta' => $validated['precio_venta'],
+                'tallas' => $validated['tallas'] ?? null,
+                'subtotal' => $subtotal,
+            ]);
+
+            // 3. APPLY NEW EFFECTS
+            if ($detalle->modo === 'tallado' && !empty($detalle->tallas)) {
+                $cuenta_id = auth()->user()->cuenta_id ?? $compra->cuenta_id;
+                foreach ($detalle->tallas as $tallaData) {
+                    $inventario = Inventario::updateOrCreate(
+                        [
+                            'cuenta_id' => $cuenta_id,
+                            'referencia_id' => $detalle->referencia_id,
+                            'estanteria_id' => $tallaData['estanteria_id'],
+                            'talla' => $tallaData['size'],
+                        ],
+                        [
+                            'precio_compra' => $detalle->precio_unitario,
+                            'precio_venta' => $detalle->precio_venta,
+                        ]
+                    );
+                    $inventario->increment('stock', $tallaData['qty']);
+                }
+            }
+
+            if ($detalle->modo === 'cajas') {
+                $cuenta_id = auth()->user()->cuenta_id ?? $compra->cuenta_id;
+                Caja::create([
+                    'cuenta_id' => $cuenta_id,
+                    'referencia_id' => $detalle->referencia_id,
+                    'bodega_id' => $detalle->bodega_id,
+                    'compra_id' => $compra->id,
+                    'compra_detalle_id' => $detalle->id,
+                    'pares_por_caja' => $detalle->pares_por_caja,
+                    'cantidad' => $detalle->cantidad,
+                    'precio_compra' => $detalle->precio_unitario,
+                    'precio_venta' => $detalle->precio_venta,
+                ]);
+            }
+
+            return $detalle;
+        });
+
+        return response()->json([
+            'message' => 'Ítem actualizado correctamente',
+            'data' => $detalle->load('producto')
+        ]);
+    }
+
     public function destroy(Compra $compra, CompraDetalle $detalle)
     {
+        $this->authorizeAdmin();
         DB::transaction(function () use ($compra, $detalle) {
             if ($detalle->modo === 'tallado' && !empty($detalle->tallas)) {
                 $cuenta_id = auth()->user()->cuenta_id ?? $compra->cuenta_id;

@@ -114,6 +114,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('proveedores', ApiProveedoresController::class)->names('api.proveedores');
         Route::apiResource('compras', ApiComprasController::class)->names('api.compras');
         Route::post('compras/{compra}/detalles', [App\Http\Controllers\Api\CompraDetallesController::class, 'store'])->name('api.compra_detalles.store');
+        Route::put('compras/{compra}/detalles/{detalle}', [App\Http\Controllers\Api\CompraDetallesController::class, 'update'])->name('api.compra_detalles.update');
         Route::delete('compras/{compra}/detalles/{detalle}', [App\Http\Controllers\Api\CompraDetallesController::class, 'destroy'])->name('api.compra_detalles.destroy');
 
         Route::get('inventario/export-csv', [ApiInventariosController::class, 'exportCsv'])->name('api.inventario.export-csv');
@@ -122,11 +123,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Traslados
         Route::prefix('traslados')->group(function () {
-            Route::get('{traslado}', [App\Http\Controllers\TrasladosController::class, 'show'])->name('api.traslados.show');
             Route::get('referencias', [App\Http\Controllers\TrasladosController::class, 'getReferenciasByCuenta'])->name('api.traslados.referencias');
             Route::get('bodegas', [App\Http\Controllers\TrasladosController::class, 'getBodegasByCuenta'])->name('api.traslados.bodegas');
             Route::get('estanterias', [App\Http\Controllers\TrasladosController::class, 'getEstanteriasByBodega'])->name('api.traslados.estanterias');
             Route::get('inventory', [App\Http\Controllers\TrasladosController::class, 'getInventoryByReference'])->name('api.traslados.inventory');
+            Route::get('{traslado}', [App\Http\Controllers\TrasladosController::class, 'show'])->name('api.traslados.show');
         });
 
         // Muestras

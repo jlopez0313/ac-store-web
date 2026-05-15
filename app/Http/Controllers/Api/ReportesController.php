@@ -13,7 +13,8 @@ class ReportesController extends Controller
         $user = auth()->user();
         $isSuper = $user->role === 'superadmin';
 
-        $query = \App\Models\Venta::with(['local', 'cuenta'])
+        $query = \App\Models\Venta::select('ventas.*')
+            ->with(['local', 'cuenta'])
             ->withSum('detalles as total_cantidad', 'cantidad')
             ->withSum('detalles as total_valor', 'subtotal')
             ->withExists('devoluciones as has_returns');
@@ -44,13 +45,17 @@ class ReportesController extends Controller
         $sortMap = [
             'factura_numero' => 'numero',
             'fecha' => 'fecha',
-            'local' => 'user_id', // Simplified, better would be join for name
+            'local' => 'users.name',
             'items_count' => 'total_cantidad',
             'total' => 'total_valor',
-            'id' => 'id'
+            'id' => 'ventas.id'
         ];
 
-        $column = $sortMap[$sortBy] ?? 'id';
+        if ($sortBy === 'local') {
+            $query->leftJoin('users', 'ventas.user_id', '=', 'users.id');
+        }
+
+        $column = $sortMap[$sortBy] ?? 'ventas.id';
         $query->orderBy($column, $sortDir);
 
         // Totals for KPIs (using VentaDetalle to get the same logic as before)
