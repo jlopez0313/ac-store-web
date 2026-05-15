@@ -29,15 +29,6 @@ export const customStyles = {
       paddingRight: '16px',
       borderRightWidth: '1px',
       borderRightColor: 'var(--border)',
-      '&.actions-col': {
-        position: 'sticky',
-        right: 0,
-        backgroundColor: 'var(--muted)',
-        zIndex: 3,
-        boxShadow: '-2px 0 5px rgba(0,0,0,0.05)',
-        borderLeftWidth: '1px',
-        borderLeftColor: 'var(--border)',
-      },
     } as any
   },
   rows: {
