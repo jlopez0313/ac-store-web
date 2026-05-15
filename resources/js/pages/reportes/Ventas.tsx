@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { BarChart3, Calendar, Eye, ImageIcon, MapPin, Package, RefreshCw, ShoppingCart, X } from 'lucide-react';
+import { BarChart3, Calendar, Eye, ImageIcon, MapPin, Package, RefreshCw, Search, ShoppingCart } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -373,7 +373,7 @@ export default function Ventas({ cuentas, locales }: any) {
                                     Buscar
                                 </Button>
                                 <Button variant="outline" onClick={handleClear} size="icon" className="h-10 w-10 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-all" title="Limpiar filtros">
-                                    <X className="h-4 w-4" />
+                                    <Search className="h-4 w-4" />
                                 </Button>
                             </div>
                         </div>
