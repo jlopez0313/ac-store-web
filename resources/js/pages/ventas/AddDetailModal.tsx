@@ -9,7 +9,7 @@ import { ViewerModal } from '@/components/ui/ViewerModal';
 import { showAlert } from '@/plugins/sweetalert';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { AlertCircle, Box, Image as ImageIcon, Minus, Plus, Search, Warehouse } from 'lucide-react';
+import { AlertCircle, Box, Image as ImageIcon, Minus, Plus, RefreshCw, Search, Warehouse } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, bodega_accesos, onAdded }: any) => {
@@ -488,6 +488,12 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
                     <div className="flex-1 overflow-y-auto" ref={scrollRef} onScroll={handleScroll}>
                         {mode === 'search' ? (
                             <div className="divide-y divide-border">
+                                {loading && results.length === 0 && (
+                                    <div className="p-12 text-center text-slate-400">
+                                        <RefreshCw className="mx-auto mb-4 h-12 w-12 animate-spin opacity-20" />
+                                        <p className="text-sm font-medium italic">Buscando referencias...</p>
+                                    </div>
+                                )}
                                 {displayResults.map((r: any) => (
                                     <div
                                         key={r.id}
