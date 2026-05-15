@@ -26,8 +26,8 @@ export default function Ventas({ cuentas, locales }: any) {
     const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
     const [filters, setFilters] = useState({
-        desde: '',
-        hasta: '',
+        desde: today,
+        hasta: today,
         local_id: '',
         cuenta_id: 'all',
     });
@@ -65,10 +65,10 @@ export default function Ventas({ cuentas, locales }: any) {
 
     useEffect(() => {
         fetchData({ page: 1 });
-    }, [filters.desde, filters.hasta, filters.local_id, filters.cuenta_id]);
+    }, []);
 
     const handleClear = () => {
-        setFilters({ desde: '', hasta: '', local_id: '', cuenta_id: 'all' });
+        setFilters({ desde: today, hasta: today, local_id: '', cuenta_id: 'all' });
     };
 
     const handleViewDetails = async (invoice: any) => {
@@ -360,6 +360,18 @@ export default function Ventas({ cuentas, locales }: any) {
                             </div>
 
                             <div className="flex items-center gap-2">
+                                <Button
+                                    onClick={() => fetchData({ page: 1 })}
+                                    className="h-10 px-6 font-bold"
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <RefreshCw className="mr-2 h-4 w-4" />
+                                    )}
+                                    Buscar
+                                </Button>
                                 <Button variant="outline" onClick={handleClear} size="icon" className="h-10 w-10 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-all" title="Limpiar filtros">
                                     <X className="h-4 w-4" />
                                 </Button>
