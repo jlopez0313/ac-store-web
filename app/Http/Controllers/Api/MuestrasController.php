@@ -42,8 +42,41 @@ class MuestrasController extends Controller
             });
         }
 
-        $query->orderBy($sortField, $sortOrder);
+        if ($sortField === 'fecha') {
+            $sortField = 'created_at';
+        }
+
+        if ($sortField === 'bodega_original' || $sortField === 'estante_original') {
+            // Join to sort by related warehouse/shelf
+            $query->leftJoin('inventarios', 'muestras.inventario_id', '=', 'inventarios.id')
+                  ->leftJoin('estanterias', 'inventarios.estanteria_id', '=', 'estanterias.id')
+                  ->leftJoin('bodegas', 'estanterias.bodega_id', '=', 'bodegas.id');
+                  
+            if ($sortField === 'bodega_original') {
+                $query->orderBy('bodegas.nombre', $sortOrder);
+            } else {
+                $query->orderBy('estanterias.nombre', $sortOrder);
+            }
+            // Ensure we select only muestras columns to avoid overriding id
+            $query->select('muestras.*');
+        } elseif ($sortField === 'local_id') {
+            $query->leftJoin('users as locales', 'muestras.local_id', '=', 'locales.id')
+                  ->orderBy('locales.name', $sortOrder)
+                  ->select('muestras.*');
+        } elseif ($sortField === 'referencia_codigo' || $sortField === 'referencia_descripcion') {
+            $query->leftJoin('referencias', 'muestras.referencia_id', '=', 'referencias.id');
+            if ($sortField === 'referencia_codigo') {
+                $query->orderBy('referencias.codigo', $sortOrder);
+            } else {
+                $query->orderBy('referencias.descripcion', $sortOrder);
+            }
+            $query->select('muestras.*');
+        } else {
+            $query->orderBy("muestras.$sortField", $sortOrder);
+        }
+
         $paginated = $query->paginate($request->input('per_page', 25));
+
 
         return MuestraResource::collection($paginated);
     }

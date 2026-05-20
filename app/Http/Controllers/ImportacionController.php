@@ -128,6 +128,52 @@ class ImportacionController extends Controller
         return response()->json(['status' => 'partial', 'received' => $chunkIndex + 1, 'total' => $totalChunks]);
     }
 
+    public function chunkShelfCsv(Request $request): JsonResponse
+    {
+        $request->validate([
+            'file' => 'required|file',
+            'uploadId' => 'required|string|max:64',
+            'chunkIndex' => 'required|integer|min:0',
+            'totalChunks' => 'required|integer|min:1',
+        ]);
+
+        $uploadId = preg_replace('/[^a-zA-Z0-9_-]/', '', $request->uploadId);
+        $chunkIndex = (int) $request->chunkIndex;
+        $totalChunks = (int) $request->totalChunks;
+
+        $chunkDir = storage_path("app/importacion/chunks/{$uploadId}_shelf_csv");
+        if (!is_dir($chunkDir)) {
+            mkdir($chunkDir, 0755, true);
+        }
+
+        $request->file('file')->move($chunkDir, "chunk_{$chunkIndex}");
+
+        $isLast = ($chunkIndex + 1) === $totalChunks;
+
+        if ($isLast) {
+            for ($i = 0; $i < $totalChunks; ++$i) {
+                if (!file_exists("{$chunkDir}/chunk_{$i}")) {
+                    return response()->json(['status' => 'waiting', 'missing' => $i]);
+                }
+            }
+
+            $finalPath = storage_path("app/importacion/{$uploadId}_shelf_inventario.csv");
+            $out = fopen($finalPath, 'wb');
+            for ($i = 0; $i < $totalChunks; ++$i) {
+                $chunkFile = "{$chunkDir}/chunk_{$i}";
+                fwrite($out, file_get_contents($chunkFile));
+            }
+            fclose($out);
+
+            array_map('unlink', glob("{$chunkDir}/chunk_*"));
+            rmdir($chunkDir);
+
+            return response()->json(['status' => 'complete', 'uploadId' => $uploadId]);
+        }
+
+        return response()->json(['status' => 'partial', 'received' => $chunkIndex + 1, 'total' => $totalChunks]);
+    }
+
     // ─────────────────────────────────────────────────────
     // DISPARAR JOB
     // ─────────────────────────────────────────────────────
@@ -164,6 +210,13 @@ class ImportacionController extends Controller
             $csvFilePath = $csvPath;
         }
 
+        // CSV de estanterías (opcional)
+        $shelfCsvFilePath = '';
+        $shelfCsvPath = storage_path("app/importacion/{$uploadId}_shelf_inventario.csv");
+        if (file_exists($shelfCsvPath)) {
+            $shelfCsvFilePath = $shelfCsvPath;
+        }
+
         // El Excel solo es necesario si se importa algo distinto de solo inventario o estantería
         $pasosSoloCsv = ['inventario', 'estanteria_inventario'];
         $soloCsv = !empty($solo);
@@ -175,7 +228,7 @@ class ImportacionController extends Controller
                 }
             }
         }
-        $necesitaExcel = !$soloCsv || !$csvFilePath;
+        $necesitaExcel = !$soloCsv || (!$csvFilePath && !$shelfCsvFilePath);
 
         if ($necesitaExcel && !file_exists($filePath)) {
             return response()->json(['error' => 'Archivo Excel no encontrado. ¿Se completó el upload?'], 422);
@@ -202,6 +255,7 @@ class ImportacionController extends Controller
             userId: (int) auth()->id(),
             csvFilePath: $csvFilePath,
             refDesde: trim((string) $request->input('ref_desde', '')),
+            shelfCsvFilePath: $shelfCsvFilePath,
         )->onQueue('importacion');
 
         return response()->json(['jobKey' => $jobKey]);

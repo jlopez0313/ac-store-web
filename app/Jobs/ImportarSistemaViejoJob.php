@@ -38,6 +38,10 @@ class ImportarSistemaViejoJob implements ShouldQueue
     private array $mapCompras = [];
     private array $mapVentas = [];
     private string $csvInventarioPath = '';
+    private string $csvFilePath = '';
+    private string $refDesde = '';
+    private string $shelfCsvFilePath = '';
+    private int $userId = 1;
     private array $sheetsCache = [];
 
     private int $rolLocalId = 0;
@@ -51,10 +55,15 @@ class ImportarSistemaViejoJob implements ShouldQueue
         private readonly bool $dryRun,
         private readonly string $soloStep,
         private readonly string $jobKey,
-        private readonly int $userId,
-        private readonly string $csvFilePath = '',
-        private readonly string $refDesde = '',
+        int $userId = 1,
+        string $csvFilePath = '',
+        string $refDesde = '',
+        string $shelfCsvFilePath = '',
     ) {
+        $this->userId = $userId;
+        $this->csvFilePath = $csvFilePath;
+        $this->refDesde = $refDesde;
+        $this->shelfCsvFilePath = $shelfCsvFilePath;
     }
 
     // ─────────────────────────────────────────────────────
@@ -448,6 +457,7 @@ class ImportarSistemaViejoJob implements ShouldQueue
             $username = $this->generarUsernameUnico($nombreNorm);
             $emailUso = $email ?: ($username . '@' . $this->cuentaDomain);
             $estado = $activo ? 1 : 0;
+            $documentoFinal = (strlen($nit) >= 6) ? $nit : 'acstore123';
 
             if (!$this->dryRun) {
                 // Búsqueda siempre dentro de la cuenta actual
@@ -470,8 +480,6 @@ class ImportarSistemaViejoJob implements ShouldQueue
                 }
 
                 $usernameUnico = $username;
-
-                $documentoFinal = (strlen($nit) >= 6) ? $nit : 'acstore123';
 
                 $userId = DB::table('users')->insertGetId([
                     'cuenta_id' => null, // Independent local user
@@ -1171,7 +1179,9 @@ class ImportarSistemaViejoJob implements ShouldQueue
     {
         $this->ensureMaps();
         $this->buildMapLocalesFromSheet();
-        $csvPath = $this->ensureCsvInventario();
+        
+        $csvPath = $this->shelfCsvFilePath ?: $this->ensureCsvInventario();
+        
         if (!$csvPath) {
             $this->log('  ERROR: No se pudo encontrar o generar el CSV.');
             return;

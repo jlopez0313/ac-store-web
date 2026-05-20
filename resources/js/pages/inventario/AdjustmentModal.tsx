@@ -115,7 +115,8 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 		}));
 	};
 
-	const hasErrors = isBodega && form.detalles.some(d => d.stock < d.original_stock);
+	// const hasErrors = isBodega && form.detalles.some(d => d.stock < d.original_stock);
+	const hasErrors = false;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -249,7 +250,8 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 							</TableHeader>
 							<TableBody>
 								{form.detalles.map((det) => {
-									const isInvalid = isBodega && det.stock < det.original_stock;
+									// const isInvalid = isBodega && det.stock < det.original_stock;
+									const isInvalid = false;
 									return (
 										<TableRow key={det.talla} className={isInvalid ? 'bg-red-50' : ''}>
 											<TableCell className="text-center font-bold">{det.talla}</TableCell>

@@ -111,13 +111,17 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
         },
         {
             name: 'Referencia',
-            cell: (row: any) => (
-                <div className="flex flex-col">
-                    <span className="font-bold">{row.referencia?.codigo}</span>
-                    <span className="line-clamp-1 text-[10px] text-slate-500">{row.referencia?.descripcion}</span>
-                </div>
-            ),
+            selector: (row: any) => row.referencia?.codigo,
+            cell: (row: any) => <span className="font-bold">{row.referencia?.codigo}</span>,
             sortable: true,
+            sortField: 'referencia_codigo',
+        },
+        {
+            name: 'Descripción',
+            selector: (row: any) => row.referencia?.descripcion,
+            cell: (row: any) => <span className="line-clamp-1 text-xs text-slate-500">{row.referencia?.descripcion}</span>,
+            sortable: true,
+            sortField: 'referencia_descripcion',
         },
         {
             name: 'Talla',
@@ -125,15 +129,16 @@ export default function Index({ filters: initialFilters, cuentas, locals }: any)
             width: '80px',
         },
         {
-            name: 'Ubicación Original',
-            cell: (row: any) => (
-                <div className="text-[10px] leading-tight text-slate-600 dark:text-slate-400">
-                    <div>{row.bodega_original}</div>
-                    <div className="text-slate-400 dark:text-slate-500">Estante: {row.estante_original}</div>
-                </div>
-            ),
+            name: 'Bodega',
+            selector: (row: any) => row.bodega_original,
             sortable: true,
             sortField: 'bodega_original',
+        },
+        {
+            name: 'Estante',
+            selector: (row: any) => row.estante_original,
+            sortable: true,
+            sortField: 'estante_original',
         },
         {
             name: 'Etiquetas',

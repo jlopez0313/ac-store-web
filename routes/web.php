@@ -54,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [ImportacionController::class, 'index'])->name('index');
             Route::post('/chunk', [ImportacionController::class, 'chunk'])->name('chunk');
             Route::post('/chunk-csv', [ImportacionController::class, 'chunkCsv'])->name('chunkCsv');
+            Route::post('/chunk-shelf-csv', [ImportacionController::class, 'chunkShelfCsv'])->name('chunkShelfCsv');
             Route::post('/ejecutar', [ImportacionController::class, 'ejecutar'])->name('ejecutar');
             Route::get('/progreso', [ImportacionController::class, 'progreso'])->name('progreso');
         });

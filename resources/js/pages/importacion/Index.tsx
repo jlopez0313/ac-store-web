@@ -60,6 +60,13 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
     const [csvUploadDone, setCsvUploadDone] = useState(false);
     const [csvUploading, setCsvUploading] = useState(false);
 
+    // Shelf CSV state
+    const [shelfFile, setShelfFile] = useState<File | null>(null);
+    const [shelfDragOver, setShelfDragOver] = useState(false);
+    const [shelfUploadPct, setShelfUploadPct] = useState(0);
+    const [shelfUploadDone, setShelfUploadDone] = useState(false);
+    const [shelfUploading, setShelfUploading] = useState(false);
+
     // Shared upload ID
     const [uploadId, setUploadId] = useState<string | null>(null);
 
@@ -70,6 +77,7 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
 
     const excelRef = useRef<HTMLInputElement>(null);
     const csvRef = useRef<HTMLInputElement>(null);
+    const shelfRef = useRef<HTMLInputElement>(null);
     const pollingRef = useRef<any>(null);
 
     const generarUploadId = () => {
@@ -142,6 +150,27 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
         }
     };
 
+    // ─── Shelf CSV handlers ───
+    const handleShelfDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setShelfDragOver(false);
+        const f = e.dataTransfer.files[0];
+        if (f?.name.endsWith('.csv')) {
+            setShelfFile(f);
+            setShelfUploadDone(false);
+            setShelfUploadPct(0);
+        }
+    }, []);
+
+    const handleShelfFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0];
+        if (f) {
+            setShelfFile(f);
+            setShelfUploadDone(false);
+            setShelfUploadPct(0);
+        }
+    };
+
     // ─── Subir CSV inventario (chunked) ───
     const subirCsv = async (uid: string) => {
         if (!csvFile || csvUploadDone) return;
@@ -165,11 +194,42 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                 uploaded++;
                 const pct = Math.round((uploaded / total) * 100);
                 setCsvUploadPct(pct);
-                setProgreso((prev) => (prev ? { ...prev, pct, mensaje: `Subiendo CSV: ${pct}%` } : null));
+                setProgreso((prev) => (prev ? { ...prev, pct, mensaje: `Subiendo CSV Inventario: ${pct}%` } : null));
             }
             setCsvUploadDone(true);
         } finally {
             setCsvUploading(false);
+        }
+    };
+
+    // ─── Subir CSV estanterías (chunked) ───
+    const subirShelfCsv = async (uid: string) => {
+        if (!shelfFile || shelfUploadDone) return;
+        setShelfUploading(true);
+        try {
+            const total = Math.ceil(shelfFile.size / CHUNK_SIZE);
+            let uploaded = 0;
+
+            for (let i = 0; i < total; i++) {
+                const blob = shelfFile.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+                const form = new FormData();
+                form.append('file', blob);
+                form.append('uploadId', uid);
+                form.append('chunkIndex', i.toString());
+                form.append('totalChunks', total.toString());
+
+                await axios.post(route('importar.chunkShelfCsv'), form, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                });
+
+                uploaded++;
+                const pct = Math.round((uploaded / total) * 100);
+                setShelfUploadPct(pct);
+                setProgreso((prev) => (prev ? { ...prev, pct, mensaje: `Subiendo CSV Estanterías: ${pct}%` } : null));
+            }
+            setShelfUploadDone(true);
+        } finally {
+            setShelfUploading(false);
         }
     };
 
@@ -211,9 +271,15 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
             }
 
             // 2. Subir CSV de inventario si existe
-            if ((secInventario || secEstanteria) && csvFile && !csvUploadDone) {
+            if (secInventario && csvFile && !csvUploadDone) {
                 setProgreso((prev) => (prev ? { ...prev, pct: 0, mensaje: 'Subiendo CSV inventario...' } : null));
                 await subirCsv(uid);
+            }
+
+            // 2.1 Subir CSV de estanterías si existe
+            if (secEstanteria && shelfFile && !shelfUploadDone) {
+                setProgreso((prev) => (prev ? { ...prev, pct: 0, mensaje: 'Subiendo CSV estanterías...' } : null));
+                await subirShelfCsv(uid);
             }
 
             // 3. Construir parámetro solo (comma-separated steps de secciones activas)
@@ -520,7 +586,6 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                                     checked={secEstanteria}
                                     onChange={(e) => {
                                         setSecEstanteria(e.target.checked);
-                                        if (e.target.checked) setSecInventario(false); // Mutualmente excluyentes para evitar errores si el formato es distinto
                                     }}
                                     disabled={estaActivo}
                                     className="h-4 w-4 rounded border-gray-300 text-blue-600 dark:border-gray-600 dark:bg-gray-700"
@@ -530,13 +595,77 @@ export default function ImportarSistemaViejo({ cuentas }: { cuentas: any[] }) {
                                     <p className="text-xs text-gray-500 dark:text-gray-400">Solo modifica la ubicación física del stock actual</p>
                                 </div>
                             </div>
+
+                            {secEstanteria && (
+                                <div
+                                    onClick={() => !shelfUploading && !shelfUploadDone && shelfRef.current?.click()}
+                                    onDrop={handleShelfDrop}
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        setShelfDragOver(true);
+                                    }}
+                                    onDragLeave={() => setShelfDragOver(false)}
+                                    className={`mt-2 rounded-lg border-2 border-dashed p-4 text-center transition-colors ${
+                                        shelfDragOver
+                                            ? 'cursor-pointer border-blue-400 bg-blue-50 dark:bg-blue-950/30'
+                                            : shelfUploadDone
+                                                ? 'border-green-400 bg-green-50 dark:bg-green-950/30'
+                                                : shelfFile
+                                                    ? 'cursor-pointer border-amber-400 bg-amber-50 dark:bg-amber-950/30'
+                                                    : 'cursor-pointer border-gray-300 bg-white hover:border-gray-400 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500'
+                                    }`}
+                                >
+                                    <input ref={shelfRef} type="file" accept=".csv" className="hidden" onChange={handleShelfFile} />
+
+                                    {shelfUploadDone ? (
+                                        <>
+                                            <div className="mb-1 text-xl">✅</div>
+                                            <p className="text-xs font-medium text-green-700">{shelfFile!.name}</p>
+                                            <p className="text-xs text-green-600">{(shelfFile!.size / 1024 / 1024).toFixed(1)} MB</p>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setShelfFile(null);
+                                                    setShelfUploadDone(false);
+                                                    setShelfUploadPct(0);
+                                                }}
+                                                className="mt-1 text-xs text-red-500 hover:underline"
+                                            >
+                                                Cambiar
+                                            </button>
+                                        </>
+                                    ) : shelfFile ? (
+                                        <>
+                                            <div className="mb-1 text-xl">📄</div>
+                                            <p className="text-xs font-medium text-amber-700">{shelfFile.name}</p>
+                                            <p className="text-xs text-amber-600">{(shelfFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                                            {shelfUploading && (
+                                                <div className="mt-2">
+                                                    <div className="h-1.5 w-full rounded-full bg-gray-200">
+                                                        <div
+                                                            className="h-1.5 rounded-full bg-blue-500 transition-all"
+                                                            style={{ width: `${shelfUploadPct}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="mb-1 text-xl text-gray-400">📍</div>
+                                            <p className="text-xs text-gray-600">CSV de Estanterías</p>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="mt-2 divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-100 dark:divide-gray-700 dark:border-gray-700">
                                 <PasoRow paso={PASO_ESTANTERIA_INVENTARIO} index={6} disabled={!secEstanteria} progreso={progreso} />
                             </div>
                         </div>
 
-                        {(secInventario || secEstanteria) && !csvFile && (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/30">
+                        {secInventario && !csvFile && (
+                            <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-950/30">
                                 <p className="text-xs text-amber-700 dark:text-amber-400">
                                     Si no subes CSV, el inventario se generará desde el Excel (más lento).
                                 </p>
