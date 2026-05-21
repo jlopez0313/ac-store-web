@@ -7,7 +7,7 @@ import { ViewerModal } from '@/components/ui/ViewerModal';
 import { showAlert } from '@/plugins/sweetalert';
 import axios from 'axios';
 import { Printer, Warehouse } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface CreateStickersModalProps {
 	isOpen: boolean;
@@ -70,6 +70,9 @@ export const CreateStickersModal: React.FC<CreateStickersModalProps> = ({ isOpen
 		}
 	}, [isOpen, referencia]);
 
+	const currentBodega = filteredBodegas.find((b: any) => String(b.id) === String(targetWarehouse));
+	const shelves = [...(currentBodega?.estanterias || [])].sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
+
 	if (!referencia) return null;
 
 	const updateSizedRow = (index: number, field: string, value: string) => {
@@ -124,11 +127,7 @@ export const CreateStickersModal: React.FC<CreateStickersModalProps> = ({ isOpen
 		}
 	};
 
-	const currentBodega = filteredBodegas.find((b: any) => String(b.id) === String(targetWarehouse));
-	const shelves = useMemo(() => {
-		const list = currentBodega?.estanterias || [];
-		return [...list].sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
-	}, [currentBodega]);
+
 
 	return (
 		<Modal

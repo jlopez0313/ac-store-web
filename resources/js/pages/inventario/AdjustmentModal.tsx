@@ -46,11 +46,14 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 
 	useEffect(() => {
 		if (isOpen && referencia) {
-			let initialDetails: { talla: string; stock: number }[] = [];
+			let initialDetails: { talla: string; stock: number; original_stock: number }[] = [];
 			const jsonStr = referencia.categoria?.variaciones_json;
-			const categorySizes = new Set<string>();
 
-			// 1. Get sizes from category variations
+			// Map de stock actual por talla para consulta rápida
+			const stockMap = new Map<string, number>();
+			items.forEach(item => stockMap.set(String(item.talla), Number(item.stock)));
+
+			// 1. Respetar el orden de variaciones_json de la categoría
 			if (jsonStr) {
 				try {
 					const parsed = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
@@ -60,7 +63,13 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 							if (typeof item === 'object' && item !== null) {
 								sizeLabel = String(item.text || item.nombre || item.talla || item.valor || Object.values(item)[0] || JSON.stringify(item));
 							}
-							categorySizes.add(sizeLabel);
+							const currentStock = stockMap.get(sizeLabel) ?? 0;
+							initialDetails.push({
+								talla: sizeLabel,
+								stock: currentStock,
+								original_stock: currentStock,
+							});
+							stockMap.delete(sizeLabel); // Marcar como procesada
 						});
 					}
 				} catch (e) {
@@ -68,23 +77,9 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 				}
 			}
 
-			// 2. Prioritize items that ALREADY exist in stock (even if not in category)
-			items.forEach(item => {
-				initialDetails.push({
-					talla: String(item.talla),
-					stock: Number(item.stock),
-					original_stock: Number(item.stock)
-				});
-				categorySizes.delete(String(item.talla)); // Avoid duplicates
-			});
-
-			// 3. Add remaining category sizes with 0 stock
-			categorySizes.forEach(sizeLabel => {
-				initialDetails.push({
-					talla: sizeLabel,
-					stock: 0,
-					original_stock: 0
-				});
+			// 2. Añadir al final tallas con stock que no estaban en la categoría
+			stockMap.forEach((stockVal, talla) => {
+				initialDetails.push({ talla, stock: stockVal, original_stock: stockVal });
 			});
 
 			setForm({
@@ -105,10 +100,7 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 	}, [isOpen, items, referencia, estanteria]);
 
 	const currentBodega = bodegas.find(b => b.id == form.nueva_bodega_id);
-	const availableShelves = useMemo(() => {
-		const shelves = currentBodega?.estanterias || [];
-		return [...shelves].sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
-	}, [currentBodega]);
+	const availableShelves = [...(currentBodega?.estanterias || [])].sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
 
 	const handleStockChange = (talla: string, value: string) => {
 		const newStock = parseInt(value) || 0;

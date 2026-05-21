@@ -143,7 +143,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                 }
                 return acc;
             }, [] as any[]);
-        return list.sort((a, b) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
+        return list.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
     }, [inventoryDetails, originBodega]);
 
     const originTallasDisponibles = useMemo(() => {

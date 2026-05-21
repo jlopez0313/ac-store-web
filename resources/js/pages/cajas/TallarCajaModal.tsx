@@ -7,7 +7,7 @@ import { ViewerModal } from '@/components/ui/ViewerModal';
 import { showAlert } from '@/plugins/sweetalert';
 import { router } from '@inertiajs/react';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas, onSuccess }: any) => {
 	const [sizedWarehouse, setSizedWarehouse] = useState('');
@@ -100,13 +100,10 @@ export const TallarCajaModal = ({ isOpen, onClose, caja, bodegas, onSuccess }: a
 		});
 	};
 
-	if (!caja) return null;
-
 	const currentBodega = bodegas.find((b: any) => String(b.id) === String(sizedWarehouse));
-	const shelves = useMemo(() => {
-		const list = currentBodega?.estanterias || [];
-		return [...list].sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
-	}, [currentBodega]);
+	const shelves = [...(currentBodega?.estanterias || [])].sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
+
+	if (!caja) return null;
 
 	return (
 		<Modal
