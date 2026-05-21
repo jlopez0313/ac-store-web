@@ -24,7 +24,8 @@ export const ManagementModal = ({ isOpen, onClose, bodega }: any) => {
         setLoading(true);
         try {
             const response = await axios.get(route('bodegas.estanterias.index', { bodega: bodega.id }));
-            setShelves(response.data.data || []);
+            const sorted = (response.data.data || []).sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
+            setShelves(sorted);
         } catch (error) {
             console.error('Error fetching shelves:', error);
         } finally {

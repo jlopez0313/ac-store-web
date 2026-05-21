@@ -105,7 +105,10 @@ export const AdjustmentModal: React.FC<AdjustmentModalProps> = ({ isOpen, onClos
 	}, [isOpen, items, referencia, estanteria]);
 
 	const currentBodega = bodegas.find(b => b.id == form.nueva_bodega_id);
-	const availableShelves = currentBodega?.estanterias || [];
+	const availableShelves = useMemo(() => {
+		const shelves = currentBodega?.estanterias || [];
+		return [...shelves].sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
+	}, [currentBodega]);
 
 	const handleStockChange = (talla: string, value: string) => {
 		const newStock = parseInt(value) || 0;

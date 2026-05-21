@@ -114,7 +114,8 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
     const fetchEstanterias = async (bodegaId: string) => {
         try {
             const res = await axios.get(route('api.traslados.estanterias', { bodega_id: bodegaId }));
-            setEstanteriasDestino(res.data);
+            const sorted = [...res.data].sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
+            setEstanteriasDestino(sorted);
         } catch (e) { }
     };
 
@@ -133,7 +134,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
     const originEstanteriasDisponibles = useMemo(() => {
         if (!originBodega) return [];
         const uniqueIds = new Set();
-        return inventoryDetails
+        const list = inventoryDetails
             .filter((item) => String(item.bodega_id) === String(originBodega))
             .reduce((acc, item) => {
                 if (!uniqueIds.has(item.estanteria_id)) {
@@ -142,6 +143,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                 }
                 return acc;
             }, [] as any[]);
+        return list.sort((a, b) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
     }, [inventoryDetails, originBodega]);
 
     const originTallasDisponibles = useMemo(() => {
@@ -155,11 +157,49 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
         return inventoryDetails.find((item) => String(item.estanteria_id) === String(originEstanteria) && String(item.talla) === String(originTalla));
     }, [inventoryDetails, originEstanteria, originTalla]);
 
+    const itemsOnOriginShelf = useMemo(() => {
+        if (!originEstanteria) return [];
+        return inventoryDetails.filter((item) => String(item.estanteria_id) === String(originEstanteria));
+    }, [inventoryDetails, originEstanteria]);
+
+    const totalStockOnOriginShelf = useMemo(() => {
+        return itemsOnOriginShelf.reduce((sum, item) => sum + Number(item.stock), 0);
+    }, [itemsOnOriginShelf]);
+
+    useEffect(() => {
+        if (originEstanteria) {
+            if (originTalla) {
+                const item = inventoryDetails.find((item) => String(item.estanteria_id) === String(originEstanteria) && String(item.talla) === String(originTalla));
+                if (item) {
+                    setCantidad(String(item.stock));
+                }
+            } else {
+                setCantidad(String(totalStockOnOriginShelf));
+            }
+        } else {
+            setCantidad('1');
+        }
+    }, [originEstanteria, originTalla, inventoryDetails, totalStockOnOriginShelf]);
+
+    const isTransferInvalid = useMemo(() => {
+        if (!destEstanteria) return true;
+        const qty = parseInt(cantidad) || 0;
+        if (qty < 1) return true;
+
+        if (originTalla) {
+            if (!selectedOriginItem) return true;
+            return qty > selectedOriginItem.stock;
+        } else {
+            if (!originEstanteria) return true;
+            return totalStockOnOriginShelf === 0 || qty !== totalStockOnOriginShelf;
+        }
+    }, [destEstanteria, cantidad, originTalla, selectedOriginItem, originEstanteria, totalStockOnOriginShelf]);
+
     const [processing, setProcessing] = useState(false);
 
     const handleApplyTransfer = () => {
-        if (!selectedOriginItem || !destEstanteria || !cantidad) {
-            showAlert('warning', 'Por favor completa todos los campos.');
+        if (isTransferInvalid) {
+            showAlert('warning', 'Por favor completa todos los campos correctamente.');
             return;
         }
 
@@ -168,8 +208,8 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
             route('traslados.store'),
             {
                 referencia_id: selectedRef,
-                talla: selectedOriginItem.talla,
-                estanteria_origen_id: selectedOriginItem.estanteria_id,
+                talla: originTalla || null,
+                estanteria_origen_id: originEstanteria,
                 estanteria_destino_id: destEstanteria,
                 cantidad: cantidad,
                 cuenta_id: selectedCuenta,
@@ -213,6 +253,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                                 setSelectedRef('');
                                 setInventoryDetails([]);
                             }}
+                            required={true}
                             error={''}
                         />
                     )}
@@ -229,6 +270,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                             }}
                             disabled={isSuperAdmin && !selectedCuenta}
                             placeholder={isSuperAdmin && !selectedCuenta ? 'Selecciona una cuenta primero' : 'Escribe el código o descripción...'}
+                            required={true}
                             error={''}
                         />
                         {loading && (
@@ -284,6 +326,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                                             setOriginEstanteria('');
                                             setOriginTalla('');
                                         }}
+                                        required={true}
                                         error={''}
                                     />
                                     <SelectField
@@ -297,6 +340,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                                             setOriginTalla('');
                                         }}
                                         disabled={!originBodega}
+                                        required={true}
                                         error={''}
                                     />
                                     <SelectField
@@ -307,6 +351,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                                         value={originTalla}
                                         onChange={(v) => setOriginTalla(v as string)}
                                         disabled={!originEstanteria}
+                                        placeholder="Todas las tallas (opcional)"
                                         error={''}
                                     />
                                 </div>
@@ -330,7 +375,8 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                                             setDestBodega(v as string);
                                             fetchEstanterias(v as string);
                                         }}
-                                        disabled={!selectedOriginItem}
+                                        disabled={!originEstanteria || totalStockOnOriginShelf === 0}
+                                        required={true}
                                         error={''}
                                     />
                                     <SelectField
@@ -341,6 +387,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                                         value={destEstanteria}
                                         onChange={(v) => setDestEstanteria(v as string)}
                                         disabled={!destBodega}
+                                        required={true}
                                         error={''}
                                     />
 
@@ -350,14 +397,15 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                                             title="Cantidad"
                                             type="number"
                                             min="1"
-                                            max={selectedOriginItem?.stock}
+                                            max={originTalla ? selectedOriginItem?.stock : totalStockOnOriginShelf}
                                             value={cantidad}
                                             onChange={(v) => setCantidad(v)}
-                                            disabled={!selectedOriginItem || processing}
+                                            disabled={!originEstanteria || !originTalla || processing}
+                                            required={true}
                                         />
-                                        {selectedOriginItem && (
+                                        {originEstanteria && (
                                             <p className="mt-1 text-[10px] text-slate-500 font-bold uppercase">
-                                                Disponible: {selectedOriginItem.stock} unidades
+                                                Disponible: {originTalla ? (selectedOriginItem?.stock || 0) : totalStockOnOriginShelf} unidades
                                             </p>
                                         )}
                                     </div>
@@ -370,7 +418,7 @@ export const TransferModal = ({ isOpen, onClose, cuentas, referenciasInit }: any
                             <Button
                                 className="w-full gap-3"
                                 onClick={handleApplyTransfer}
-                                disabled={processing || !destEstanteria || !selectedOriginItem || parseInt(cantidad) < 1 || parseInt(cantidad) > selectedOriginItem.stock}
+                                disabled={processing || isTransferInvalid}
                             >
                                 {processing ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowLeftRight className="h-5 w-5" />}
                                 {processing ? 'PROCESANDO TRASLADO...' : 'CONFIRMAR TRASLADO DE MERCANCÍA'}

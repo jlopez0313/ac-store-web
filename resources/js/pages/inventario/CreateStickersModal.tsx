@@ -7,7 +7,7 @@ import { ViewerModal } from '@/components/ui/ViewerModal';
 import { showAlert } from '@/plugins/sweetalert';
 import axios from 'axios';
 import { Printer, Warehouse } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface CreateStickersModalProps {
 	isOpen: boolean;
@@ -125,7 +125,10 @@ export const CreateStickersModal: React.FC<CreateStickersModalProps> = ({ isOpen
 	};
 
 	const currentBodega = filteredBodegas.find((b: any) => String(b.id) === String(targetWarehouse));
-	const shelves = currentBodega?.estanterias || [];
+	const shelves = useMemo(() => {
+		const list = currentBodega?.estanterias || [];
+		return [...list].sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
+	}, [currentBodega]);
 
 	return (
 		<Modal

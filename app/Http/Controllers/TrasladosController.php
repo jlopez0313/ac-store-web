@@ -105,7 +105,7 @@ class TrasladosController extends Controller
     {
         $request->validate([
             'referencia_id' => 'required|exists:referencias,id',
-            'talla' => 'required',
+            'talla' => 'nullable',
             'estanteria_origen_id' => 'required|exists:estanterias,id',
             'estanteria_destino_id' => 'required|exists:estanterias,id',
             'cantidad' => 'required|integer|min:1',
@@ -116,66 +116,111 @@ class TrasladosController extends Controller
 
             $cuenta_id = $request->input('cuenta_id', auth()->user()->cuenta_id);
 
-            // 1. Get source inventory
-            $origen = Inventario::with('estanteria')->where('referencia_id', $request->referencia_id)
-                ->where('talla', $request->talla)
-                ->where('estanteria_id', $request->estanteria_origen_id)
-                ->where('cuenta_id', $cuenta_id)
-                ->firstOrFail();
+            // Determine sizes and quantities to transfer
+            $itemsATrasladar = [];
+            if (empty($request->talla)) {
+                $inventariosOrigen = Inventario::with('estanteria')
+                    ->where('referencia_id', $request->referencia_id)
+                    ->where('estanteria_id', $request->estanteria_origen_id)
+                    ->where('cuenta_id', $cuenta_id)
+                    ->where('stock', '>', 0)
+                    ->get();
 
-            if ($origen->stock < $request->cantidad) {
-                DB::rollBack();
-                return back()->withErrors(['cantidad' => 'Stock insuficiente en el origen.']);
+                if ($inventariosOrigen->isEmpty()) {
+                    DB::rollBack();
+                    return back()->withErrors(['cantidad' => 'No hay stock disponible en el origen.']);
+                }
+
+                $totalStockDisponible = $inventariosOrigen->sum('stock');
+                if ($request->cantidad != $totalStockDisponible) {
+                    DB::rollBack();
+                    return back()->withErrors(['cantidad' => 'Para un traslado parcial, debe seleccionar una talla específica.']);
+                }
+
+                foreach ($inventariosOrigen as $item) {
+                    $itemsATrasladar[] = [
+                        'talla' => $item->talla,
+                        'cantidad' => $item->stock,
+                        'origen' => $item,
+                    ];
+                }
+            } else {
+                $origen = Inventario::with('estanteria')->where('referencia_id', $request->referencia_id)
+                    ->where('talla', $request->talla)
+                    ->where('estanteria_id', $request->estanteria_origen_id)
+                    ->where('cuenta_id', $cuenta_id)
+                    ->first();
+
+                if (!$origen || $origen->stock < $request->cantidad) {
+                    DB::rollBack();
+                    return back()->withErrors(['cantidad' => 'Stock insuficiente en el origen.']);
+                }
+
+                $itemsATrasladar[] = [
+                    'talla' => $request->talla,
+                    'cantidad' => $request->cantidad,
+                    'origen' => $origen,
+                ];
             }
 
-            // 2. Decrement source
-            $origen->decrement('stock', $request->cantidad);
+            $trasladosCreados = [];
+            foreach ($itemsATrasladar as $trans) {
+                $origenItem = $trans['origen'];
+                $tallaItem = $trans['talla'];
+                $cantItem = $trans['cantidad'];
 
-            // 3. Get or create destination inventory
-            $destino = Inventario::firstOrCreate(
-                [
-                    'referencia_id' => $request->referencia_id,
-                    'talla' => $request->talla,
-                    'estanteria_id' => $request->estanteria_destino_id,
+                // 2. Decrement source
+                $origenItem->decrement('stock', $cantItem);
+
+                // 3. Get or create destination inventory
+                $destinoItem = Inventario::firstOrCreate(
+                    [
+                        'referencia_id' => $request->referencia_id,
+                        'talla' => $tallaItem,
+                        'estanteria_id' => $request->estanteria_destino_id,
+                        'cuenta_id' => $cuenta_id,
+                    ],
+                    [
+                        'stock' => 0,
+                        'precio_compra' => $origenItem->precio_compra,
+                        'precio_venta' => $origenItem->precio_venta,
+                    ]
+                );
+
+                $destinoItem->increment('stock', $cantItem);
+                $destinoItem->load('estanteria');
+
+                // 4. Create traslado log
+                $traslado = Traslado::create([
                     'cuenta_id' => $cuenta_id,
-                ],
-                [
-                    'stock' => 0,
-                    'precio_compra' => $origen->precio_compra,
-                    'precio_venta' => $origen->precio_venta,
-                ]
-            );
+                    'referencia_id' => $request->referencia_id,
+                    'talla' => $tallaItem,
+                    'bodega_origen_id' => $origenItem->estanteria->bodega_id,
+                    'estanteria_origen_id' => $request->estanteria_origen_id,
+                    'bodega_destino_id' => $destinoItem->estanteria->bodega_id,
+                    'estanteria_destino_id' => $request->estanteria_destino_id,
+                    'cantidad' => $cantItem,
+                    'user_id' => auth()->id(),
+                ]);
 
-            $destino->increment('stock', $request->cantidad);
-
-            // Ensure we have the destination shelf relation for the transfer log
-            $destino->load('estanteria');
-
-            $traslado = Traslado::create([
-                'cuenta_id' => $cuenta_id,
-                'referencia_id' => $request->referencia_id,
-                'talla' => $request->talla,
-                'bodega_origen_id' => $origen->estanteria->bodega_id,
-                'estanteria_origen_id' => $request->estanteria_origen_id,
-                'bodega_destino_id' => $destino->estanteria->bodega_id,
-                'estanteria_destino_id' => $request->estanteria_destino_id,
-                'cantidad' => $request->cantidad,
-                'user_id' => auth()->id(),
-            ]);
+                $trasladosCreados[] = $traslado;
+            }
 
             // 5. Notify Firebase if destination bodega requires printing
-            $bodegaDestino = Bodega::find($destino->estanteria->bodega_id);
-            if ($bodegaDestino && $bodegaDestino->imprimir_traslados) {
-                try {
-                    $firebase = app('firebase.database');
-                    $firebase->getReference("print_requests/{$cuenta_id}")->push([
-                        'type' => 'traslado',
-                        'traslado_id' => $traslado->id,
-                        'created_at' => now()->timestamp * 1000,
-                        'local_name' => $bodegaDestino->nombre,
-                    ]);
-                } catch (\Exception $e) {
-                    \Log::error("Error pushing traslado to Firebase: " . $e->getMessage());
+            foreach ($trasladosCreados as $t) {
+                $bodegaDestino = Bodega::find($t->bodega_destino_id);
+                if ($bodegaDestino && $bodegaDestino->imprimir_traslados) {
+                    try {
+                        $firebase = app('firebase.database');
+                        $firebase->getReference("print_requests/{$cuenta_id}")->push([
+                            'type' => 'traslado',
+                            'traslado_id' => $t->id,
+                            'created_at' => now()->timestamp * 1000,
+                            'local_name' => $bodegaDestino->nombre,
+                        ]);
+                    } catch (\Exception $e) {
+                        \Log::error("Error pushing traslado to Firebase: " . $e->getMessage());
+                    }
                 }
             }
 

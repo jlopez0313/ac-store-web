@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { showAlert } from '@/plugins/sweetalert';
 import axios from 'axios';
 import { Edit, Layers, Package, Plus } from 'lucide-react';
-import { FormEventHandler, useEffect, useState } from 'react';
+import { FormEventHandler, useEffect, useMemo, useState } from 'react';
 
 type AddDetailForm = {
 	referencia_id: number | '';
@@ -32,6 +32,11 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 	const [sizedShelf, setSizedShelf] = useState('');
 
 	const [sizedRows, setSizedRows] = useState<{ size: string, qty: string }[]>([]);
+
+	const sizedShelves = useMemo(() => {
+		const list = bodegas.find((b: any) => String(b.id) === String(sizedWarehouse))?.estanterias || [];
+		return [...list].sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, undefined, { numeric: true, sensitivity: 'base' }));
+	}, [bodegas, sizedWarehouse]);
 
 	const updateSizedRow = (index: number, field: string, value: string) => {
 		const newRows = [...sizedRows];
@@ -304,7 +309,7 @@ export const AddDetailModal = ({ isOpen, onClose, referencia, factura, bodegas, 
 									item={{ idx: 'id', value: 'nombre' }}
 									name="sizedShelf"
 									title="Estantería"
-									lista={bodegas.find((b: any) => String(b.id) === String(sizedWarehouse))?.estanterias || []}
+									lista={sizedShelves}
 									value={sizedShelf}
 									onChange={(v) => setSizedShelf(v as string)}
 									error={""}
